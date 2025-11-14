@@ -1,0 +1,114 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Images\add.png" />
+    <None Remove="Images\addusers.png" />
+    <None Remove="Images\addusersarrow.png" />
+    <None Remove="Images\admin.png" />
+    <None Remove="Images\apply.png" />
+    <None Remove="Images\arrows.png" />
+    <None Remove="Images\check-mark.png" />
+    <None Remove="Images\delete-folder.png" />
+    <None Remove="Images\direction.png" />
+    <None Remove="Images\doc.png" />
+    <None Remove="Images\doublearrow.png" />
+    <None Remove="Images\doublearrowleft.png" />
+    <None Remove="Images\downbtn.png" />
+    <None Remove="Images\exclamation.png" />
+    <None Remove="Images\file_icon.png" />
+    <None Remove="Images\folder.png" />
+    <None Remove="Images\folderdesign.png" />
+    <None Remove="Images\group.png" />
+    <None Remove="Images\height.png" />
+    <None Remove="Images\jpg.png" />
+    <None Remove="Images\leftnext.png" />
+    <None Remove="Images\logo.png" />
+    <None Remove="Images\merge.png" />
+    <None Remove="Images\mergeAll.png" />
+    <None Remove="Images\mergeallicon.png" />
+    <None Remove="Images\pdf.png" />
+    <None Remove="Images\penimg.png" />
+    <None Remove="Images\process.png" />
+    <None Remove="Images\puzzle.png" />
+    <None Remove="Images\remove-file.png" />
+    <None Remove="Images\rightnext.png" />
+    <None Remove="Images\saveimg.png" />
+    <None Remove="Images\scannericon.png" />
+    <None Remove="Images\search_images.png" />
+    <None Remove="Images\showGroups.png" />
+    <None Remove="Images\shutdown.png" />
+    <None Remove="Images\split.png" />
+    <None Remove="Images\splitall.png" />
+    <None Remove="Images\stamp.png" />
+    <None Remove="Images\team.png" />
+    <None Remove="Images\uncheck.png" />
+    <None Remove="Images\upbtn.png" />
+    <None Remove="Images\uploadimg.png" />
+    <None Remove="Images\users.png" />
+    <None Remove="Images\usersarrow.png" />
+    <None Remove="Images\volume.png" />
+    <None Remove="Images\wfile.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FontAwesome.Sharp" Version="6.6.0" />
+    <PackageReference Include="FontAwesome.WPF" Version="4.7.0.9" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.9.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Images\add.png" />
+    <Resource Include="Images\addusersarrow.png" />
+    <Resource Include="Images\admin.png" />
+    <Resource Include="Images\apply.png" />
+    <Resource Include="Images\arrows.png" />
+    <Resource Include="Images\check-mark.png" />
+    <Resource Include="Images\delete-folder.png" />
+    <Resource Include="Images\direction.png" />
+    <Resource Include="Images\doc.png" />
+    <Resource Include="Images\doublearrow.png" />
+    <Resource Include="Images\doublearrowleft.png" />
+    <Resource Include="Images\downbtn.png" />
+    <Resource Include="Images\exclamation.png" />
+    <Resource Include="Images\file_icon.png" />
+    <Resource Include="Images\folder.png" />
+    <Resource Include="Images\folderdesign.png" />
+    <Resource Include="Images\group.png" />
+    <Resource Include="Images\height.png" />
+    <Resource Include="Images\jpg.png" />
+    <Resource Include="Images\leftnext.png" />
+    <Resource Include="Images\logo.png" />
+    <Resource Include="Images\merge.png" />
+    <Resource Include="Images\mergeallicon.png" />
+    <Resource Include="Images\pdf.png" />
+    <Resource Include="Images\penimg.png" />
+    <Resource Include="Images\process.png" />
+    <Resource Include="Images\puzzle.png" />
+    <Resource Include="Images\remove-file.png" />
+    <Resource Include="Images\rightnext.png" />
+    <Resource Include="Images\saveimg.png" />
+    <Resource Include="Images\scannericon.png" />
+    <Resource Include="Images\search_images.png" />
+    <Resource Include="Images\showGroups.png" />
+    <Resource Include="Images\shutdown.png" />
+    <Resource Include="Images\split.png" />
+    <Resource Include="Images\splitall.png" />
+    <Resource Include="Images\stamp.png" />
+    <Resource Include="Images\team.png" />
+    <Resource Include="Images\uncheck.png" />
+    <Resource Include="Images\upbtn.png" />
+    <Resource Include="Images\uploadimg.png" />
+    <Resource Include="Images\usersarrow.png" />
+    <Resource Include="Images\volume.png" />
+    <Resource Include="Images\wfile.png" />
+  </ItemGroup>
+
+</Project>
