@@ -40,9 +40,6 @@ namespace IMS
         public AuthorityWindow()
         {
             InitializeComponent();
-
-            // ----- Authority -----
-
             // Users
             LoadUsers();
 
@@ -63,7 +60,6 @@ namespace IMS
             CabSecurityAllUsers.ItemsSource = AllUsersWFGroup;
             ScrollDocumentUsersAllListBoxs.ItemsSource = AddedUsersWFGroup;
             
-            // (Optional) Set DataContext if you want to use bindings elsewhere
             DataContext = this;
         }
 
@@ -145,21 +141,6 @@ namespace IMS
             CabSecurityAllUsers.ItemsSource = usernames;
         }
 
-        //private void LoadUsers()
-        //{
-        //    var usernames = userRepo.GetAllUsernames();
-        //    UsersAvailableListBox.ItemsSource = usernames;
-        //    FunctionalSecurityAllUsers.ItemsSource = usernames;
-        //    CabSecurityAllUsers.ItemsSource = usernames;
-        //    // WF groups tab (ObservableCollection binding)
-        //    AllUsersWFGroup.Clear();
-        //    foreach (var user in usernames)
-        //    {
-        //        AllUsersWFGroup.Add(user);
-        //    }
-        //    //WFGroupsAllUsersListBox.ItemsSource = usernames;
-        //}
-
         private void UsersAvailableListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (UsersAvailableListBox.SelectedItem == null)
@@ -199,7 +180,7 @@ namespace IMS
 
         private void LoadFunctionalSecurityGroups()
         {
-            FunctionalSecurity security = new FunctionalSecurity();
+            var security = new FunctionalSecurity();
             List<FunctionalSecurityGroups> groups = security.GetFunctionalSecurityGroups();
 
             comboFunctionalSecurityGroups.ItemsSource = groups;
@@ -210,7 +191,7 @@ namespace IMS
 
         private void LoadDocumentSecurityGroups()
         {
-            CabSecurity cabSecurity = new CabSecurity();
+            var cabSecurity = new CabSecurity();
             List<FunctionalSecurityGroups> groups = cabSecurity.GetDocumentSecurityGroups();
 
             comboDocumentSecurityGroups.ItemsSource = groups;
@@ -377,15 +358,13 @@ namespace IMS
         //}
         private void btnMoveAllLeft_Click(object sender, RoutedEventArgs e)
         {
-            // Move all users from AddedUsersWFGroup back to AllUsersWFGroup
             foreach (var user in AddedUsersWFGroup.ToList())
             {
-                AllUsersWFGroup.Add(user); // Add first, regardless of original position
+                AllUsersWFGroup.Add(user); 
             }
 
             AddedUsersWFGroup.Clear();
 
-            // Reorder AllUsersWFGroup according to original positions
             var sorted = _originalUserPositions
                             .OrderBy(x => x.Value)
                             .Select(x => x.Key)
@@ -396,6 +375,166 @@ namespace IMS
             foreach (var user in sorted)
                 AllUsersWFGroup.Add(user);
         }
+        private string CurrentDSGroupName;
+        private int CurrentDSGroupID;
+        private int NewGroupIDCreated = -1; 
+        private string PrgLng = "E";
+        private void comboDocumentSecurityGroups_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (comboDocumentSecurityGroups.ItemsSource == null) return;
 
+            if (comboDocumentSecurityGroups.SelectedItem is FunctionalSecurityGroups sel)
+            {
+                CurrentDSGroupID = sel.GroupID;
+                CurrentDSGroupName = sel.DisplayText ?? sel.GroupName;
+            }
+            else
+            {
+                CurrentDSGroupName = (comboDocumentSecurityGroups.Text ?? string.Empty).Trim();
+                CurrentDSGroupID = ExtractGroupIdFromDisplayText(CurrentDSGroupName);
+                if (CurrentDSGroupID == 0) CurrentDSGroupID = NewGroupIDCreated;
+            }
+
+
+            if (string.IsNullOrWhiteSpace(CurrentDSGroupName) && CurrentDSGroupID <= 0)
+                return;
+
+            var cab = new CabSecurity();
+            bool exists = false;
+            try { exists = cab.DoesDocumentGroupExist(GetGroupNameOnly(CurrentDSGroupName)); } catch { exists = false; }
+
+
+            if (exists)
+            {
+                if (CurrentDSGroupID <= 0)
+                    CurrentDSGroupID = cab.GetDocumentGroupIdByName(GetGroupNameOnly(CurrentDSGroupName));
+
+
+                if (CurrentDSGroupID > 0)
+                {
+                    LoadDSGroupUsers(CurrentDSGroupID);
+                    LoadDSArchives(CurrentDSGroupID);
+                }
+                return;
+            }
+            CreateTheGroupFlow();
+        }
+        private string GetGroupNameOnly(string display)
+        {
+            if (string.IsNullOrWhiteSpace(display)) return display;
+            int p = display.IndexOf('(');
+            if (p > 0) return display.Substring(0, p).Trim();
+            return display.Trim();
+        }
+        private int ExtractGroupIdFromDisplayText(string display)
+        {
+            if (string.IsNullOrWhiteSpace(display)) return 0;
+            try
+            {
+                int eq = display.LastIndexOf('=');
+                if (eq < 0) return 0;
+                int close = display.IndexOf(')', eq);
+                string part = close > eq ? display.Substring(eq + 1, close - eq - 1) : display.Substring(eq + 1);
+                if (int.TryParse(part, out int id)) return id;
+            }
+            catch { }
+            return 0;
+        }
+        private void CreateTheGroupFlow()
+        {
+            string prompt;
+            if (PrgLng == "E")
+                prompt = $"Create New Group Named {CurrentDSGroupName}?";
+            else
+                prompt = $"ÎáÞ ãÌãæÚÉ ÌÏíÏÉ ÈÇÓã {CurrentDSGroupName}?"; 
+
+            var result = MessageBox.Show(prompt, "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (result == MessageBoxResult.Yes)
+            {
+                CreateNewDSGroup(CurrentDSGroupName);
+                FillComboBoxes();
+                comboDocumentSecurityGroups.Text = CurrentDSGroupName;
+                comboDocumentSecurityGroups_SelectionChanged(null, null);
+            }
+        }
+        private void LoadDSGroupUsers(int dsGroupId)
+        {
+            AddedUsersWFGroup.Clear();
+
+            try
+            {
+                var cab = new CabSecurity();
+                var users = cab.GetUsersForDocumentGroup(dsGroupId); 
+
+                if (users != null)
+                {
+                    foreach (var u in users)
+                    {
+                        AddedUsersWFGroup.Add(u.ToString());
+                    }
+                }
+                else
+                {
+                }
+            }
+            catch
+            {
+                var fallback = userRepo.GetAllUsernames();
+                foreach (var u in fallback)
+                {
+                }
+            }
+
+            foreach (var username in AddedUsersWFGroup.ToList())
+            {
+                if (AllUsersWFGroup.Contains(username))
+                    AllUsersWFGroup.Remove(username);
+            }
+        }
+
+        private void LoadDSArchives(int dsGroupId)
+        {
+        }
+
+        private void RefreshDSUsersLists()
+        {
+            AllUsersWFGroup.Clear();
+            _originalUserPositions.Clear();
+
+
+            var usernames = userRepo.GetAllUsernames()?.OrderBy(u => u).ToList() ?? new List<string>();
+            for (int i = 0; i < usernames.Count; i++)
+            {
+                AllUsersWFGroup.Add(usernames[i]);
+                _originalUserPositions[usernames[i]] = i;
+            }
+
+
+            UsersAvailableListBox.ItemsSource = usernames;
+            FunctionalSecurityAllUsers.ItemsSource = usernames;
+            CabSecurityAllUsers.ItemsSource = usernames;
+        }
+
+        private void LoadRemDSAllArchives()
+        {
+        }
+
+        private void CreateNewDSGroup(string groupName)
+        {
+            try
+            {
+                var cab = new CabSecurity();
+                NewGroupIDCreated = cab.CreateDocumentGroup(groupName);
+            }
+            catch
+            {
+                MessageBox.Show("Failed to create group. Check server or method name.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void FillComboBoxes()
+        {
+            LoadDocumentSecurityGroups();
+        }
     }
 }
