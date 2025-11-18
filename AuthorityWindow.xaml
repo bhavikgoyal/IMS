@@ -1525,8 +1525,9 @@
                         IsEditable="True" 
                         IsTextSearchEnabled="True"
                         DisplayMemberPath="DisplayText"
-                        SelectedValuePath="GroupID">
-              </ComboBox>
+                        SelectedValuePath="GroupID" 
+                        SelectionChanged="comboDocumentSecurityGroups_SelectionChanged" />
+
             </Border>
             <Border Grid.Column="1" BorderThickness="0" Margin="10,10,10,0" Effect="{StaticResource MaterialDesignShadowDepth1}">
               <Button Style="{StaticResource ActionButtonStyleGrp}" Background="#4CAF50" Padding="8">
