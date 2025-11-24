@@ -1530,7 +1530,7 @@
 
             </Border>
             <Border Grid.Column="1" BorderThickness="0" Margin="10,10,10,0" Effect="{StaticResource MaterialDesignShadowDepth1}">
-              <Button Style="{StaticResource ActionButtonStyleGrp}" Background="#4CAF50" Padding="8">
+              <Button Style="{StaticResource ActionButtonStyleGrp}" Background="#4CAF50" Padding="8" x:Name="btnLoadCreateGroup" Click="btnLoadCreateGroup_Click">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                   <Image Source="/Images/team.png" Margin="0,0,10,0"/>
                   <TextBlock Text="LOAD / CREATE GROUP" VerticalAlignment="Center" Foreground="White"/>
@@ -1539,7 +1539,7 @@
             </Border>
 
             <Border Grid.Column="2" BorderThickness="0" BorderBrush="#000" Margin="10,10,10,0" Effect="{StaticResource MaterialDesignShadowDepth1}">
-              <Button Style="{StaticResource ActionButtonStyleGrp}" Background="#F44336" Padding="8">
+              <Button x:Name="btnDeleteGroup" Click="btnDeleteGroup_Click" Style="{StaticResource ActionButtonStyleGrp}" Background="#F44336" Padding="8">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                   <Image Source="/Images/team.png" Margin="0,0,10,0"/>
                   <TextBlock Text="DELETE GROUP" VerticalAlignment="Center" Foreground="White"/>
@@ -1595,28 +1595,28 @@
                         <RowDefinition Height="*" />
                         <RowDefinition Height="*" />
                       </Grid.RowDefinitions>
-                      <Button Grid.Row="0" Style="{StaticResource ActionButtonStyleGrp}" Background="#007ACC">
+                      <Button x:Name="btnDSMoveOneRight" Click="btnDSMoveOneRight_Click" Grid.Row="0" Style="{StaticResource ActionButtonStyleGrp}" Background="#007ACC">
                         <StackPanel HorizontalAlignment="Stretch" Width="65" Margin="0,2,0,2" VerticalAlignment="Center" Background="#fff">
                           <Border Margin="0,5,0,5">
                             <Image Source="/Images/rightnext.png" Margin="0,1,0,0" Width="30"/>
                           </Border>
                         </StackPanel>
                       </Button>
-                      <Button Grid.Row="1" Style="{StaticResource ActionButtonStyleGrp}" Background="#007ACC">
+                      <Button x:Name="btnDSMoveAllRight" Click="btnDSMoveAllRight_Click" Grid.Row="1" Style="{StaticResource ActionButtonStyleGrp}" Background="#007ACC">
                         <StackPanel HorizontalAlignment="Stretch" Width="65" Margin="0,2,0,2" VerticalAlignment="Center" Background="#fff">
                           <Border Margin="0,5,0,5">
                             <Image Source="/Images/doublearrow.png" Margin="0,1,0,0" Width="30"/>
                           </Border>
                         </StackPanel>
                       </Button>
-                      <Button Grid.Row="2" Style="{StaticResource ActionButtonStyleGrp}" Background="#007ACC">
+                      <Button x:Name="btnDSMoveOneLeft" Click="btnDSMoveOneLeft_Click" Grid.Row="2" Style="{StaticResource ActionButtonStyleGrp}" Background="#007ACC">
                         <StackPanel HorizontalAlignment="Stretch" Width="65" Margin="0,2,0,2" VerticalAlignment="Center" Background="#fff">
                           <Border Margin="0,5,0,5">
                             <Image Source="/Images/leftnext.png" Margin="0,1,0,0" Width="30"/>
                           </Border>
                         </StackPanel>
                       </Button>
-                      <Button Grid.Row="3" Style="{StaticResource ActionButtonStyleGrp}" Background="#007ACC">
+                      <Button x:Name="btnDSMoveAllLeft" Click="btnDSMoveAllLeft_Click" Grid.Row="3" Style="{StaticResource ActionButtonStyleGrp}" Background="#007ACC">
                         <StackPanel HorizontalAlignment="Stretch" Width="65" Margin="0,2,0,2" VerticalAlignment="Center" Background="#fff">
                           <Border Margin="0,5,0,5">
                             <Image Source="/Images/doublearrowleft.png" Margin="0,1,0,0" Width="30"/>
@@ -1656,7 +1656,7 @@
               </Grid.ColumnDefinitions>
               <Grid Grid.Column="0"></Grid>
               <Grid Grid.Column="1">
-                <Button Style="{StaticResource ActionButtonStyleGrp}"  Background="#4CAF50" Padding="8">
+                <Button x:Name="btnApply" Click="btnApply_Click" Style="{StaticResource ActionButtonStyleGrp}"  Background="#4CAF50" Padding="8">
                   <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10,5,10,5">
                     <Image Source="/Images/apply.png" Margin="0,0,0,0"/>
                     <TextBlock Text="APPLY" VerticalAlignment="Center" FontSize="14" Foreground="White"/>
@@ -1704,7 +1704,8 @@
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                       <StackPanel>
                         <ListBox 
-                                x:Name="CabSecurityAllUsers" 
+                                x:Name="CabSecurityAllUsers"
+                                ItemsSource="{Binding AllUsersWFGroup}"
                                 Style="{DynamicResource ModernListBoxStyle}"
                                 ItemContainerStyle="{DynamicResource ModernListBoxItemStyle}" SelectionMode="Multiple" >
                         </ListBox>
@@ -1795,6 +1796,10 @@
           </Grid>
         </Grid>
       </Grid>
+      
+      
+      
+      
       <!-- WF Groups -->
       <Grid Grid.Row="2" x:Name="WfGroupsDiv" Visibility="Collapsed">
         <Grid>
