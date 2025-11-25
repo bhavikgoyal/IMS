@@ -1258,11 +1258,12 @@
                         IsEditable="True" 
                         IsTextSearchEnabled="True" 
                         DisplayMemberPath="DisplayText"
-                        SelectedValuePath="GroupID" >
+                        SelectedValuePath="GroupID"
+                        SelectionChanged="comboFunctionalSecurityGroups_SelectionChanged" >
               </ComboBox>
             </Border>
             <Border Grid.Column="1" BorderThickness="0" Margin="10,10,10,0" Effect="{StaticResource MaterialDesignShadowDepth1}">
-              <Button Style="{StaticResource ActionButtonStyleGrp}" Background="#4CAF50" Padding="8">
+              <Button x:Name="btnLoadCreateFunctional" Click="btnLoadCreateFunctional_Click" Style="{StaticResource ActionButtonStyleGrp}" Background="#4CAF50" Padding="8">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                   <Image Source="/Images/team.png" Margin="0,0,10,0"/>
                   <TextBlock Text="LOAD / CREATE GROUP" VerticalAlignment="Center" Foreground="White"/>
@@ -1271,7 +1272,7 @@
             </Border>
 
             <Border Grid.Column="2" BorderThickness="0" BorderBrush="#000" Margin="10,10,10,0" Effect="{StaticResource MaterialDesignShadowDepth1}">
-              <Button Style="{StaticResource ActionButtonStyleGrp}" Background="#F44336" Padding="8">
+              <Button x:Name="btnDeleteFunctional" Click="btnDeleteFunctional_Click" Style="{StaticResource ActionButtonStyleGrp}" Background="#F44336" Padding="8">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                   <Image Source="/Images/team.png" Margin="0,0,10,0"/>
                   <TextBlock Text="DELETE GROUP" VerticalAlignment="Center" Foreground="White"/>
@@ -1300,21 +1301,21 @@
                   <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 <StackPanel Grid.Column="0">
-                  <CheckBox Content="Can Scan" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
-                  <CheckBox Content="Can Approve" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
-                  <CheckBox Content="Can Merge" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
-                  <CheckBox Content="Can Sign/Stamp" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
-                  <CheckBox Content="Can Split" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
-                  <CheckBox Content="Can Save" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
-                  <CheckBox Content="Can Change Scnr. Sett." Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
+                  <CheckBox x:Name="chkCanScan" Content="Can Scan" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
+                  <CheckBox x:Name="chkCanApprove" Content="Can Approve" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
+                  <CheckBox x:Name="chkCanMerge" Content="Can Merge" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
+                  <CheckBox x:Name="chkCanSignStamp" Content="Can Sign/Stamp" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
+                  <CheckBox x:Name="chkCanSplit" Content="Can Split" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
+                  <CheckBox x:Name="chkCanSave" Content="Can Save" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
+                  <CheckBox x:Name="chkCanChangeScnrSett" Content="Can Change Scnr. Sett." Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
                 </StackPanel>
                 <StackPanel Grid.Column="1">
-                  <CheckBox Content="Can Approve All" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
-                  <CheckBox Content="Can Change Scanner" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
-                  <CheckBox Content="Can Edit Document" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
-                  <CheckBox Content="Can Email" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
-                  <CheckBox Content="Can Annotate" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
-                  <CheckBox Content="Can View Taxonomy" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
+                  <CheckBox x:Name="chkCanApproveAll" Content="Can Approve All" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
+                  <CheckBox x:Name="chkCanChangeScanner" Content="Can Change Scanner" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
+                  <CheckBox x:Name="chkCanEditDocument" Content="Can Edit Document" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
+                  <CheckBox x:Name="chkCanEmail" Content="Can Email" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
+                  <CheckBox x:Name="chkCanAnnotate" Content="Can Annotate" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
+                  <CheckBox x:Name="chkCanViewTaxonomy" Content="Can View Taxonomy" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
 
                 </StackPanel>
               </Grid>
@@ -1326,21 +1327,21 @@
                   <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 <StackPanel Grid.Column="0">
-                  <CheckBox Content="Can Print" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
-                  <CheckBox Content="Can Export" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
-                  <CheckBox Content="Can Change Lang." Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
-                  <CheckBox Content="Can Delete Doc." Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
-                  <CheckBox Content="Can Delete Docs."  Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
-                  <CheckBox Content="Can Edit Users" FontWeight="SemiBold" Foreground="#F44336" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
-                  <CheckBox Content="Can Search" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
+                  <CheckBox x:Name="chkCanPrint" Content="Can Print" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
+                  <CheckBox x:Name="chkCanExport" Content="Can Export" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
+                  <CheckBox x:Name="chkCanChangeLang" Content="Can Change Lang." Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
+                  <CheckBox x:Name="chkCanDeleteDoc" Content="Can Delete Doc." Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
+                  <CheckBox x:Name="chkCanDeleteDocs" Content="Can Delete Docs."  Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
+                  <CheckBox x:Name="chkCanEditUsers" Content="Can Edit Users" FontWeight="SemiBold" Foreground="#F44336" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
+                  <CheckBox x:Name="chkCanSearch" Content="Can Search" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
                 </StackPanel>
                 <StackPanel Grid.Column="1">
-                  <CheckBox Content="Can Change Password" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
-                  <CheckBox Content="Can Admin" FontWeight="SemiBold" Foreground="#F44336" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
-                  <CheckBox Content="Can Integrate" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
-                  <CheckBox Content="Can View Encrypted" FontWeight="SemiBold" Foreground="#F44336" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
-                  <CheckBox Content="Can Check Out Docs" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
-                  <CheckBox Content="Can Take Copy" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
+                  <CheckBox x:Name="chkCanChangePassword" Content="Can Change Password" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
+                  <CheckBox x:Name="chkCanAdmin" Content="Can Admin" FontWeight="SemiBold" Foreground="#F44336" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
+                  <CheckBox x:Name="chkCanIntegrate" Content="Can Integrate" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
+                  <CheckBox x:Name="chkCanViewEncrypted" Content="Can View Encrypted" FontWeight="SemiBold" Foreground="#F44336" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
+                  <CheckBox x:Name="chkCanCheckOutDocs" Content="Can Check Out Docs" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
+                  <CheckBox x:Name="chkCanTakeCopy" Content="Can Take Copy" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
 
                 </StackPanel>
               </Grid>
@@ -1353,21 +1354,21 @@
                   <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 <StackPanel Grid.Column="0">
-                  <CheckBox Content="Can Update Inbox" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
-                  <CheckBox Content="Can Change Setting" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
-                  <CheckBox Content="Can Export Batch" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
-                  <CheckBox Content="Can Import Batch" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
-                  <CheckBox Content="Can Audit"  Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
-                  <CheckBox Content="Can View Charts" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
-                  <CheckBox Content="Can Print Result List" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
+                  <CheckBox x:Name="chkCanUpdateInbox" Content="Can Update Inbox" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
+                  <CheckBox x:Name="chkCanChangeSetting" Content="Can Change Setting" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
+                  <CheckBox x:Name="chkCanExportBatch" Content="Can Export Batch" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
+                  <CheckBox x:Name="chkCanImportBatch" Content="Can Import Batch" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
+                  <CheckBox x:Name="chkCanAudit" Content="Can Audit"  Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
+                  <CheckBox x:Name="chkCanViewCharts" Content="Can View Charts" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
+                  <CheckBox x:Name="chkCanPrintResultList" Content="Can Print Result List" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
                 </StackPanel>
                 <StackPanel Grid.Column="1">
-                  <CheckBox Content="Can Delete Files" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
-                  <CheckBox Content="Can Restore Files" FontWeight="SemiBold" Foreground="#F44336" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
-                  <CheckBox Content="Can Rerout" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
-                  <CheckBox Content="Can Create New Vers." Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
-                  <CheckBox Content="Can ORC" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
-                  <CheckBox Content="All/None" FontWeight="SemiBold" Foreground="Blue" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
+                  <CheckBox x:Name="chkCanDeleteFiles" Content="Can Delete Files" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
+                  <CheckBox x:Name="chkCanRestoreFiles" Content="Can Restore Files" FontWeight="SemiBold" Foreground="#F44336" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
+                  <CheckBox x:Name="chkCanRerout" Content="Can Reroute" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
+                  <CheckBox x:Name="chkCanCreateNewVers" Content="Can Create New Vers." Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
+                  <CheckBox x:Name="chkCanORC" Content="Can ORC" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
+                  <CheckBox x:Name="chkAllNone" Content="All/None" FontWeight="SemiBold" Foreground="Blue" Margin="0,7,0,0" Style="{StaticResource ModernCheckBoxStyleFun}" IsChecked="False" />
 
                 </StackPanel>
               </Grid>
@@ -1382,7 +1383,7 @@
               </Grid.ColumnDefinitions>
               <Grid Grid.Column="0"></Grid>
               <Grid Grid.Column="1">
-                <Button Style="{StaticResource ActionButtonStyleGrp}"  Background="#4CAF50" Padding="8">
+                <Button  x:Name="btnApplyFunctional" Click="btnApplyFunctional_Click" Style="{StaticResource ActionButtonStyleGrp}"  Background="#4CAF50" Padding="8">
                   <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10,5,10,5">
                     <Image Source="/Images/apply.png" Margin="0,0,0,0"/>
                     <TextBlock Text="APPLY" VerticalAlignment="Center" FontSize="14" Foreground="White"/>
@@ -1414,6 +1415,7 @@
                         x:Name="FunctionalSecurityAllUsers" 
                         Style="{DynamicResource ModernListBoxStyle}"
                         ItemContainerStyle="{DynamicResource ModernListBoxItemStyle}"
+                      ItemsSource="{Binding AllUsersWFGroup}"
                         SelectionMode="Multiple" 
                         ScrollViewer.VerticalScrollBarVisibility="Auto" >
                     </ListBox>
