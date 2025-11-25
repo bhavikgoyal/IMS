@@ -4,6 +4,8 @@ using IMS.Models.AuthorityModel;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Data;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -27,11 +29,20 @@ namespace IMS
     {
 
         private UserRepository userRepo = new UserRepository();
+        private FunctionalSecurity funcRepo = new FunctionalSecurity();
+        private CabSecurity cabsecurity = new CabSecurity();
         public ObservableCollection<string> AllUsersWFGroup { get; set; } = new ObservableCollection<string>();
         public ObservableCollection<string> AddedUsersWFGroup { get; set; } = new ObservableCollection<string>();
 
+        private string CurrentDSGroupName = string.Empty;
+        private int CurrentDSGroupID = 0;
+        private int NewGroupIDCreated = -1;
+        private string PrgLng = "E";
+        private string CurrentFunctionalGroupName = string.Empty;
+        private int CurrentFunctionalGroupID = 0;
+        private int NewFunctionalGroupIDCreated = -1;
 
-    private Dictionary<string, int> _originalUserPositions = new Dictionary<string, int>();
+        private Dictionary<string, int> _originalUserPositions = new Dictionary<string, int>();
 
         public AuthorityWindow()
         {
@@ -42,10 +53,10 @@ namespace IMS
 
             FunctionalSecurityAllUsers.ItemsSource = AllUsersWFGroup;
             ScrollAllUsersListBox.ItemsSource = AddedUsersWFGroup;
-            
+
             CabSecurityAllUsers.ItemsSource = AllUsersWFGroup;
             ScrollDocumentUsersAllListBoxs.ItemsSource = AddedUsersWFGroup;
-            
+
             DataContext = this;
 
             LoadUsers();
@@ -105,11 +116,11 @@ namespace IMS
         {
             panelToShow.Visibility = Visibility.Visible;
         }
-    
+
         private void LoadUsers()
         {
             var usernames = userRepo.GetAllUsernames()
-                                    .OrderBy(u => u) 
+                                    .OrderBy(u => u)
                                     .ToList();
 
             AllUsersWFGroup.Clear();
@@ -118,7 +129,7 @@ namespace IMS
             for (int i = 0; i < usernames.Count; i++)
             {
                 AllUsersWFGroup.Add(usernames[i]);
-                _originalUserPositions[usernames[i]] = i; 
+                _originalUserPositions[usernames[i]] = i;
             }
             UsersAvailableListBox.ItemsSource = AllUsersWFGroup;
             //UsersAvailableListBox.ItemsSource = usernames;
@@ -141,7 +152,7 @@ namespace IMS
                 NameTextBox.Text = userDetails.UserName;
                 LongnameTextBox.Text = userDetails.UserLongName;
                 EmailTextBox.Text = userDetails.UserEmail;
-                PasswordBox.Password = userDetails.UserPassword; 
+                PasswordBox.Password = userDetails.UserPassword;
                 ManagerTextBox.Text = userDetails.Manager;
                 DeptTextBox.Text = userDetails.Department;
                 SubDeptTextBox.Text = userDetails.SubDept;
@@ -165,9 +176,7 @@ namespace IMS
 
         private void LoadFunctionalSecurityGroups()
         {
-            var security = new FunctionalSecurity();
-            List<FunctionalSecurityGroups> groups = security.GetFunctionalSecurityGroups();
-
+            List<FunctionalSecurityGroups> groups = funcRepo.GetFunctionalSecurityGroups();
             comboFunctionalSecurityGroups.ItemsSource = groups;
             comboRelateFunctionalGroups.ItemsSource = groups;
         }
@@ -176,9 +185,7 @@ namespace IMS
 
         private void LoadDocumentSecurityGroups()
         {
-            var cabSecurity = new CabSecurity();
-            List<FunctionalSecurityGroups> groups = cabSecurity.GetDocumentSecurityGroups();
-
+            List<FunctionalSecurityGroups> groups = cabsecurity.GetDocumentSecurityGroups();
             comboDocumentSecurityGroups.ItemsSource = groups;
         }
 
@@ -324,7 +331,7 @@ namespace IMS
         {
             foreach (var user in AddedUsersWFGroup.ToList())
             {
-                AllUsersWFGroup.Add(user); 
+                AllUsersWFGroup.Add(user);
             }
 
             AddedUsersWFGroup.Clear();
@@ -339,17 +346,6 @@ namespace IMS
             foreach (var user in sorted)
                 AllUsersWFGroup.Add(user);
         }
-
-
-        private string CurrentDSGroupName = string.Empty;
-        private int CurrentDSGroupID = 0;
-        private int NewGroupIDCreated = -1;
-        private string PrgLng = "E";
-        private int AuditEnabled = 0;
-        private string CurrentModules = "";
-        private string TheComputerName = Environment.MachineName;
-        private string LOUName = Environment.UserName;
-
 
         private void comboDocumentSecurityGroups_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -374,14 +370,13 @@ namespace IMS
                 if (string.IsNullOrWhiteSpace(CurrentDSGroupName) || CurrentDSGroupID <= 0)
                     return;
 
-                // If exists load, else create flow (existing logic)
                 bool exists = false;
-                try { exists = cabRepo.DoesDocumentGroupExist(GetGroupNameOnly(CurrentDSGroupName)); } catch { exists = false; }
+                try { exists = cabsecurity.DoesDocumentGroupExist(GetGroupNameOnly(CurrentDSGroupName)); } catch { exists = false; }
 
                 if (exists)
                 {
                     if (CurrentDSGroupID <= 0)
-                        CurrentDSGroupID = cabRepo.GetDocumentGroupIdByName(GetGroupNameOnly(CurrentDSGroupName));
+                        CurrentDSGroupID = cabsecurity.GetDocumentGroupIdByName(GetGroupNameOnly(CurrentDSGroupName));
 
                     if (CurrentDSGroupID > 0)
                     {
@@ -434,13 +429,11 @@ namespace IMS
                 comboDocumentSecurityGroups_SelectionChanged(null, null);
             }
         }
-        private readonly CabSecurity cabRepo = new CabSecurity();
-
         private void CreateNewDSGroup(string groupName)
         {
             try
             {
-                NewGroupIDCreated = cabRepo.CreateDocumentGroup(groupName);
+                NewGroupIDCreated = cabsecurity.CreateDocumentGroup(groupName);
             }
             catch (Exception ex)
             {
@@ -462,7 +455,7 @@ namespace IMS
             {
                 var allUsers = userRepo.GetAllUsernames()?.OrderBy(u => u).ToList() ?? new List<string>();
 
-                var addedUsers = cabRepo.GetUsersForDocumentGroup(groupId) ?? new List<string>();
+                var addedUsers = cabsecurity.GetUsersForDocumentGroup(groupId) ?? new List<string>();
 
                 var notAddedUsers = allUsers.Except(addedUsers, StringComparer.OrdinalIgnoreCase).OrderBy(u => u).ToList();
                 AllUsersWFGroup.Clear();
@@ -483,12 +476,12 @@ namespace IMS
         {
             try
             {
-                SearchFilterAllUsers.Items.Clear();    
-                ScrollAllUsersListBoxs.Items.Clear();  
+                SearchFilterAllUsers.Items.Clear();
+                ScrollAllUsersListBoxs.Items.Clear();
 
-                var groupArchives = cabRepo.GetArchivesForGroup(groupId) ?? new List<(string ShortIndexName, string LongIndexName)>();
+                var groupArchives = cabsecurity.GetArchivesForGroup(groupId) ?? new List<(string ShortIndexName, string LongIndexName)>();
 
-                var allIndexes = cabRepo.GetAllActiveIndexes() ?? new List<(string ShortIndexName, string LongIndexName)>();
+                var allIndexes = cabsecurity.GetAllActiveIndexes() ?? new List<(string ShortIndexName, string LongIndexName)>();
 
                 foreach (var a in groupArchives)
                 {
@@ -516,7 +509,7 @@ namespace IMS
             {
                 SearchFilterAllUsers.Items.Clear();
 
-                var allIndexes = cabRepo.GetAllActiveIndexes() ?? new List<(string ShortIndexName, string LongIndexName)>();
+                var allIndexes = cabsecurity.GetAllActiveIndexes() ?? new List<(string ShortIndexName, string LongIndexName)>();
 
                 foreach (var idx in allIndexes)
                 {
@@ -543,7 +536,7 @@ namespace IMS
 
                     if (CurrentDSGroupID <= 0)
                     {
-                        CurrentDSGroupID = cabRepo.GetDocumentGroupIdByName(GetGroupNameOnly(CurrentDSGroupName));
+                        CurrentDSGroupID = cabsecurity.GetDocumentGroupIdByName(GetGroupNameOnly(CurrentDSGroupName));
                     }
 
                     if (CurrentDSGroupID > 0)
@@ -567,7 +560,7 @@ namespace IMS
                 }
 
                 CurrentDSGroupName = text;
-                CreateTheGroupFlow(); 
+                CreateTheGroupFlow();
             }
             catch (Exception ex)
             {
@@ -586,7 +579,7 @@ namespace IMS
 
                     if (gid <= 0)
                     {
-                        gid = cabRepo.GetDocumentGroupIdByName(GetGroupNameOnly(name));
+                        gid = cabsecurity.GetDocumentGroupIdByName(GetGroupNameOnly(name));
                     }
 
                     if (gid <= 0)
@@ -601,7 +594,7 @@ namespace IMS
                         bool ok = false;
                         try
                         {
-                            ok = cabRepo.DeleteDocumentGroup(gid);
+                            ok = cabsecurity.DeleteDocumentGroup(gid);
                         }
                         catch (Exception ex) { MessageBox.Show($"Delete failed: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error); }
 
@@ -658,16 +651,16 @@ namespace IMS
 
                 if (CurrentDSGroupID <= 0)
                 {
-                    if (cabRepo.DoesDocumentGroupExist(GetGroupNameOnly(CurrentDSGroupName)))
+                    if (cabsecurity.DoesDocumentGroupExist(GetGroupNameOnly(CurrentDSGroupName)))
                     {
-                        CurrentDSGroupID = cabRepo.GetDocumentGroupIdByName(GetGroupNameOnly(CurrentDSGroupName));
+                        CurrentDSGroupID = cabsecurity.GetDocumentGroupIdByName(GetGroupNameOnly(CurrentDSGroupName));
                     }
                     else
                     {
                         var result = MessageBox.Show($"Group '{GetGroupNameOnly(CurrentDSGroupName)}' does not exist. Create it now?", "Create Group", MessageBoxButton.YesNo, MessageBoxImage.Question);
                         if (result == MessageBoxResult.Yes)
                         {
-                            CreateNewDSGroup(CurrentDSGroupName); 
+                            CreateNewDSGroup(CurrentDSGroupName);
                             CurrentDSGroupID = NewGroupIDCreated;
                         }
                     }
@@ -679,11 +672,11 @@ namespace IMS
                     return;
                 }
 
-                var usersToSave = AddedUsersWFGroup.ToList(); 
+                var usersToSave = AddedUsersWFGroup.ToList();
                 bool usersSaved = false;
                 try
                 {
-                    usersSaved = cabRepo.SetUsersForDocumentGroup(CurrentDSGroupID, usersToSave);
+                    usersSaved = cabsecurity.SetUsersForDocumentGroup(CurrentDSGroupID, usersToSave);
                 }
                 catch (Exception ex)
                 {
@@ -691,7 +684,7 @@ namespace IMS
                     usersSaved = false;
                 }
 
-                bool archivesSaved = true; 
+                bool archivesSaved = true;
                 try
                 {
                     var shortNames = ScrollAllUsersListBoxs.Items
@@ -706,7 +699,7 @@ namespace IMS
                                         .Distinct(StringComparer.OrdinalIgnoreCase)
                                         .ToList();
 
-                    archivesSaved = cabRepo.SetArchivesForDocumentGroup(CurrentDSGroupID, shortNames);
+                    archivesSaved = cabsecurity.SetArchivesForDocumentGroup(CurrentDSGroupID, shortNames);
                 }
                 catch (Exception ex)
                 {
@@ -730,7 +723,7 @@ namespace IMS
                     MessageBox.Show("Failed to save group users.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     if (archivesSaved) LoadDSArchives(CurrentDSGroupID);
                 }
-                else 
+                else
                 {
                     MessageBox.Show("Users saved but failed to save archives.", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
                     LoadDSGroupUsersAndUsersNotInGroup(CurrentDSGroupID);
@@ -810,6 +803,429 @@ namespace IMS
             items.Sort(StringComparer.OrdinalIgnoreCase);
             listBox.Items.Clear();
             foreach (var it in items) listBox.Items.Add(it);
+        }
+
+        private void comboFunctionalSecurityGroups_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                if (comboFunctionalSecurityGroups.ItemsSource == null) return;
+
+                if (comboFunctionalSecurityGroups.SelectedItem is FunctionalSecurityGroups sel)
+                {
+                    CurrentFunctionalGroupID = sel.GroupID;
+                    CurrentFunctionalGroupName = sel.DisplayText ?? sel.GroupName;
+                }
+                else
+                {
+                    CurrentFunctionalGroupName = (comboFunctionalSecurityGroups.Text ?? string.Empty).Trim();
+                    CurrentFunctionalGroupID = 0;
+                }
+
+                if (CurrentFunctionalGroupID <= 0)
+                {
+                    CurrentFunctionalGroupID = new FunctionalSecurity().GetFunctionalGroupIdByName(CurrentFunctionalGroupName);
+                }
+
+                if (CurrentFunctionalGroupID <= 0)
+                {
+                    AllUsersWFGroup.Clear();
+                    AddedUsersWFGroup.Clear();
+                    ClearFunctionalRightsCheckboxes();
+                    return;
+                }
+
+                LoadFunctionalGroupUsersAndUsersNotInGroup(CurrentFunctionalGroupID);
+                LoadFunctionalGroupRights(CurrentFunctionalGroupID);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading functional group: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+        private void LoadFunctionalGroupUsersAndUsersNotInGroup(int groupId)
+        {
+            try
+            {
+                var allUsers = userRepo.GetAllUsernames()?.OrderBy(u => u).ToList() ?? new List<string>();
+                var addedUsers = funcRepo.GetUsersForFunctionalGroup(groupId) ?? new List<string>();
+
+                var notAdded = allUsers.Except(addedUsers, StringComparer.OrdinalIgnoreCase).OrderBy(u => u).ToList();
+
+                AllUsersWFGroup.Clear();
+                foreach (var u in notAdded) AllUsersWFGroup.Add(u);
+
+                AddedUsersWFGroup.Clear();
+                foreach (var u in addedUsers) AddedUsersWFGroup.Add(u);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading users for functional group: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+        private void LoadFunctionalGroupRights(int groupId)
+        {
+            try
+            {
+                var rights = funcRepo.GetFunctionalRights(groupId);
+
+                bool G(string key) => rights.TryGetValue(key, out bool v) && v;
+
+                chkCanAdmin.IsChecked = G("CanAdmin");
+                chkCanAnnotate.IsChecked = G("CanAnnotate");
+                chkCanApprove.IsChecked = G("CanApprove");
+                chkCanApproveAll.IsChecked = G("CanApproveAll");
+                chkCanAudit.IsChecked = G("CanAudit");
+                chkCanChangePassword.IsChecked = G("CanChangePassword");
+                chkCanChangeScanner.IsChecked = G("CanChangeScanner");
+                chkCanCheckOutDocs.IsChecked = G("CanCheckOut");
+                chkCanCreateNewVers.IsChecked = G("CanCreateNewVersion");
+                chkCanDeleteFiles.IsChecked = G("CanDeleteFiles");
+                chkCanDeleteDoc.IsChecked = G("CanDeleteDoc");
+                chkCanDeleteDocs.IsChecked = G("CanDeleteDocs");
+                chkCanEditDocument.IsChecked = G("CanEditDocument");
+                chkCanEditUsers.IsChecked = G("CanEditUsers");
+                chkCanEmail.IsChecked = G("CanEmail");
+                chkCanExport.IsChecked = G("CanExport");
+                chkCanExportBatch.IsChecked = G("CanExportBatch");
+                chkCanImportBatch.IsChecked = G("CanImportBatch");
+                chkCanIntegrate.IsChecked = G("CanIntegrate");
+                chkCanMerge.IsChecked = G("CanMerge");
+                chkCanORC.IsChecked = G("CanORC");
+                chkCanPrint.IsChecked = G("CanPrint");
+                chkCanPrintResultList.IsChecked = G("CanPrintResultList");
+                chkCanRerout.IsChecked = G("CanRerout");
+                chkCanRestoreFiles.IsChecked = G("CanRestoreFiles");
+                chkCanSave.IsChecked = G("CanSave");
+                chkCanSearch.IsChecked = G("CanSearch");
+                chkCanSignStamp.IsChecked = G("CanSignStamp");
+                chkCanSplit.IsChecked = G("CanSplit");
+                chkCanTakeCopy.IsChecked = G("CanTakeCopy");
+                chkCanUpdateInbox.IsChecked = G("CanUpdateInbox");
+                chkCanViewCharts.IsChecked = G("CanViewCharts");
+                chkCanViewEncrypted.IsChecked = G("CanViewEncrypted");
+                chkCanViewTaxonomy.IsChecked = G("CanViewTaxonomy");
+
+                chkCanScan.IsChecked = G("CanScan");
+                chkCanChangeScnrSett.IsChecked = G("CanChangeScannerSettings") || G("CanChangeScnrSett");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading functional group rights: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void ClearFunctionalRightsCheckboxes()
+        {
+            chkCanAdmin.IsChecked = false;
+            chkCanAnnotate.IsChecked = false;
+            chkCanApprove.IsChecked = false;
+            chkCanApproveAll.IsChecked = false;
+            chkCanAudit.IsChecked = false;
+            chkCanChangePassword.IsChecked = false;
+            chkCanChangeScanner.IsChecked = false;
+            chkCanCheckOutDocs.IsChecked = false;
+            chkCanCreateNewVers.IsChecked = false;
+            chkCanDeleteFiles.IsChecked = false;
+            chkCanDeleteDoc.IsChecked = false;
+            chkCanDeleteDocs.IsChecked = false;
+            chkCanEditDocument.IsChecked = false;
+            chkCanEditUsers.IsChecked = false;
+            chkCanEmail.IsChecked = false;
+            chkCanExport.IsChecked = false;
+            chkCanExportBatch.IsChecked = false;
+            chkCanImportBatch.IsChecked = false;
+            chkCanIntegrate.IsChecked = false;
+            chkCanMerge.IsChecked = false;
+            chkCanORC.IsChecked = false;
+            chkCanPrint.IsChecked = false;
+            chkCanPrintResultList.IsChecked = false;
+            chkCanRerout.IsChecked = false;
+            chkCanRestoreFiles.IsChecked = false;
+            chkCanSave.IsChecked = false;
+            chkCanSearch.IsChecked = false;
+            chkCanSignStamp.IsChecked = false;
+            chkCanSplit.IsChecked = false;
+            chkCanTakeCopy.IsChecked = false;
+            chkCanUpdateInbox.IsChecked = false;
+            chkCanViewCharts.IsChecked = false;
+            chkCanViewEncrypted.IsChecked = false;
+            chkCanViewTaxonomy.IsChecked = false;
+            chkCanScan.IsChecked = false;
+            chkCanChangeScnrSett.IsChecked = false;
+        }
+
+        private void btnApplyFunctional_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Ensure we have a functional group id (resolve from selected combo or typed text)
+                if (CurrentFunctionalGroupID <= 0)
+                {
+                    if (comboFunctionalSecurityGroups.SelectedItem is FunctionalSecurityGroups s)
+                    {
+                        CurrentFunctionalGroupID = s.GroupID;
+                        CurrentFunctionalGroupName = s.DisplayText ?? s.GroupName;
+                    }
+                    else
+                    {
+                        CurrentFunctionalGroupName = (comboFunctionalSecurityGroups.Text ?? string.Empty).Trim();
+                        if (!string.IsNullOrWhiteSpace(CurrentFunctionalGroupName))
+                        {
+                            CurrentFunctionalGroupID = funcRepo.GetFunctionalGroupIdByName(CurrentFunctionalGroupName);
+                        }
+                    }
+                }
+
+                if (CurrentFunctionalGroupID <= 0)
+                {
+                    MessageBox.Show("Please select or create a functional group before applying changes.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
+                List<string> usersToSave = AddedUsersWFGroup.ToList(); 
+
+                bool usersSaved = false;
+                try
+                {
+                    usersSaved = funcRepo.SaveFunctionalGroupUsers(CurrentFunctionalGroupID, usersToSave);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Failed to save functional group users.\n\nError: {ex.Message}\n\nDetails:\n{ex.ToString()}",
+                                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                var rights = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase)
+                {
+                    ["CanAdmin"] = chkCanAdmin.IsChecked == true,
+                    ["CanAnnotate"] = chkCanAnnotate.IsChecked == true,
+                    ["CanApprove"] = chkCanApprove.IsChecked == true,
+                    ["CanApproveAll"] = chkCanApproveAll.IsChecked == true,
+                    ["CanAudit"] = chkCanAudit.IsChecked == true,
+                    ["CanChangeLanguage"] = chkCanChangeLang.IsChecked == true,
+                    ["CanChangePassword"] = chkCanChangePassword.IsChecked == true,
+                    ["CanChangeScanner"] = chkCanChangeScanner.IsChecked == true,
+                    ["CanChangeScannerSettings"] = chkCanChangeScnrSett.IsChecked == true,
+                    ["CanChangeSettings"] = chkCanChangeSetting.IsChecked == true,
+                    ["CanCheckOut"] = chkCanCheckOutDocs.IsChecked == true,
+                    ["CanCreateNewVersion"] = chkCanCreateNewVers.IsChecked == true,
+                    ["CanDeleteFiles"] = chkCanDeleteFiles.IsChecked == true,
+                    ["CanDeleteDoc"] = chkCanDeleteDoc.IsChecked == true,
+                    ["CanDeleteDocs"] = chkCanDeleteDocs.IsChecked == true,
+                    ["CanEditDocument"] = chkCanEditDocument.IsChecked == true,
+                    ["CanEditUsers"] = chkCanEditUsers.IsChecked == true,
+                    ["CanEmail"] = chkCanEmail.IsChecked == true,
+                    ["CanExport"] = chkCanExport.IsChecked == true,
+                    ["CanExportBatch"] = chkCanExportBatch.IsChecked == true,
+                    ["CanImportBatch"] = chkCanImportBatch.IsChecked == true,
+                    ["CanIntegrate"] = chkCanIntegrate.IsChecked == true,
+                    ["CanMerge"] = chkCanMerge.IsChecked == true,
+                    ["CanORC"] = chkCanORC.IsChecked == true,
+                    ["CanPrint"] = chkCanPrint.IsChecked == true,
+                    ["CanPrintResultList"] = chkCanPrintResultList.IsChecked == true,
+                    ["CanRerout"] = chkCanRerout.IsChecked == true,
+                    ["CanRestoreFiles"] = chkCanRestoreFiles.IsChecked == true,
+                    ["CanSave"] = chkCanSave.IsChecked == true,
+                    ["CanSearch"] = chkCanSearch.IsChecked == true,
+                    ["CanSignStamp"] = chkCanSignStamp.IsChecked == true,
+                    ["CanSplit"] = chkCanSplit.IsChecked == true,
+                    ["CanTakeCopy"] = chkCanTakeCopy.IsChecked == true,
+                    ["CanUpdateInbox"] = chkCanUpdateInbox.IsChecked == true,
+                    ["CanViewCharts"] = chkCanViewCharts.IsChecked == true,
+                    ["CanViewEncrypted"] = chkCanViewEncrypted.IsChecked == true,
+                    ["CanViewTaxonomy"] = chkCanViewTaxonomy.IsChecked == true,
+                    ["CanScan"] = chkCanScan.IsChecked == true
+                };
+
+                // 3) Save rights using repository; show full exception details on failure
+                bool rightsSaved = false;
+                try
+                {
+                    rightsSaved = funcRepo.SaveFunctionalRights(CurrentFunctionalGroupID, rights);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Failed to save functional group rights.\n\nError: {ex.Message}\n\nDetails:\n{ex.ToString()}",
+                                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                // 4) Final feedback and reload UI
+                if (usersSaved && rightsSaved)
+                {
+                    MessageBox.Show("Functional group users and rights saved successfully.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                    // reload fresh data for UI consistency
+                    try
+                    {
+                        LoadFunctionalGroupUsersAndUsersNotInGroup(CurrentFunctionalGroupID);
+                        LoadFunctionalGroupRights(CurrentFunctionalGroupID);
+                    }
+                    catch
+                    {
+                        // ignore reload exceptions here (we already saved successfully)
+                    }
+                }
+                else if (!usersSaved && !rightsSaved)
+                {
+                    MessageBox.Show("Failed to save functional group users and rights.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+                else if (!usersSaved)
+                {
+                    MessageBox.Show("Failed to save functional group users.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+                else // !rightsSaved
+                {
+                    MessageBox.Show("Failed to save functional group rights.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                // show full outer exception if something unexpected happens
+                MessageBox.Show($"Apply error: {ex.Message}\n\n{ex.ToString()}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void btnLoadCreateFunctional_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (comboFunctionalSecurityGroups.ItemsSource == null)
+                    return;
+
+                if (comboFunctionalSecurityGroups.SelectedItem is FunctionalSecurityGroups sel)
+                {
+                    CurrentFunctionalGroupID = sel.GroupID;
+                    CurrentFunctionalGroupName = sel.DisplayText ?? sel.GroupName;
+
+                    if (CurrentFunctionalGroupID <= 0)
+                    {
+                        CurrentFunctionalGroupID = funcRepo.GetFunctionalGroupIdByName(CurrentFunctionalGroupName);
+                    }
+
+                    if (CurrentFunctionalGroupID > 0)
+                    {
+                        // load users and rights for this group
+                        LoadFunctionalGroupUsersAndUsersNotInGroup(CurrentFunctionalGroupID);
+                        LoadFunctionalGroupRights(CurrentFunctionalGroupID);
+                        MessageBox.Show($"Group '{CurrentFunctionalGroupName}' loaded.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    else
+                    {
+                        MessageBox.Show("Selected group could not be found.", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    }
+                    return;
+                }
+
+                var text = (comboFunctionalSecurityGroups.Text ?? string.Empty).Trim();
+                if (string.IsNullOrWhiteSpace(text))
+                {
+                    MessageBox.Show("Please select or type a group name.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
+                CurrentFunctionalGroupName = text;
+                // Ask to create
+                var res = MessageBox.Show($"Create New Functional Group Named '{CurrentFunctionalGroupName}'?", "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                if (res == MessageBoxResult.Yes)
+                {
+                    NewFunctionalGroupIDCreated = funcRepo.CreateFunctionalGroup(CurrentFunctionalGroupName);
+                    if (NewFunctionalGroupIDCreated > 0)
+                    {
+                        // reload combobox
+                        LoadFunctionalSecurityGroups();
+                        comboFunctionalSecurityGroups.Text = CurrentFunctionalGroupName;
+                        // trigger selection flow
+                        comboFunctionalSecurityGroups_SelectionChanged(null, null);
+                    }
+                    else
+                    {
+                        MessageBox.Show("Failed to create functional group.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Load/Create functional group failed: {ex.Message}\n\n{ex.ToString()}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void btnDeleteFunctional_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (comboFunctionalSecurityGroups.SelectedItem is FunctionalSecurityGroups sel)
+                {
+                    int gid = sel.GroupID;
+                    string name = sel.DisplayText ?? sel.GroupName;
+
+                    if (gid <= 0)
+                    {
+                        gid = funcRepo.GetFunctionalGroupIdByName(name);
+                    }
+
+                    if (gid <= 0)
+                    {
+                        MessageBox.Show("Selected group has no valid ID to delete.", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
+
+                    var res = MessageBox.Show($"Delete functional group '{name}' ? This will remove group and its assignments.", "Confirm Delete", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                    if (res == MessageBoxResult.Yes)
+                    {
+                        bool ok = false;
+                        try
+                        {
+                            ok = funcRepo.DeleteFunctionalGroup(gid);
+                        }
+                        catch (Exception ex) { MessageBox.Show($"Delete failed: {ex.Message}\n\n{ex.ToString()}", "Error", MessageBoxButton.OK, MessageBoxImage.Error); }
+
+                        if (ok)
+                        {
+                            MessageBox.Show("Group deleted.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                            LoadFunctionalSecurityGroups();
+                            AllUsersWFGroup.Clear();
+                            AddedUsersWFGroup.Clear();
+                            comboFunctionalSecurityGroups.Text = string.Empty;
+                            // optionally clear rights UI
+                            ResetFunctionalRightsUI();
+                        }
+                        else
+                        {
+                            MessageBox.Show("Failed to delete group.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        }
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("Please select a group to delete.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error deleting functional group: {ex.Message}\n\n{ex.ToString()}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+        private void ResetFunctionalRightsUI()
+        {
+            // Set all right checkboxes to false — list every checkbox you've placed
+            chkCanScan.IsChecked = false;
+            chkCanApprove.IsChecked = false;
+            chkCanApproveAll.IsChecked = false;
+            chkCanChangeScanner.IsChecked = false;
+            chkCanEditDocument.IsChecked = false;
+            chkCanEmail.IsChecked = false;
+            chkCanAnnotate.IsChecked = false;
+            chkCanSearch.IsChecked = false;
+            chkCanAdmin.IsChecked = false;
+            chkCanViewEncrypted.IsChecked = false;
+            chkCanUpdateInbox.IsChecked = false;
+            chkCanChangeSetting.IsChecked = false;
+            chkCanExport.IsChecked = false;
+            chkCanImportBatch.IsChecked = false;
+            chkCanDeleteFiles.IsChecked = false;
         }
     }
 }

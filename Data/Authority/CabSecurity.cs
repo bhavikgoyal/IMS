@@ -326,14 +326,12 @@ namespace IMS.Data.Authority
                 {
                     try
                     {
-                        // 1) Delete existing assignments for this group
                         using (var del = new SqlCommand("DELETE FROM DocumentSecurityGroups WHERE GroupID = @GroupID", conn, tran))
                         {
                             del.Parameters.AddWithValue("@GroupID", groupId);
                             del.ExecuteNonQuery();
                         }
 
-                        // 2) Insert new assignments (resolve ShortIndexName -> IndexID)
                         if (shortIndexNames != null && shortIndexNames.Count > 0)
                         {
                             using (var findIndex = new SqlCommand("SELECT IndexID FROM Indexes WHERE ShortIndexName = @ShortIndexName AND Active = 1", conn, tran))
