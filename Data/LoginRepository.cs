@@ -26,6 +26,7 @@ namespace IMS.Data
                             User user = new User
                             {
                                 UserID = Convert.ToInt32(reader["UserID"]),
+
                                 UserName = reader["UserName"].ToString(),
                                 UserLongName = reader["UserLongName"].ToString(),
                                 UserPassword = reader["UserPassword"].ToString(),
@@ -35,7 +36,7 @@ namespace IMS.Data
                                 UserEmail = reader["UserEmail"].ToString(),
                                 PhoneNumber = reader["PhoneNumber"].ToString(),
                             };
-
+                            IMS.Data.Utilities.SessionManager.SessionUser.UserID = user.UserID;
                             reader.Close(); // Close reader before executing another command
                             string updateLogin = "UPDATE Users SET LastLogin = @now WHERE UserID = @id";
                             using (SqlCommand updateCmd = new SqlCommand(updateLogin, conn))

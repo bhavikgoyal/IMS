@@ -843,8 +843,14 @@
       <!-- Main Menu -->
       <Menu Grid.Row="1" Padding="10,0,10,0">
         <MenuItem Header="Cabinets">
-          <MenuItem Header="Create New Dialog From Selected Cabinet"/>
-          <MenuItem Header="Copy Selected Cabinet To New Cabinet With Different Name"/>
+          <MenuItem x:Name="mnuNewDialog" 
+          Header="Create New Dialog From Selected Cabinet" 
+        />
+
+          <MenuItem x:Name="mnuNewCab" 
+          Header="Copy Selected Cabinet To New Cabinet With Different Name" 
+          />
+
           <MenuItem Header="Export To Another Cabinet"/>
           <MenuItem Header="Import From Text File"/>
           <MenuItem Header="Edit External Cabinet"/>
@@ -854,6 +860,19 @@
           <MenuItem Header="Disable WebForms"/>
         </MenuItem>
         <MenuItem Header="Fields">
+          <MenuItem Header="Add Email Fields"/>
+          <MenuItem Header="Reset Counter On Cabinets"/>
+          <MenuItem Header="Reset Counter On Dialogs"/>          
+          <MenuItem Header="Make Forced Counter"/>
+          <MenuItem Header="Make Optional Counter"/>
+          <MenuItem Header="Make Search Dialog Like Scan Dialog" InputGestureText="Ctrl+A"/>
+          <MenuItem Header="Refresh Field Order" />
+          <MenuItem x:Name="mnuOnClick" Header="On Click Refresh Field Order" />
+          <MenuItem Header="Add To All Dialogs"/>
+          <MenuItem Header="Apply Filter to All Selected Fields"/>
+          <MenuItem Header="Make Selected Read Only List"/>
+          <MenuItem Header="Point Selected Combo to Same Cabinet"/>
+          <!-- New items added below -->
           <MenuItem Header="Manage Batches"/>
           <MenuItem Header="Archive Batches"/>
         </MenuItem>
@@ -907,7 +926,7 @@
               </Grid.RowDefinitions>
               <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" Margin="5">
 
-                <TreeView ItemsSource="{Binding PartnerTree}" >
+                <TreeView x:Name="myTreeView" ItemsSource="{Binding PartnerTree}" SelectedItemChanged="TreeView_SelectedItemChanged" >
                   <TreeView.ItemTemplate>
                     <HierarchicalDataTemplate ItemsSource="{Binding Children}">
                       <TextBlock Text="{Binding LongIndexName}" />
@@ -968,7 +987,7 @@
               </Grid>
               <!-- Left Column: Index ID Box-->
               <Grid Grid.Column="0" Grid.Row="1">
-                <TextBox Margin="10,10,10,10"
+                <TextBox x:Name="txtIndexID" Margin="10,10,10,10"
              Style="{StaticResource FocusedBorderStyle}"
              TextWrapping="Wrap"
              AcceptsReturn="True"
@@ -1096,13 +1115,13 @@ AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,4,0,0" He
 
                   <StackPanel Grid.Row="1" Grid.Column="0"  Margin="0,10,10,0" HorizontalAlignment="Stretch">
                     <Button Content="Create Cabinet" Click="btnCreate_Click" Style="{StaticResource ActionButtonStyle}" Background="#4CAF50" />
-                    <Button Content="Update Cabinet" Style="{StaticResource ActionButtonStyle}" Background="#2196F3" Margin="0,10,0,0"/>
+                    <Button Content="Update Cabinet" Style="{StaticResource ActionButtonStyle}" Background="#2196F3" Margin="0,10,0,0" Click="CmdUpdateArchive_Click"/>
                     <Button Content="Delete Cabinet" Style="{StaticResource ActionButtonStyle}" Background="#F44336" Margin="0,10,0,0"/>
                   </StackPanel>
                   <StackPanel Grid.Row="1" Grid.Column="1"  Margin="10,10,0,0" HorizontalAlignment="Stretch">
                     <Button x:Name="btnAddField" Content="Add Index" Style="{StaticResource ActionButtonStyle}" Background="#4CAF50" Click="btnAddField_Click" />
-                    <Button Content="Update Indexes" Style="{StaticResource ActionButtonStyle}" Background="#2196F3" Margin="0,10,0,0"/>
-                    <Button Content="Delete Index" Style="{StaticResource ActionButtonStyle}" Background="#F44336" Margin="0,10,0,0"/>
+                    <Button x:Name="btnupdateField" Content="Update Indexes" Style="{StaticResource ActionButtonStyle}" Background="#2196F3" Margin="0,10,0,0"/>
+                    <Button x:Name="btndelField" Content="Delete Index" Style="{StaticResource ActionButtonStyle}" Background="#F44336" Margin="0,10,0,0"/>
                   </StackPanel>
                 </Grid>
                 <CheckBox Grid.Row="2" Content="Delete Data Directory" Style="{StaticResource ModernCheckBoxStyleDelete}"
@@ -1113,10 +1132,10 @@ AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,4,0,0" He
                     <ColumnDefinition Width="*" />
                   </Grid.ColumnDefinitions>
                   <StackPanel Grid.Column="0"  Margin="0,10,10,0" HorizontalAlignment="Stretch">
-                    <Button Content="Value" Style="{StaticResource ActionButtonStyle}" Background="#9E9E9E"/>
+                    <Button x:Name="cmdEditLookup" Content="Combo Value" Style="{StaticResource ActionButtonStyle}" Background="#9E9E9E"/>
                   </StackPanel>
                   <StackPanel Grid.Column="1"  Margin="10,10,0,0" HorizontalAlignment="Stretch">
-                    <Button Content="Setting" Style="{StaticResource ActionButtonStyle}" Background="#757575"/>
+                    <Button x:Name="cmdEditLUTable" Content="Combo Setting" Style="{StaticResource ActionButtonStyle}" Background="#757575"/>
                   </StackPanel>
                 </Grid>
               </Grid>
@@ -1124,8 +1143,8 @@ AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,4,0,0" He
             </Border>
           </Grid>
         </Border>
-        
-      <Border Grid.Column="2" Grid.ColumnSpan="13" BorderBrush="Gray" BorderThickness="1" Padding="5">
+
+        <Border Grid.Column="2" Grid.ColumnSpan="10" BorderBrush="Gray" BorderThickness="1" Padding="5" Name="FieldsPanel" Visibility="Collapsed">
     <StackPanel>
 
         <!-- Fields Table Section -->
@@ -1150,7 +1169,7 @@ AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,4,0,0" He
               </StackPanel>
 
               <!-- Data Rows -->
-              <ScrollViewer VerticalScrollBarVisibility="Auto" Height="400">
+              <ScrollViewer VerticalScrollBarVisibility="Auto" Height="1000">
                 <ItemsControl ItemsSource="{Binding Fields}">
                   <ItemsControl.ItemTemplate>
                     <DataTemplate>
@@ -1158,9 +1177,18 @@ AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,4,0,0" He
                         <CheckBox Width="20" IsChecked="{Binding IsChecked}" Margin="0,0,5,0"/>
                         <TextBox Width="120" Text="{Binding ColName, UpdateSourceTrigger=PropertyChanged}" />
                         <TextBox Width="120" Text="{Binding Caption, UpdateSourceTrigger=PropertyChanged}" Margin="5,0,0,0"/>
-                        <TextBox Width="50" Text="{Binding Length, UpdateSourceTrigger=PropertyChanged}" Margin="5,0,0,0"/>
-                        <TextBox Width="90" Text="{Binding Fixed, UpdateSourceTrigger=PropertyChanged}" Margin="5,0,0,0"/>
-                        <TextBox Width="60" Text="{Binding ColorVal, UpdateSourceTrigger=PropertyChanged}" Margin="5,0,0,0"/>
+                        <ComboBox Width="50" Margin="5,0,0,0"
+          ItemsSource="{Binding FLDType}" 
+                          SelectedItem="{Binding FldType, UpdateSourceTrigger=PropertyChanged}" />
+                          <!-- selected value -->
+
+                          <!-- Fixed Dropdown -->
+                          <ComboBox Width="90" Margin="5,0,0,0"
+          ItemsSource="{Binding FixedOptions}" 
+          SelectedItem="{Binding Fixed, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBox Width="60"
+         Background="{Binding BackgroundBrush}"
+         MouseDoubleClick="TextBox_ColorCycle"/>
                         <TextBox Width="60" Text="{Binding Rule, UpdateSourceTrigger=PropertyChanged}" Margin="5,0,0,0"/>
                         <CheckBox IsChecked="{Binding Ctr}" Width="35" Margin="8,0,0,0" HorizontalAlignment="Center"/>
                         <CheckBox IsChecked="{Binding SL}" Width="35" Margin="3,0,0,0" HorizontalAlignment="Center"/>
@@ -1179,1131 +1207,88 @@ AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,4,0,0" He
           </StackPanel>
 </Border>
 
-  <!-- Third Column: Fields To Be Synchronized -->
-        <!--<Border Grid.Column="2" Background="#FFFFFF" CornerRadius="5" Effect="{StaticResource MaterialDesignShadowDepth1}" Margin="0,0,10,10">
-          <Grid>
-            <Grid.RowDefinitions>
-              <RowDefinition Height="Auto"/>
-              <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
-            <Border Grid.Row="0" Padding="10,7,10,7" Background="#F0F0F0">
-              <TextBlock Text="Short Name" VerticalAlignment="Center"
-                Foreground="#333333" FontSize="16" FontWeight="SemiBold" />
-            </Border>
-            <Grid Grid.Row="1">
-              <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-              </Grid.RowDefinitions>
-              <StackPanel Grid.Row="0">
-                <Grid>
-                  <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                  </Grid.ColumnDefinitions>
-                  <CheckBox Grid.Column="0" Style="{StaticResource ModernCheckBoxStyle}"
-          VerticalAlignment="Center" IsChecked="False" Margin="10,0,0,0"/>
-                  <TextBox Grid.Column="1" Margin="0,10,10,10" Style="{StaticResource FocusedBorderStyle}" 
-AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,5,0,0" Height="30" FontSize="12" />
-                </Grid>
+        <Border x:Name="frameButtons"
+        Grid.Column="13" Grid.ColumnSpan="5"
+        Background="White"
+        CornerRadius="5"
+        Effect="{StaticResource MaterialDesignShadowDepth1}"
+        Margin="0,0,10,10"
+        Padding="10"
+        Visibility="Collapsed">
 
-              </StackPanel>
-              <StackPanel Grid.Row="1">
-                <Grid>
-                  <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                  </Grid.ColumnDefinitions>
-                  <CheckBox Grid.Column="0" Style="{StaticResource ModernCheckBoxStyle}"
-          VerticalAlignment="Center" IsChecked="False" Margin="10,0,0,0"/>
-                  <TextBox Grid.Column="1" Margin="0,0,10,0" Style="{StaticResource FocusedBorderStyle}" 
-AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,5,0,0" Height="30" FontSize="12" />
-                </Grid>
+          <StackPanel>
 
-              </StackPanel>
-              <StackPanel Grid.Row="2">
-                <Grid>
-                  <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                  </Grid.ColumnDefinitions>
-                  <CheckBox Grid.Column="0" Style="{StaticResource ModernCheckBoxStyle}"
-          VerticalAlignment="Center" IsChecked="False" Margin="10,10,0,0"/>
-                  <TextBox Grid.Column="1" Margin="0,10,10,0" Style="{StaticResource FocusedBorderStyle}" 
-AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,5,0,0" Height="30" FontSize="12" />
-                </Grid>
+            <!-- ███ SCAN MODULE (TOP) ███ -->
+            <StackPanel Margin="5">
+
+              <Label x:Name="scanmodule"
+                   Content="Fields Order in Scan Module"
+                   HorizontalContentAlignment="Center"
+                   VerticalContentAlignment="Center"
+                   Background="#F0F0F0"
+                   Foreground="#333333"
+                   FontSize="16"
+                   FontWeight="SemiBold"
+                   Padding="5,7,10,5"/>
+
+              <ListBox x:Name="listFieldOrderS"
+                     FontSize="14"
+                     Style="{DynamicResource ModernListBoxStyle}"
+                     Margin="0,10,0,10"
+                     Height="200"/>
+
+              <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <Button Width="40" Height="40" BorderThickness="0" Cursor="Hand" ToolTip="Move Up" Background="#FFF">
+                  <Image Source="/Images/upbtn.png"/>
+                </Button>
+                <Button Width="40" Height="40" BorderThickness="0" Cursor="Hand" ToolTip="Move Down" Background="#FFF" Margin="10,0,0,0">
+                  <Image Source="/Images/downbtn.png"/>
+                </Button>
               </StackPanel>
 
-              <StackPanel Grid.Row="3">
-                <Grid>
-                  <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                  </Grid.ColumnDefinitions>
-                  <CheckBox Grid.Column="0" Style="{StaticResource ModernCheckBoxStyle}"
-          VerticalAlignment="Center" IsChecked="False" Margin="10,10,0,0"/>
-                  <TextBox Grid.Column="1" Margin="0,10,10,0" Style="{StaticResource FocusedBorderStyle}" 
-AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,5,0,0" Height="30" FontSize="12" />
-                </Grid>
-              </StackPanel>
-              <StackPanel Grid.Row="4">
-                <Grid>
-                  <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                  </Grid.ColumnDefinitions>
-                  <CheckBox Grid.Column="0" Style="{StaticResource ModernCheckBoxStyle}"
-          VerticalAlignment="Center" IsChecked="False" Margin="10,10,0,0"/>
-                  <TextBox Grid.Column="1" Margin="0,10,10,0" Style="{StaticResource FocusedBorderStyle}" 
-AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,5,0,0" Height="30" FontSize="12" />
-                </Grid>
-              </StackPanel>
-              <StackPanel Grid.Row="5">
-                <Grid>
-                  <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                  </Grid.ColumnDefinitions>
-                  <CheckBox Grid.Column="0" Style="{StaticResource ModernCheckBoxStyle}"
-          VerticalAlignment="Center" IsChecked="False" Margin="10,10,0,0"/>
-                  <TextBox Grid.Column="1" Margin="0,10,10,0" Style="{StaticResource FocusedBorderStyle}" 
-AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,5,0,0" Height="30" FontSize="12" />
-                </Grid>
-              </StackPanel>
-              <StackPanel Grid.Row="6">
-                <Grid>
-                  <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                  </Grid.ColumnDefinitions>
-                  <CheckBox Grid.Column="0" Style="{StaticResource ModernCheckBoxStyle}"
-          VerticalAlignment="Center" IsChecked="False" Margin="10,10,0,0"/>
-                  <TextBox Grid.Column="1" Margin="0,10,10,0" Style="{StaticResource FocusedBorderStyle}" 
-AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,5,0,0" Height="30" FontSize="12" />
-                </Grid>
-              </StackPanel>
-              <StackPanel Grid.Row="7">
-                <Grid>
-                  <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                  </Grid.ColumnDefinitions>
-                  <CheckBox Grid.Column="0" Style="{StaticResource ModernCheckBoxStyle}"
-          VerticalAlignment="Center" IsChecked="False" Margin="10,10,0,0"/>
-                  <TextBox Grid.Column="1" Margin="0,10,10,0" Style="{StaticResource FocusedBorderStyle}" 
-AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,5,0,0" Height="30" FontSize="12" />
-                </Grid>
-              </StackPanel>
-              <StackPanel Grid.Row="8">
-                <Grid>
-                  <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                  </Grid.ColumnDefinitions>
-                  <CheckBox Grid.Column="0" Style="{StaticResource ModernCheckBoxStyle}"
-          VerticalAlignment="Center" IsChecked="False" Margin="10,10,0,0"/>
-                  <TextBox Grid.Column="1" Margin="0,10,10,0" Style="{StaticResource FocusedBorderStyle}" 
-AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,5,0,0" Height="30" FontSize="12" />
-                </Grid>
-              </StackPanel>
-
-            </Grid>
-          </Grid>
-        </Border>
-
-        --> <!--Fourth Column: External Database--> 
-        <!--<Border Grid.Column="3" Background="#FFFFFF" CornerRadius="5" Effect="{StaticResource MaterialDesignShadowDepth1}" Margin="0,0,10,10">
-          <Grid>
-            <Grid.RowDefinitions>
-              <RowDefinition Height="Auto"/>
-              <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
-            <Border Grid.Row="0" Padding="10,7,10,7" Background="#F0F0F0">
-              <TextBlock Text="Long Name" VerticalAlignment="Center"
-                Foreground="#333333" FontSize="16" FontWeight="SemiBold" />
-            </Border>
-            <Grid Grid.Row="1">
-              <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-              </Grid.RowDefinitions>
-              <TextBox Grid.Row="0" Margin="10,10,10,10" Style="{StaticResource FocusedBorderStyle}" 
-                       AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,5,0,0" Height="30" FontSize="12" />
-              <TextBox Grid.Row="1" Margin="10,0,10,10" Style="{StaticResource FocusedBorderStyle}" 
-                       AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,5,0,0" Height="30" FontSize="12" />
-              <TextBox Grid.Row="2" Margin="10,0,10,10" Style="{StaticResource FocusedBorderStyle}" 
-                       AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,5,0,0" Height="30" FontSize="12" />
-              <TextBox Grid.Row="3" Margin="10,0,10,10" Style="{StaticResource FocusedBorderStyle}" 
-         AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,5,0,0" Height="30" FontSize="12" />
-              <TextBox Grid.Row="4" Margin="10,0,10,10" Style="{StaticResource FocusedBorderStyle}" 
-         AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,5,0,0" Height="30" FontSize="12" />
-              <TextBox Grid.Row="5" Margin="10,0,10,10" Style="{StaticResource FocusedBorderStyle}" 
-         AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,5,0,0" Height="30" FontSize="12" />
-              <TextBox Grid.Row="6" Margin="10,0,10,10" Style="{StaticResource FocusedBorderStyle}" 
-         AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,5,0,0" Height="30" FontSize="12" />
-              <TextBox Grid.Row="7" Margin="10,0,10,10" Style="{StaticResource FocusedBorderStyle}" 
-         AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,5,0,0" Height="30" FontSize="12" />
-              <TextBox Grid.Row="8" Margin="10,0,10,10" Style="{StaticResource FocusedBorderStyle}" 
-         AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,5,0,0" Height="30" FontSize="12" />
-              
-
-            </Grid>
-
-          </Grid>
-        </Border>-->
-        <!--<Border Grid.Column="4" Background="#FFFFFF" CornerRadius="5" Effect="{StaticResource MaterialDesignShadowDepth1}" Margin="0,0,10,10">
-          <Grid>
-            <Grid.RowDefinitions>
-              <RowDefinition Height="Auto"/>
-              <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
-            <Border Grid.Row="0" Padding="10,7,10,7" Background="#F0F0F0">
-              <TextBlock Text="FLD Type" VerticalAlignment="Center"
-        Foreground="#333333" FontSize="16" FontWeight="SemiBold" />
-            </Border>
-            <Grid Grid.Row="1">
-              <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-              </Grid.RowDefinitions>
-              <ComboBox Grid.Row="0" Style="{StaticResource ModernComboBoxSecondStyle}" Height="30"
-                        Margin="10,10,10,10" Text="" IsEditable="True" IsTextSearchEnabled="True">
-                <ComboBoxItem Content="Text"/>
-                <ComboBoxItem Content="Number"/>
-                <ComboBoxItem Content="Date"/>
-                <ComboBoxItem Content="Memo"/>
-              </ComboBox>
-              <ComboBox Grid.Row="1" Style="{StaticResource ModernComboBoxSecondStyle}" Height="30"
-          Margin="10,0,10,10" Text="" IsEditable="True" IsTextSearchEnabled="True">
-                <ComboBoxItem Content="Text"/>
-                <ComboBoxItem Content="Number"/>
-                <ComboBoxItem Content="Date"/>
-                <ComboBoxItem Content="Memo"/>
-              </ComboBox>
-              <ComboBox Grid.Row="2" Style="{StaticResource ModernComboBoxSecondStyle}" Height="30"
-          Margin="10,0,10,10" Text="" IsEditable="True" IsTextSearchEnabled="True">
-                <ComboBoxItem Content="Text"/>
-                <ComboBoxItem Content="Number"/>
-                <ComboBoxItem Content="Date"/>
-                <ComboBoxItem Content="Memo"/>
-              </ComboBox>
-              <ComboBox Grid.Row="3" Style="{StaticResource ModernComboBoxSecondStyle}" Height="30"
-Margin="10,0,10,10" Text="" IsEditable="True" IsTextSearchEnabled="True">
-                <ComboBoxItem Content="Text"/>
-                <ComboBoxItem Content="Number"/>
-                <ComboBoxItem Content="Date"/>
-                <ComboBoxItem Content="Memo"/>
-              </ComboBox>
-              <ComboBox Grid.Row="4" Style="{StaticResource ModernComboBoxSecondStyle}" Height="30"
-Margin="10,0,10,10" Text="" IsEditable="True" IsTextSearchEnabled="True">
-                <ComboBoxItem Content="Text"/>
-                <ComboBoxItem Content="Number"/>
-                <ComboBoxItem Content="Date"/>
-                <ComboBoxItem Content="Memo"/>
-              </ComboBox>
-              <ComboBox Grid.Row="5" Style="{StaticResource ModernComboBoxSecondStyle}" Height="30"
-Margin="10,0,10,10" Text="" IsEditable="True" IsTextSearchEnabled="True">
-                <ComboBoxItem Content="Text"/>
-                <ComboBoxItem Content="Number"/>
-                <ComboBoxItem Content="Date"/>
-                <ComboBoxItem Content="Memo"/>
-              </ComboBox>
-              <ComboBox Grid.Row="6" Style="{StaticResource ModernComboBoxSecondStyle}" Height="30"
-Margin="10,0,10,10" Text="" IsEditable="True" IsTextSearchEnabled="True">
-                <ComboBoxItem Content="Text"/>
-                <ComboBoxItem Content="Number"/>
-                <ComboBoxItem Content="Date"/>
-                <ComboBoxItem Content="Memo"/>
-              </ComboBox>
-              <ComboBox Grid.Row="7" Style="{StaticResource ModernComboBoxSecondStyle}" Height="30"
-Margin="10,0,10,10" Text="" IsEditable="True" IsTextSearchEnabled="True">
-                <ComboBoxItem Content="Text"/>
-                <ComboBoxItem Content="Number"/>
-                <ComboBoxItem Content="Date"/>
-                <ComboBoxItem Content="Memo"/>
-              </ComboBox>
-              <ComboBox Grid.Row="8" Style="{StaticResource ModernComboBoxSecondStyle}" Height="30"
-Margin="10,0,10,10" Text="" IsEditable="True" IsTextSearchEnabled="True">
-                <ComboBoxItem Content="Text"/>
-                <ComboBoxItem Content="Number"/>
-                <ComboBoxItem Content="Date"/>
-                <ComboBoxItem Content="Memo"/>
-              </ComboBox>
-
-            </Grid>
-
-          </Grid>
-        </Border>-->
-        <!--<Border Grid.Column="5" Background="#FFFFFF" CornerRadius="5" Effect="{StaticResource MaterialDesignShadowDepth1}" Margin="0,0,10,10">
-          <Grid>
-            <Grid.RowDefinitions>
-              <RowDefinition Height="Auto"/>
-              <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
-            <Border Grid.Row="0" Padding="10,7,10,7" Background="#F0F0F0">
-              <TextBlock Text="Fixed Value" VerticalAlignment="Center"
-Foreground="#333333" FontSize="16" FontWeight="SemiBold" />
-            </Border>
-            <Grid Grid.Row="1">
-              <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-              </Grid.RowDefinitions>
-              <ComboBox Grid.Row="0" Style="{StaticResource ModernComboBoxSecondStyle}"  Height="30"
-                Margin="10,10,10,10" Text="" IsEditable="True" IsTextSearchEnabled="True">
-                <ComboBoxItem Content="Text"/>
-                <ComboBoxItem Content="Number"/>
-                <ComboBoxItem Content="Date"/>
-                <ComboBoxItem Content="Memo"/>
-              </ComboBox>
-              <ComboBox Grid.Row="1" Style="{StaticResource ModernComboBoxSecondStyle}"  Height="30"
-  Margin="10,0,10,10" Text="" IsEditable="True" IsTextSearchEnabled="True">
-                <ComboBoxItem Content="Text"/>
-                <ComboBoxItem Content="Number"/>
-                <ComboBoxItem Content="Date"/>
-                <ComboBoxItem Content="Memo"/>
-              </ComboBox>
-              <ComboBox Grid.Row="2" Style="{StaticResource ModernComboBoxSecondStyle}" Height="30"
-  Margin="10,0,10,10" Text="" IsEditable="True" IsTextSearchEnabled="True">
-                <ComboBoxItem Content="Text"/>
-                <ComboBoxItem Content="Number"/>
-                <ComboBoxItem Content="Date"/>
-                <ComboBoxItem Content="Memo"/>
-              </ComboBox>
-              <ComboBox Grid.Row="3" Style="{StaticResource ModernComboBoxSecondStyle}" Height="30"
-Margin="10,0,10,10" Text="" IsEditable="True" IsTextSearchEnabled="True">
-                <ComboBoxItem Content="Text"/>
-                <ComboBoxItem Content="Number"/>
-                <ComboBoxItem Content="Date"/>
-                <ComboBoxItem Content="Memo"/>
-              </ComboBox>
-              <ComboBox Grid.Row="4" Style="{StaticResource ModernComboBoxSecondStyle}" Height="30"
-Margin="10,0,10,10" Text="" IsEditable="True" IsTextSearchEnabled="True">
-                <ComboBoxItem Content="Text"/>
-                <ComboBoxItem Content="Number"/>
-                <ComboBoxItem Content="Date"/>
-                <ComboBoxItem Content="Memo"/>
-              </ComboBox>
-              <ComboBox Grid.Row="5" Style="{StaticResource ModernComboBoxSecondStyle}" Height="30"
-Margin="10,0,10,10" Text="" IsEditable="True" IsTextSearchEnabled="True">
-                <ComboBoxItem Content="Text"/>
-                <ComboBoxItem Content="Number"/>
-                <ComboBoxItem Content="Date"/>
-                <ComboBoxItem Content="Memo"/>
-              </ComboBox>
-              <ComboBox Grid.Row="6" Style="{StaticResource ModernComboBoxSecondStyle}" Height="30"
-Margin="10,0,10,10" Text="" IsEditable="True" IsTextSearchEnabled="True">
-                <ComboBoxItem Content="Text"/>
-                <ComboBoxItem Content="Number"/>
-                <ComboBoxItem Content="Date"/>
-                <ComboBoxItem Content="Memo"/>
-              </ComboBox>
-              <ComboBox Grid.Row="7" Style="{StaticResource ModernComboBoxSecondStyle}" Height="30"
-Margin="10,0,10,10" Text="" IsEditable="True" IsTextSearchEnabled="True">
-                <ComboBoxItem Content="Text"/>
-                <ComboBoxItem Content="Number"/>
-                <ComboBoxItem Content="Date"/>
-                <ComboBoxItem Content="Memo"/>
-              </ComboBox>
-              <ComboBox Grid.Row="8" Style="{StaticResource ModernComboBoxSecondStyle}" Height="30"
-Margin="10,0,10,10" Text="" IsEditable="True" IsTextSearchEnabled="True">
-                <ComboBoxItem Content="Text"/>
-                <ComboBoxItem Content="Number"/>
-                <ComboBoxItem Content="Date"/>
-                <ComboBoxItem Content="Memo"/>
-              </ComboBox>
-            </Grid>
-
-          </Grid>
-        </Border>-->
-        <!--<Border Grid.Column="6" Background="#FFFFFF" CornerRadius="5" Effect="{StaticResource MaterialDesignShadowDepth1}" Margin="0,0,10,10">
-          <Grid>
-            <Grid.RowDefinitions>
-              <RowDefinition Height="Auto"/>
-              <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
-            <Border Grid.Row="0" Padding="10,7,10,7" Background="#F0F0F0">
-              <TextBlock Text="Color Val" VerticalAlignment="Center"
-         Foreground="#333333" FontSize="16" FontWeight="SemiBold" />
-            </Border>
-            <Grid Grid.Row="1">
-              <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-              </Grid.RowDefinitions>
-              <TextBox Grid.Row="0" Margin="10,10,10,10" Style="{StaticResource FocusedBorderStyle}" 
-                AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,5,0,0" Height="30" FontSize="12" />
-              <TextBox Grid.Row="1" Margin="10,0,10,10" Style="{StaticResource FocusedBorderStyle}" 
-                AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,5,0,0" Height="30" FontSize="12" />
-              <TextBox Grid.Row="2" Margin="10,0,10,10" Style="{StaticResource FocusedBorderStyle}" 
-                AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,5,0,0" Height="30" FontSize="12" />
-              <TextBox Grid.Row="3" Margin="10,0,10,10" Style="{StaticResource FocusedBorderStyle}" 
-  AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,5,0,0" Height="30" FontSize="12" />
-              <TextBox Grid.Row="4" Margin="10,0,10,10" Style="{StaticResource FocusedBorderStyle}" 
-  AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,5,0,0" Height="30" FontSize="12" />
-              <TextBox Grid.Row="5" Margin="10,0,10,10" Style="{StaticResource FocusedBorderStyle}" 
-  AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,5,0,0" Height="30" FontSize="12" />
-              <TextBox Grid.Row="6" Margin="10,0,10,10" Style="{StaticResource FocusedBorderStyle}" 
-  AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,5,0,0" Height="30" FontSize="12" />
-              <TextBox Grid.Row="7" Margin="10,0,10,10" Style="{StaticResource FocusedBorderStyle}" 
-  AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,5,0,0" Height="30" FontSize="12" />
-              <TextBox Grid.Row="8" Margin="10,0,10,10" Style="{StaticResource FocusedBorderStyle}" 
-  AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,5,0,0" Height="30" FontSize="12" />
-
-            </Grid>
-
-          </Grid>
-        </Border>-->
-        <!--<Border Grid.Column="7" Background="#FFFFFF" CornerRadius="5" Effect="{StaticResource MaterialDesignShadowDepth1}" Margin="0,0,10,10">
-          <Grid>
-            <Grid.RowDefinitions>
-              <RowDefinition Height="Auto"/>
-              <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
-            <Border Grid.Row="0" Padding="10,7,10,7" Background="#F0F0F0">
-              <TextBlock Text="Rule" VerticalAlignment="Center"
-  Foreground="#333333" FontSize="16" FontWeight="SemiBold" />
-            </Border>
-            <Grid Grid.Row="1">
-              <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-              </Grid.RowDefinitions>
-              <TextBox Grid.Row="0" Margin="10,10,10,10" Style="{StaticResource FocusedBorderStyle}"
-         AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,5,0,0" Height="30" FontSize="12" />
-              <TextBox Grid.Row="1" Margin="10,0,10,10" Style="{StaticResource FocusedBorderStyle}"
-         AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,5,0,0" Height="30" FontSize="12" />
-              <TextBox Grid.Row="2" Margin="10,0,10,10" Style="{StaticResource FocusedBorderStyle}"
-         AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,5,0,0" Height="30" FontSize="12" />
-              <TextBox Grid.Row="3" Margin="10,0,10,10" Style="{StaticResource FocusedBorderStyle}" 
-AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,5,0,0" Height="30" FontSize="12" />
-              <TextBox Grid.Row="4" Margin="10,0,10,10" Style="{StaticResource FocusedBorderStyle}" 
-AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,5,0,0" Height="30" FontSize="12" />
-              <TextBox Grid.Row="5" Margin="10,0,10,10" Style="{StaticResource FocusedBorderStyle}" 
-AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,5,0,0" Height="30" FontSize="12" />
-              <TextBox Grid.Row="6" Margin="10,0,10,10" Style="{StaticResource FocusedBorderStyle}" 
-AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,5,0,0" Height="30" FontSize="12" />
-              <TextBox Grid.Row="7" Margin="10,0,10,10" Style="{StaticResource FocusedBorderStyle}" 
-AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,5,0,0" Height="30" FontSize="12" />
-              <TextBox Grid.Row="8" Margin="10,0,10,10" Style="{StaticResource FocusedBorderStyle}" 
-AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,5,0,0" Height="30" FontSize="12" />
-            </Grid>
-          </Grid>
-        </Border>-->
-        <!--<Border Grid.Column="8" Background="#FFFFFF" CornerRadius="5" Effect="{StaticResource MaterialDesignShadowDepth1}" Margin="0,0,10,10">
-          <Grid>
-            <Grid.RowDefinitions>
-              <RowDefinition Height="Auto"/>
-              <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
-            <Border Grid.Row="0" Padding="5,7,10,5" Background="#F0F0F0" Margin="0,0,0,10">
-              <TextBlock Text="Ctr" VerticalAlignment="Center"
-Foreground="#333333" FontSize="16" FontWeight="SemiBold" />
-            </Border>
-            <Grid Grid.Row="1">
-              <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-              </Grid.RowDefinitions>
-
-              <StackPanel Grid.Row="0"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-         VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-
-              <StackPanel Grid.Row="1"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-
-              <StackPanel Grid.Row="2"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-              <StackPanel Grid.Row="3"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-              <StackPanel Grid.Row="4"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-              <StackPanel Grid.Row="5"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-              <StackPanel Grid.Row="6"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-              <StackPanel Grid.Row="7"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-              <StackPanel Grid.Row="8"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-
-            </Grid>
-
-          </Grid>
-        </Border>-->
-        <!--<Border Grid.Column="9" Background="#FFFFFF" CornerRadius="5" Effect="{StaticResource MaterialDesignShadowDepth1}" Margin="0,0,10,10">
-          <Grid>
-            <Grid.RowDefinitions>
-              <RowDefinition Height="Auto"/>
-              <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
-            <Border Grid.Row="0" Padding="5,7,10,5" Background="#F0F0F0" Margin="0,0,0,10">
-              <TextBlock Text="SL" VerticalAlignment="Center"
-Foreground="#333333" FontSize="16" FontWeight="SemiBold" />
-            </Border>
-            <Grid Grid.Row="1">
-              <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-              </Grid.RowDefinitions>
-              <StackPanel Grid.Row="0"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-         VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-
-              <StackPanel Grid.Row="1"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-
-              <StackPanel Grid.Row="2"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-              <StackPanel Grid.Row="3"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-              <StackPanel Grid.Row="4"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-              <StackPanel Grid.Row="5"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-              <StackPanel Grid.Row="6"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-              <StackPanel Grid.Row="7"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-              <StackPanel Grid.Row="8"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-            </Grid>
-
-          </Grid>
-        </Border>-->
-        <!--<Border Grid.Column="10" Background="#FFFFFF" CornerRadius="5" Effect="{StaticResource MaterialDesignShadowDepth1}" Margin="0,0,10,10">
-          <Grid>
-            <Grid.RowDefinitions>
-              <RowDefinition Height="Auto"/>
-              <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
-            <Border Grid.Row="0" Padding="5,7,10,5" Background="#F0F0F0" Margin="0,0,0,10">
-              <TextBlock Text="MS" VerticalAlignment="Center"
-Foreground="#333333" FontSize="16" FontWeight="SemiBold" />
-            </Border>
-            <Grid Grid.Row="1">
-              <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-              </Grid.RowDefinitions>
-              <StackPanel Grid.Row="0"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-         VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-
-              <StackPanel Grid.Row="1"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-
-              <StackPanel Grid.Row="2"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-              <StackPanel Grid.Row="3"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-              <StackPanel Grid.Row="4"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-              <StackPanel Grid.Row="5"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-              <StackPanel Grid.Row="6"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-              <StackPanel Grid.Row="7"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-              <StackPanel Grid.Row="8"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-            </Grid>
-
-          </Grid>
-        </Border>-->
-        <!--<Border Grid.Column="11" Background="#FFFFFF" CornerRadius="5" Effect="{StaticResource MaterialDesignShadowDepth1}" Margin="0,0,10,10" >
-          <Grid>
-            <Grid.RowDefinitions>
-              <RowDefinition Height="Auto"/>
-              <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
-            <Border Grid.Row="0" Padding="5,7,10,5" Background="#F0F0F0" Margin="0,0,0,10">
-              <TextBlock Text="L" VerticalAlignment="Center" HorizontalAlignment="Center"
-Foreground="#333333" FontSize="16" FontWeight="SemiBold" />
-            </Border>
-            <Grid Grid.Row="1">
-              <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-              </Grid.RowDefinitions>
-              <StackPanel Grid.Row="0"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-         VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-
-              <StackPanel Grid.Row="1"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-
-              <StackPanel Grid.Row="2"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-              <StackPanel Grid.Row="3"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-              <StackPanel Grid.Row="4"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-              <StackPanel Grid.Row="5"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-              <StackPanel Grid.Row="6"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-              <StackPanel Grid.Row="7"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-              <StackPanel Grid.Row="8"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-            </Grid>
-
-          </Grid>
-        </Border>-->
-        <!--<Border Grid.Column="12" Background="#FFFFFF" CornerRadius="5" Effect="{StaticResource MaterialDesignShadowDepth1}" Margin="0,0,10,10">
-          <Grid>
-            <Grid.RowDefinitions>
-              <RowDefinition Height="Auto"/>
-              <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
-            <Border Grid.Row="0" Padding="5,7,10,5" Background="#F0F0F0" Margin="0,0,0,10">
-              <TextBlock Text="M" VerticalAlignment="Center" HorizontalAlignment="Center"
-Foreground="#333333" FontSize="16" FontWeight="SemiBold" />
-            </Border>
-            <Grid Grid.Row="1">
-              <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-              </Grid.RowDefinitions>
-              <StackPanel Grid.Row="0"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-         VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-
-              <StackPanel Grid.Row="1"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-
-              <StackPanel Grid.Row="2"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-              <StackPanel Grid.Row="3"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-              <StackPanel Grid.Row="4"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-              <StackPanel Grid.Row="5"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-              <StackPanel Grid.Row="6"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-              <StackPanel Grid.Row="7"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-              <StackPanel Grid.Row="8"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-            </Grid>
-
-          </Grid>
-        </Border>-->
-        <!--<Border Grid.Column="13" Background="#FFFFFF" CornerRadius="5" Effect="{StaticResource MaterialDesignShadowDepth1}" Margin="0,0,10,10">
-          <Grid>
-            <Grid.RowDefinitions>
-              <RowDefinition Height="Auto"/>
-              <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
-            <Border Grid.Row="0" Padding="5,7,10,5" Background="#F0F0F0" Margin="0,0,0,10">
-              <TextBlock Text="VS" VerticalAlignment="Center"
-Foreground="#333333" FontSize="16" FontWeight="SemiBold" />
-            </Border>
-            <Grid Grid.Row="1">
-              <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-              </Grid.RowDefinitions>
-              <StackPanel Grid.Row="0"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-         VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-
-              <StackPanel Grid.Row="1"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-
-              <StackPanel Grid.Row="2"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-              <StackPanel Grid.Row="3"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-              <StackPanel Grid.Row="4"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-              <StackPanel Grid.Row="5"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-              <StackPanel Grid.Row="6"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-              <StackPanel Grid.Row="7"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-              <StackPanel Grid.Row="8"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-            </Grid>
-
-          </Grid>
-        </Border>-->
-        <!--<Border Grid.Column="14" Background="#FFFFFF" CornerRadius="5" Effect="{StaticResource MaterialDesignShadowDepth1}" Margin="0,0,10,10">
-          <Grid>
-            <Grid.RowDefinitions>
-              <RowDefinition Height="Auto"/>
-              <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
-            <Border Grid.Row="0" Padding="5,7,10,5" Background="#F0F0F0" Margin="0,0,0,10">
-              <TextBlock Text="VR" VerticalAlignment="Center"
-Foreground="#333333" FontSize="16" FontWeight="SemiBold" />
-            </Border>
-            <Grid Grid.Row="1">
-              <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-              </Grid.RowDefinitions>
-              <StackPanel Grid.Row="0"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-         VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-
-              <StackPanel Grid.Row="1"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-
-              <StackPanel Grid.Row="2"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-              <StackPanel Grid.Row="3"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-              <StackPanel Grid.Row="4"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-              <StackPanel Grid.Row="5"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-              <StackPanel Grid.Row="6"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-              <StackPanel Grid.Row="7"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-              <StackPanel Grid.Row="8"  Height="30" Margin="10,0,5,10" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <CheckBox Margin="0,8,0,0" Style="{StaticResource ModernCheckBoxStyle}" 
-VerticalAlignment="Center" IsChecked="False" />
-              </StackPanel>
-            </Grid>
-
-          </Grid>
-        </Border>-->
-        <Border Grid.Column="15" x:Name="frameButtons" Background="#FFFFFF" CornerRadius="5" Effect="{StaticResource MaterialDesignShadowDepth1}" Margin="0,0,10,10">
-          <Grid Grid.Row="1">
-            <Grid.RowDefinitions>
-              <RowDefinition Height="*"/>
-              <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
-            <Grid Grid.Row="0">
-              <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
-              </Grid.RowDefinitions>
-              <Border Grid.Row="0" Padding="5,7,10,5" Background="#F0F0F0">
-                <TextBlock x:Name="scanmodule" Text="Fileds Order in Scan Module" HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="Wrap"
-                            Foreground="#333333" FontSize="16" FontWeight="SemiBold" />
-              </Border>
-              <Border Grid.Row="1" BorderThickness="1" BorderBrush="#CCC"
-                    Background="#FFFFFF" CornerRadius="0"
-                     Margin="5,10,5,10">
-                <Grid>
-                  <Grid.RowDefinitions>
-                    <RowDefinition Height="*"/>
-                  </Grid.RowDefinitions>
-                  <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" Margin="5">
-                    <ListBox x:Name="listFieldOrderS" FontSize="14" Style="{DynamicResource ModernListBoxStyle}">
-                      <ListBoxItem Content="refno" />
-                      <ListBoxItem Content="appname" />
-                      <ListBoxItem Content="appdate" />
-                      <ListBoxItem Content="gender" />
-                      <ListBoxItem Content="bdate" />
-                      <ListBoxItem Content="title" />
-                      <ListBoxItem Content="notes" />
-                    </ListBox>
-                  </ScrollViewer>
-                </Grid>
-              </Border>
-              <Border Grid.Row="2" Padding="5,0,10,10" >
-                <Grid>
-                  <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                  </Grid.ColumnDefinitions>
-                  <Button Grid.Column="0"
-               Width="40"
-              Height="40"
-                BorderThickness="0"
-                Cursor="Hand"
-                ToolTip="Move Up"
-             Background="#fff"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center">
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                      <Image Source="/Images/upbtn.png"/>
-                    </StackPanel>
-                  </Button>
-                  <Button Grid.Column="1"
-                Width="40"
-                Height="40" 
-                BorderThickness="0"
-                Cursor="Hand"
-                ToolTip="Move Down"
-  Background="#fff"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center">
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                      <Image Source="/Images/downbtn.png"  />
-                    </StackPanel>
-                  </Button>
-                </Grid>
-              </Border>
-
-            </Grid>
+            </StackPanel>
 
 
+            <!-- ███ SEARCH MODULE (BOTTOM) ███ -->
+            <StackPanel Margin="5" >
 
+              <Label x:Name="searchmodule"
+                   Content="Fields Order in Search Module"
+                   HorizontalContentAlignment="Center"
+                   VerticalContentAlignment="Center"
+                   Background="#F0F0F0"
+                   Foreground="#333333"
+                   FontSize="16"
+                   FontWeight="SemiBold"
+                   Padding="5,7,10,5"/>
 
-            <Grid Grid.Row="1">
-              <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-              </Grid.RowDefinitions>
-              <Border Grid.Row="0" Padding="5,7,10,5" Background="#F0F0F0">
-                <TextBlock  x:Name="searchmodule" Text="Fileds Order in Search Module" HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="Wrap"
-                 Foreground="#333333" FontSize="16" FontWeight="SemiBold" />
-              </Border>
-              <Border Grid.Row="1" BorderThickness="1" BorderBrush="#CCC"
-         Background="#FFFFFF" CornerRadius="0"
-          Margin="5,10,5,10">
-                <Grid>
-                  <Grid.RowDefinitions>
-                    <RowDefinition Height="*"/>
-                  </Grid.RowDefinitions>
-                  <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" Margin="5">
-                    <ListBox x:Name="listFieldOrderR" FontSize="14" Style="{DynamicResource ModernListBoxStyle}">
-                      <ListBoxItem Content="refno" />
-                      <ListBoxItem Content="appname" />
-                      <ListBoxItem Content="appdate" />
-                      <ListBoxItem Content="gender" />
-                      <ListBoxItem Content="bdate" />
-                      <ListBoxItem Content="title" />
-                      <ListBoxItem Content="notes" />
-                    </ListBox>
-                  </ScrollViewer>
-                </Grid>
-              </Border>
-              <Border Grid.Row="2" Padding="5,0,10,10" >
-                <Grid>
-                  <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                  </Grid.ColumnDefinitions>
-                  <Button Grid.Column="0"
-             Width="40"
-            Height="40"
-              BorderThickness="0"
-              Cursor="Hand"
-              ToolTip="Move Up"
-           Background="#fff"
-              HorizontalAlignment="Center"
-              VerticalAlignment="Center">
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                      <Image Source="/Images/upbtn.png"/>
-                    </StackPanel>
-                  </Button>
-                  <Button Grid.Column="1"
-              Width="40"
-              Height="40" 
-              BorderThickness="0"
-              Cursor="Hand"
-              ToolTip="Move Down"
-Background="#fff"
-              HorizontalAlignment="Center"
-              VerticalAlignment="Center">
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                      <Image Source="/Images/downbtn.png"  />
-                    </StackPanel>
-                  </Button>
-                </Grid>
-              </Border>
-              <Button Grid.Row="3"
-                      Height="50"
-                      Margin="10,0,10,10"
-                      FontSize="14"
-                      Background="#757575"
-                      Style="{StaticResource ActionButtonStyle}">
+              <ListBox x:Name="listFieldOrderR"
+                     FontSize="14"
+                     Style="{DynamicResource ModernListBoxStyle}"
+                     Margin="0,10,0,10"
+                     Height="200"/>
+
+              <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <Button Width="40" Height="40" BorderThickness="0" Cursor="Hand" ToolTip="Move Up" Background="#FFF">
+                  <Image Source="/Images/upbtn.png"/>
+                </Button>
+                <Button Width="40" Height="40" BorderThickness="0" Cursor="Hand" ToolTip="Move Down" Background="#FFF" Margin="10,0,0,0">
+                  <Image Source="/Images/downbtn.png"/>
+                </Button>
+              </StackPanel>
+
+              <Button Height="50" Margin="0,20,0,0" Background="#757575"
+                    Style="{StaticResource ActionButtonStyle}">
                 <TextBlock Text="Make Search Order Like Scan"
-               TextWrapping="Wrap" 
-               TextAlignment="Center"
-               HorizontalAlignment="Center"
-               VerticalAlignment="Center" />
+                           TextWrapping="Wrap"
+                           TextAlignment="Center"/>
               </Button>
+            </StackPanel>
+          </StackPanel>
 
-            </Grid>
-          </Grid>
         </Border>
+
+
       </Grid>
 
 

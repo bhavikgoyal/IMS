@@ -729,7 +729,7 @@
               <StackPanel Grid.Row="1" Margin="10,10,10,10">
                 <!-- TextBox for announcement content -->
                 <TextBox Style="{StaticResource FocusedBorderStyle}" Margin="0,0,0,0" TextWrapping="Wrap"
-                                  x:Name="NewAnnouncment" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Height="660">
+                                  x:Name="NewAnnouncment" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Height="660" TextChanged="NewAnnouncment_TextChanged">
                   <TextBox.Effect>
                     <DropShadowEffect Color="#FFBBBBBB" Direction="270" ShadowDepth="8" BlurRadius="25" Opacity="0.3" />
                   </TextBox.Effect>
@@ -759,7 +759,7 @@
                   </Grid.RowDefinitions>
 
                   <Border Grid.Row="0"  Grid.Column="0">
-                    <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Announce">
+                    <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Announce" Click="cmdPost_Click">
                       <Image Source="/Images/volume.png" />
                     </Button>
                   </Border>
@@ -795,7 +795,7 @@
                   </Border>
 
                   <Border Grid.Row="0"  Grid.Column="4">
-                    <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Browse Image">
+                    <Button  x:Name="btnBrowseImage" Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Browse Image" Click="CmdBrowse_Click">
                       <Image Source="/Images/uploadimg.png" />
                     </Button>
                   </Border>
@@ -816,49 +816,12 @@
                 <StackPanel>
                   <ListBox x:Name="Announcment" Style="{DynamicResource ModernListBoxStyle}" Width="320"
                           ItemContainerStyle="{DynamicResource ModernListBoxItemStyle}"
-                          HorizontalAlignment="Left">
-                    <ListBoxItem Content="Ahmad Al-Khalil" />
-                    <ListBoxItem Content="Omar Al-Saadi" />
-                    <ListBoxItem Content="Sara Al-Mutairi" />
-                    <ListBoxItem Content="Hassan Al-Farouq" />
-                    <ListBoxItem Content="Layla Al-Rashid" />
-                    <ListBoxItem Content="Yousef Al-Hassan" />
-                    <ListBoxItem Content="Mariam Al-Amin" />
-                    <ListBoxItem Content="Kareem Al-Zahra" />
-                    <ListBoxItem Content="Aisha Al-Hamdan" />
-                    <ListBoxItem Content="Tariq Al-Fayez" />
-                    <ListBoxItem Content="Ahmad Al-Khalil" />
-                    <ListBoxItem Content="Omar Al-Saadi" />
-                    <ListBoxItem Content="Sara Al-Mutairi" />
-                    <ListBoxItem Content="Hassan Al-Farouq" />
-                    <ListBoxItem Content="Layla Al-Rashid" />
-                    <ListBoxItem Content="Yousef Al-Hassan" />
-                    <ListBoxItem Content="Mariam Al-Amin" />
-                    <ListBoxItem Content="Kareem Al-Zahra" />
-                    <ListBoxItem Content="Aisha Al-Hamdan" />
-                    <ListBoxItem Content="Tariq Al-Fayez" />
-                    <ListBoxItem Content="Ahmad Al-Khalil" />
-                    <ListBoxItem Content="Omar Al-Saadi" />
-                    <ListBoxItem Content="Sara Al-Mutairi" />
-                    <ListBoxItem Content="Hassan Al-Farouq" />
-                    <ListBoxItem Content="Layla Al-Rashid" />
-                    <ListBoxItem Content="Yousef Al-Hassan" />
-                    <ListBoxItem Content="Mariam Al-Amin" />
-                    <ListBoxItem Content="Kareem Al-Zahra" />
-                    <ListBoxItem Content="Aisha Al-Hamdan" />
-                    <ListBoxItem Content="Tariq Al-Fayez" />
+                          HorizontalAlignment="Left" >
                   </ListBox>
 
                   <ListBox x:Name="GroupsAnnouncment" Style="{DynamicResource ModernListBoxStyle}" Width="320" Visibility="Collapsed"
                           ItemContainerStyle="{DynamicResource ModernListBoxItemSecondStyle}"
                           HorizontalAlignment="Left">
-                    <ListBoxItem Content="Ahmad Al-Khalil" />
-                    <ListBoxItem Content="Omar Al-Saadi" />
-                    <ListBoxItem Content="Sara Al-Mutairi" />
-                    <ListBoxItem Content="Hassan Al-Farouq" />
-                    <ListBoxItem Content="Layla Al-Rashid" />
-                    <ListBoxItem Content="Yousef Al-Hassan" />
-                    <ListBoxItem Content="Mariam Al-Amin" />
                   </ListBox>
                 </StackPanel>
               </ScrollViewer>

@@ -12,8 +12,9 @@
         WindowState="Maximized"
         WindowStyle="None"
         AllowsTransparency="True"
-        Background="Transparent">
-
+        Background="Transparent"
+        PreviewKeyDown="Window_PreviewKeyDown">
+ 
   <Window.Resources>
     <!-- Custom Title Bar Buttons Style -->
     <Style x:Key="TitleBarButtonStyle" TargetType="{x:Type Button}">
@@ -139,8 +140,109 @@
         </Setter.Value>
       </Setter>
     </Style>
-
     <Style x:Key="DropdownMenuItemStyle" TargetType="{x:Type MenuItem}">
+      <Setter Property="Padding" Value="10,8"/>
+      <Setter Property="FontSize" Value="14"/>
+      <Setter Property="Foreground" Value="#333333"/>
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="{x:Type MenuItem}">
+            <Border Name="Border" Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}">
+              <Grid>
+                <Grid.ColumnDefinitions>
+                  <!-- Column 0 = Tick -->
+                  <ColumnDefinition Width="25"/>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- ✔ CHECKMARK -->
+                <Path x:Name="CheckMark"
+                              Grid.Column="0"
+                              VerticalAlignment="Center"
+                              Stroke="#007ACC"
+                              StrokeThickness="2"
+                              Data="M 3 8 L 7 12 L 15 3"
+                              Visibility="Collapsed"/>
+
+                <!-- Header Text -->
+                <ContentPresenter Grid.Column="1"
+                                          ContentSource="Header"
+                                          Margin="{TemplateBinding Padding}"
+                                          VerticalAlignment="Center"
+                                          HorizontalAlignment="Left"/>
+
+                <!-- Shortcut Text -->
+                <TextBlock Text="{TemplateBinding InputGestureText}"
+                                   Grid.Column="2"
+                                   VerticalAlignment="Center"
+                                   Margin="10,0,15,0"
+                                   Foreground="#888888"/>
+
+                <!-- Submenu Arrow -->
+                <Path x:Name="RightArrow"
+                              Grid.Column="3"
+                              HorizontalAlignment="Right"
+                              VerticalAlignment="Center"
+                              Margin="5,0,5,0"
+                              Data="M0,0 L4,4 L0,8 Z"
+                              Fill="{TemplateBinding Foreground}"
+                              Visibility="Collapsed"/>
+
+                <!-- Submenu Popup -->
+                <Popup Name="PART_Popup" AllowsTransparency="True"
+                               Placement="Right"
+                               IsOpen="{TemplateBinding IsSubmenuOpen}"
+                               Focusable="False">
+                  <Border Background="White"
+                                    BorderBrush="#E0E0E0"
+                                    BorderThickness="1"
+                                    CornerRadius="3"
+                                    Effect="{StaticResource MaterialDesignShadowDepth2}">
+                    <StackPanel IsItemsHost="True"/>
+                  </Border>
+                </Popup>
+
+              </Grid>
+            </Border>
+
+            <!-- TRIGGERS -->
+            <ControlTemplate.Triggers>
+              <!-- Hover Highlight -->
+              <Trigger Property="IsHighlighted" Value="True">
+                <Setter TargetName="Border"
+                                Property="Background"
+                                Value="#E8F0F7"/>
+              </Trigger>
+
+              <!-- SubMenu Arrow -->
+              <Trigger Property="HasItems" Value="True">
+                <Setter TargetName="RightArrow"
+                                Property="Visibility"
+                                Value="Visible"/>
+              </Trigger>
+
+              <!-- ✔ SHOW TICK WHEN CHECKED -->
+              <Trigger Property="IsChecked" Value="True">
+                <Setter TargetName="CheckMark"
+                                Property="Visibility"
+                                Value="Visible"/>
+                <Setter Property="Foreground" Value="#007ACC"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+                <Setter Property="Background" Value="#EBF5FB"/>
+              </Trigger>
+
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <!--<Style x:Key="DropdownMenuItemStyle" TargetType="{x:Type MenuItem}">
       <Setter Property="Padding" Value="10,8"/>
       <Setter Property="FontSize" Value="14"/>
       <Setter Property="Foreground" Value="#333333"/>
@@ -153,11 +255,29 @@
                     BorderThickness="{TemplateBinding BorderThickness}">
               <Grid>
                 <Grid.ColumnDefinitions>
-                  <ColumnDefinition Width="Auto"/>
+                  --><!-- Column 0 = Tick --><!--
+                  <ColumnDefinition Width="25"/>
                   <ColumnDefinition Width="*"/>
                   <ColumnDefinition Width="Auto"/>
                   <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
+
+                --><!-- ✔ CHECKMARK --><!--
+                <Path x:Name="CheckMark"
+                              Grid.Column="0"
+                              VerticalAlignment="Center"
+                              Stroke="#007ACC"
+                              StrokeThickness="2"
+                              Data="M 3 8 L 7 12 L 15 3"
+                              Visibility="Collapsed"/>
+
+                --><!-- Header Text --><!--
+                <ContentPresenter Grid.Column="1"
+                                          ContentSource="Header"
+                                          Margin="{TemplateBinding Padding}"
+                                          VerticalAlignment="Center"
+                                          HorizontalAlignment="Left"/>
+                
 
                 <ContentPresenter ContentSource="Header"
                                   Margin="{TemplateBinding Padding}"
@@ -167,6 +287,7 @@
                 <TextBlock Text="{TemplateBinding InputGestureText}"
                            Grid.Column="2" VerticalAlignment="Center"
                            Margin="10,0,15,0" Foreground="#888888"/>
+                
                 <Path x:Name="RightArrow" Grid.Column="3" HorizontalAlignment="Right"
                       VerticalAlignment="Center" Margin="5,0,5,0"
                       Data="M0,0 L4,4 L0,8 Z"
@@ -200,7 +321,7 @@
           </ControlTemplate>
         </Setter.Value>
       </Setter>
-    </Style>
+    </Style>-->
 
     <Style TargetType="{x:Type ListBoxItem}">
       <Setter Property="Template">
@@ -293,16 +414,17 @@
 
       <!-- Menu -->
       <Menu Grid.Row="1" Background="White">
-        <MenuItem Header="General" Style="{StaticResource BoxMenuItemStyle}">
-          <MenuItem Header="General Settings" Style="{StaticResource DropdownMenuItemStyle}" Click="GeneralSettings_Click">
-            <MenuItem Header="Load Combos Immediately" IsCheckable="True" IsChecked="True" Style="{StaticResource DropdownMenuItemStyle}"/>
-            <MenuItem Header="Change Font Size" Style="{StaticResource DropdownMenuItemStyle}"/>
+        <MenuItem x:Name="MenuGeneral" Header="General" Style="{StaticResource BoxMenuItemStyle}">
+          <MenuItem Header="General Settings" Style="{StaticResource DropdownMenuItemStyle}" >
+            <MenuItem x:Name="mnuLCI" Header="Load Combos Immediately" IsCheckable="True" IsChecked="True" Style="{StaticResource DropdownMenuItemStyle}" Click="mnuLoadCombo_Click"/>
+            <MenuItem Header="Change Font Size" Style="{StaticResource DropdownMenuItemStyle}" Click="mnuFontSize_Click"/>
             <MenuItem Header="Change Language" InputGestureText="Ctrl+G" Style="{StaticResource DropdownMenuItemStyle}"/>
-            <MenuItem Header="Change Password" InputGestureText="Ctrl+W" Style="{StaticResource DropdownMenuItemStyle}"/>
-            <MenuItem Header="Manage Settings" Style="{StaticResource DropdownMenuItemStyle}"/>
-            <MenuItem Header="Right To Left" Style="{StaticResource DropdownMenuItemStyle}"/>
+            <MenuItem Header="Change Password" InputGestureText="Ctrl+W" Style="{StaticResource DropdownMenuItemStyle}" Click="mnuChangePassword_Click"/>
+            <MenuItem Header="Manage Settings" Style="{StaticResource DropdownMenuItemStyle}" Click="ManageSettings_Click"/>
+            <MenuItem x:Name="mnuRtoL" Header="Right To Left" IsCheckable="True" Style="{StaticResource DropdownMenuItemStyle}" Click="mnuRighttoleft_Click"/>
             <MenuItem Header="Apply Color Indicators" IsCheckable="True" IsChecked="True" Style="{StaticResource DropdownMenuItemStyle}"/>
-            <MenuItem Header="About..." InputGestureText="Ctrl+B" Style="{StaticResource DropdownMenuItemStyle}"/>
+            <MenuItem Header="About..." InputGestureText="Ctrl+B" Style="{StaticResource DropdownMenuItemStyle}" 
+             Click="mnuAbout_Click"/>
           </MenuItem>
 
           <MenuItem Header="Alerts" Style="{StaticResource DropdownMenuItemStyle}">
@@ -312,17 +434,21 @@
           </MenuItem>
 
           <MenuItem Header="PDF Options" Style="{StaticResource DropdownMenuItemStyle}">
-            <MenuItem Header="View Within Application Viewer" IsCheckable="True" IsChecked="True" Style="{StaticResource DropdownMenuItemStyle}"/>
-            <MenuItem Header="View Externally With Acrobat Reader" IsCheckable="True" Style="{StaticResource DropdownMenuItemStyle}"/>
+            <MenuItem  x:Name="mnuAppViewer" Header="View Within Application Viewer" IsCheckable="True" IsChecked="True" Style="{StaticResource DropdownMenuItemStyle}" Click="mnuAppViewer_Click"/>
+            <MenuItem x:Name="mnuExternalViewer" Header="View Externally With Acrobat Reader" IsCheckable="True" Style="{StaticResource DropdownMenuItemStyle}" Click="mnuExternalViewer_Click"/>
           </MenuItem>
 
           <MenuItem Header="Multi List Separator Options" Style="{StaticResource DropdownMenuItemStyle}">
-            <MenuItem Header="Split On &quot;" IsCheckable="True" IsChecked="True" Style="{StaticResource DropdownMenuItemStyle}"/>
-            <MenuItem Header="Split On /" IsCheckable="True" IsChecked="True" Style="{StaticResource DropdownMenuItemStyle}"/>
-            <MenuItem Header="Split On ;" IsCheckable="True" IsChecked="True" Style="{StaticResource DropdownMenuItemStyle}"/>
-            <MenuItem Header="Split On -" IsCheckable="True" Style="{StaticResource DropdownMenuItemStyle}"/>
-            <MenuItem Header="Split On _" IsCheckable="True" Style="{StaticResource DropdownMenuItemStyle}"/>
-          </MenuItem>
+            <MenuItem Header="Split On \" IsCheckable="True" IsChecked="True" Style="{StaticResource DropdownMenuItemStyle}" Click="SplitonBackslash_click"/>
+            <MenuItem Header="Split On /" IsCheckable="True" IsChecked="True" Style="{StaticResource DropdownMenuItemStyle}"
+              Click="SplitOnForwardSlash_Click"/>
+            <MenuItem Header="Split On ;" IsCheckable="True" IsChecked="True" Style="{StaticResource DropdownMenuItemStyle}"
+              Click="SplitOnSemicolon_Click"/>
+            <MenuItem Header="Split On -" IsCheckable="True" Style="{StaticResource DropdownMenuItemStyle}"
+            Click="SplitOnHyphen_Click"/>
+            <MenuItem Header="Split On _" IsCheckable="True" Style="{StaticResource DropdownMenuItemStyle}"
+              Click="SplitOnUnderscore_Click"/>
+          </MenuItem>                                                                                                                                                                                                                                                                                                                                                                                                     
         </MenuItem>
 
         <MenuItem Header="Other Modules" Style="{StaticResource TopLevelMenuItemStyle}">
@@ -334,6 +460,7 @@
 
         <MenuItem Header="Exit" Style="{StaticResource TopLevelMenuItemStyle}" Click="ExitMenu_Click"/>
       </Menu>
+        
       <Grid Grid.Row="2">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="Auto"/>
@@ -389,8 +516,94 @@
             <TextBlock Text="Welcome to your professional dashboard."
                        FontSize="16" Foreground="#666666" Margin="0,10,0,0" TextAlignment="Center"/>
           </StackPanel>
+          <Border x:Name="ChangePasswordPanel"
+        Background="White"
+        BorderBrush="#FF5A5A5A"
+        BorderThickness="2"
+        Padding="25"
+        Width="420"
+        Height="270"
+        HorizontalAlignment="Center"
+        VerticalAlignment="Center"
+        Visibility="Collapsed"
+        CornerRadius="12">
+            <Border.Effect>
+              <DropShadowEffect Color="Black" BlurRadius="10" ShadowDepth="5" Opacity="0.5"/>
+            </Border.Effect>
+            <Grid>
+              <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+              </Grid.RowDefinitions>
+
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="150"/>
+                <ColumnDefinition Width="*"/>
+              </Grid.ColumnDefinitions>
+
+              <TextBlock Text="Old Password:" 
+                   Grid.Row="0" Grid.Column="0" 
+                   VerticalAlignment="Center" 
+                   Margin="0,0,15,0"
+                   FontWeight="SemiBold"
+                   FontSize="14"/>
+              <PasswordBox x:Name="OldPasswordBox" 
+                     Grid.Row="0" Grid.Column="1" 
+                     MinWidth="200"
+                     Height="30"
+                     Padding="5"/>
+
+              <TextBlock Text="New Password:" 
+                   Grid.Row="1" Grid.Column="0" 
+                   VerticalAlignment="Center" 
+                   Margin="0,15,15,0"
+                   FontWeight="SemiBold"
+                   FontSize="14"/>
+              <PasswordBox x:Name="NewPasswordBox" 
+                     Grid.Row="1" Grid.Column="1" 
+                     MinWidth="200"
+                     Height="30"
+                     Margin="0,15,0,0"
+                     Padding="5"/>
+
+              <TextBlock Text="Confirm Password:" 
+                   Grid.Row="2" Grid.Column="0" 
+                   VerticalAlignment="Center" 
+                   Margin="0,15,15,0"
+                   FontWeight="SemiBold"
+                   FontSize="14"/>
+              <PasswordBox x:Name="ConfirmPasswordBox" 
+                     Grid.Row="2" Grid.Column="1" 
+                     MinWidth="200"
+                     Height="30"
+                     Margin="0,15,0,0"
+                     Padding="5"/>
+
+              <StackPanel Grid.Row="3" Grid.ColumnSpan="2" 
+                    Orientation="Horizontal" 
+                    HorizontalAlignment="Right" 
+                    Margin="0,25,0,0" >
+                <Button Content="Change Password" 
+                    Width="140" 
+                    Margin="0,0,15,0" 
+                    Padding="7,3" 
+                    FontWeight="Bold" 
+                    Background="#FF007ACC" 
+                    Foreground="White" 
+                    BorderThickness="0"
+                    Click="ChangePassword_Click"/>
+                <Button Content="Cancel" 
+                    Width="90" 
+                    Padding="7,3"
+                    Background="#FFE0E0E0" 
+                    BorderBrush="#FFB0B0B0" 
+                    Click="CancelChangePassword_Click"/>
+              </StackPanel>
+            </Grid>
+          </Border>
           <Border>
-            
           </Border>
           <!-- New Admin Content Panel (initially hidden) -->
           <StackPanel x:Name="AdminContentPanel" Orientation="Vertical"

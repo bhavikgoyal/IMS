@@ -3,6 +3,7 @@ using IMS.Data.Design;
 using IMS.Models;
 using IMS.Models.DesignModel;
 using System;
+using System.Windows.Media;
 using Scripting;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -13,6 +14,10 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Navigation;
+using System.Data;
+using System.Xml.Linq;
+using System.Security.Cryptography.X509Certificates;
+
 
 namespace IMS
 {
@@ -27,16 +32,19 @@ namespace IMS
         private string EXDBEngine = "MSSQL";
         private string EXCabSchemaName = "";
         string CabArabicName = "";
+		private Models.Module CurrentSInd;
 
-        public ObservableCollection<FieldViewModel> Fields { get; set; } = new ObservableCollection<FieldViewModel>();
-        private DesignWindowViewModel ViewModel = new DesignWindowViewModel();
-        public DesignWindow()
+		public ObservableCollection<FieldViewModel> Fields { get; set; } = new ObservableCollection<FieldViewModel>();
+        private DesignWindowViewModel DesignViewModel = new DesignWindowViewModel();
+		public DesignWindow()
         {
             InitializeComponent();
-            DataContext = ViewModel;
-            ViewModel.LoadTreeView();
+            DataContext = DesignViewModel;
+			DesignViewModel.LoadTreeView();
             _cabinet = new Cabinet();
-        }
+			
+
+		}
 
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
@@ -73,13 +81,18 @@ namespace IMS
 
         private void btnAddField_Click(object sender, RoutedEventArgs e)
         {
-            if (ViewModel.Fields.Count >= MaxFields)
+			if (myTreeView.SelectedItem == null)
+			{
+				MessageBox.Show("Click On Selected Cabinet Name First Please", "IMS", MessageBoxButton.OK, MessageBoxImage.Information);
+				return;
+			}
+			if (DesignViewModel.Fields.Count >= MaxFields)
             {
                 MessageBox.Show("Maximum 93 fields allowed!", "Limit Reached", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
-            ViewModel.AddField();
+			DesignViewModel.AddField();
         }
 
         private void btnCreate_Click(object sender, RoutedEventArgs e)
@@ -182,7 +195,9 @@ namespace IMS
                 }
 
                 MessageBox.Show("Index created successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
+				var vm = (DesignWindowViewModel)this.DataContext;
+				vm.LoadTreeView();
+			}
             catch (Exception ex)
             {
                 MessageBox.Show("Error creating index: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -321,7 +336,6 @@ namespace IMS
             // You can implement similar logic as encryption if needed
             // Currently empty, ready for future logic
         }
-
         private void chkExternalDB_Click(object sender, RoutedEventArgs e)
         {
             if (EXFlag)
@@ -420,14 +434,324 @@ namespace IMS
         {
             txtTableName.Text = txtShortIndexName.Text;
         }
+        private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
+            if (e.NewValue is TreeNode selectedNode)
+            {
+				CurrentSInd = Cabinet.FindTheIndexName(selectedNode.LongIndexName);
+				int indexId = selectedNode.IndexID;
+				using (SqlConnection conn = DatabaseHelper.GetConnection())
+                {
+                    string query = @"SELECT LongIndexName, ShortIndexName, TableName, Parent1Name, Parent2Name, Parent3Name, Parent4Name FROM Indexes
+                             WHERE IndexID = @IndexID";
 
-        public class DesignWindowViewModel
+                    SqlCommand cmd = new SqlCommand(query, conn);
+                    cmd.Parameters.AddWithValue("@IndexID", indexId);
+
+                    conn.Open();
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            txtIndexID.Text = selectedNode.IndexID.ToString();
+                            txtLongIndexName.Text = reader["LongIndexName"].ToString();
+                            txtShortIndexName.Text = reader["ShortIndexName"].ToString();
+                            txtTableName.Text = reader["TableName"].ToString();
+                            txtParent1Name.Text = reader["Parent1Name"].ToString();
+                            txtParent2Name.Text = reader["Parent2Name"].ToString();
+                            txtParent3Name.Text = reader["Parent3Name"].ToString();
+                            txtParent4Name.Text = reader["Parent4Name"].ToString();
+
+                            FieldsPanel.Visibility = Visibility.Visible;
+                            LoadFieldsForIndex(indexId);
+							LoadScanFieldOrder(indexId);
+							LoadSearchFieldOrder(indexId);
+						}
+                    }
+                }
+            }
+        }
+		private string GetFieldType(int fldTypeInt)
+		{
+			var entry = FieldTypeMap.FirstOrDefault(f => f.Value == fldTypeInt);
+			return entry.TypeName ?? "Text"; // default to Text
+		}
+		private void LoadFieldsForIndex(int indexId)
+		{
+			// Clear previous fields
+			DesignViewModel.Fields.Clear();
+
+			using (SqlConnection conn = DatabaseHelper.GetConnection())
+			{
+				string query = @"
+            SELECT FieldName, FieldCaption, FieldType, FixedValue, ColorValue, FieldRule,
+                   IncrementalField, IsComboVisible, IsListVisible, FieldLocked, IsTextVisible,
+                   VisibleInScan, VisibleInSearch
+            FROM IndexesDialogs
+            WHERE IndexID = @IndexID";
+
+				using (SqlCommand cmd = new SqlCommand(query, conn))
+				{
+					cmd.Parameters.AddWithValue("@IndexID", indexId);
+					conn.Open();
+
+					using (SqlDataReader reader = cmd.ExecuteReader())
+					{
+						while (reader.Read()) 
+						{
+							
+							int colorDec = 16777215;
+							var colorStr = reader["ColorValue"]?.ToString();
+							if (!string.IsNullOrEmpty(colorStr))
+							{
+								int.TryParse(colorStr, out colorDec);
+							}
+							var brush = ColorCycle.FirstOrDefault(c => c.Value == colorDec).Brush ?? Brushes.White;
+
+							int fldTypeInt = 0;
+							int.TryParse(reader["FieldType"].ToString(), out fldTypeInt);
+							string fldTypeStr = GetFieldType(fldTypeInt);
+							// Add new field
+							DesignViewModel.Fields.Add(new FieldViewModel
+							{
+								ColName = reader["FieldName"].ToString(),
+								Caption = reader["FieldCaption"].ToString(),
+								FldType = fldTypeStr,
+								Fixed = reader["FixedValue"].ToString(),
+								ColorVal = colorDec.ToString(),
+								Rule = reader["FieldRule"].ToString(),
+								BackgroundBrush = brush,
+
+								L = reader["FieldLocked"] != DBNull.Value && Convert.ToInt32(reader["FieldLocked"]) != 0,
+								M = reader["IsTextVisible"] != DBNull.Value && Convert.ToInt32(reader["IsTextVisible"]) != 0,
+								SL = reader["IsComboVisible"] != DBNull.Value && Convert.ToInt32(reader["IsComboVisible"]) != 0,
+								MS = reader["IsListVisible"] != DBNull.Value && Convert.ToInt32(reader["IsListVisible"]) != 0,
+								Ctr = reader["IncrementalField"] != DBNull.Value && Convert.ToInt32(reader["IncrementalField"]) != 0,
+								VS = reader["VisibleInScan"] != DBNull.Value && Convert.ToInt32(reader["VisibleInScan"]) != 0,
+								VR = reader["VisibleInSearch"] != DBNull.Value && Convert.ToInt32(reader["VisibleInSearch"]) != 0
+							});
+						}
+					}
+				}
+			}
+
+			FieldsPanel.Visibility = Visibility.Visible;
+        }
+
+        private readonly List<(int Value, Brush Brush)> ColorCycle = new List<(int, Brush)>
+        {
+                (16777215, Brushes.White),
+                (255, Brushes.Red),
+                (65535, Brushes.Yellow),
+                (0, Brushes.Black),
+                (65280, Brushes.Green),
+                (16711680, Brushes.Blue)
+         };
+		private readonly List<(int Value, string TypeName)> FieldTypeMap = new List<(int, string)>
+        {
+	        (0, "Text"),
+	        (1, "Date"),
+			(2, "Number"),
+			(3, "Memo")
+        };
+
+		private void TextBox_ColorCycle(object sender, MouseButtonEventArgs e)
+		{
+			if (sender is TextBox tb && tb.DataContext is FieldViewModel field)
+			{
+				var currentBrush = tb.Background;
+
+				// Find current index in cycle
+				int index = ColorCycle.FindIndex(c => c.Brush == currentBrush);
+				if (index == -1) index = 0; // default if not found
+
+				// Move to next color
+				int nextIndex = (index + 1) % ColorCycle.Count;
+				var nextColor = ColorCycle[nextIndex];
+
+				// Set background and foreground
+				tb.Background = nextColor.Brush;
+				tb.Foreground = (nextColor.Brush == Brushes.Black || nextColor.Brush == Brushes.Blue)
+								? Brushes.Yellow
+								: Brushes.Black;
+
+				// Update the ViewModel decimal value
+				field.ColorVal = nextColor.Value.ToString();
+			}
+		}
+		private void LoadScanFieldOrder(int indexId)
+		{
+			listFieldOrderS.Items.Clear(); // clear previous items
+
+			using (SqlConnection conn = DatabaseHelper.GetConnection())
+			{
+				string query = @"SELECT FieldName FROM IndexesDialogs WHERE IndexID = @IndexID ORDER BY FieldOrder"; // optional FieldOrder
+
+				using (SqlCommand cmd = new SqlCommand(query, conn))
+				{
+					cmd.Parameters.AddWithValue("@IndexID", indexId);
+					conn.Open();
+					using (SqlDataReader reader = cmd.ExecuteReader())
+					{
+						while (reader.Read())
+						{
+							string fieldName = reader["FieldName"].ToString();
+							listFieldOrderS.Items.Add(fieldName);
+						}
+					}
+				}
+			}
+
+			frameButtons.Visibility = Visibility.Visible; // show the border panel
+		}
+
+		private void LoadSearchFieldOrder(int indexId)
+		{
+			listFieldOrderR.Items.Clear(); 
+
+			using (SqlConnection conn = DatabaseHelper.GetConnection())
+			{
+				string query = @"SELECT FieldName FROM IndexesDialogs WHERE IndexID = @IndexID ORDER BY FieldOrder"; 
+
+				using (SqlCommand cmd = new SqlCommand(query, conn))
+				{
+					cmd.Parameters.AddWithValue("@IndexID", indexId);
+					conn.Open();
+					using (SqlDataReader reader = cmd.ExecuteReader())
+					{
+						while (reader.Read())
+						{
+							string fieldName = reader["FieldName"].ToString();
+							listFieldOrderR.Items.Add(fieldName);
+						}
+					}
+				}
+			}
+
+			frameButtons.Visibility = Visibility.Visible; // show the border panel
+		}
+
+		private async void CmdUpdateArchive_Click(object sender, RoutedEventArgs e)
+		{
+			try
+			{
+				string sql = "SELECT * FROM Indexes WHERE LOWER(ShortIndexName) = @ShortName";
+				DataTable dt = new DataTable();
+
+				using (SqlConnection con = DatabaseHelper.GetConnection())
+				using (SqlCommand cmd = new SqlCommand(sql, con))
+				{
+					cmd.Parameters.AddWithValue("@ShortName", CurrentSInd.SelectedTableName.ToLower().Replace("'", "''"));
+					SqlDataAdapter da = new SqlDataAdapter(cmd);
+					da.Fill(dt);
+				}
+
+				if (dt.Rows.Count == 0)
+					return; // Exit if no record found
+
+				DataRow row = dt.Rows[0];
+
+				// 2. Validate numeric inputs
+				if (IsNumeric(txtLongIndexName.Text) || IsNumeric(txtParent1Name.Text) ||
+					IsNumeric(txtParent2Name.Text) || IsNumeric(txtParent3Name.Text) || IsNumeric(txtParent4Name.Text))
+				{
+					MessageBox.Show("Numbers Only Are Not Allowed as Parent Names!");
+					return;
+				}
+
+				// 3. Validate hierarchy duplicates
+				string[] names = {
+			    txtParent1Name.Text.Trim(),
+			    txtParent2Name.Text.Trim(),
+			    txtParent3Name.Text.Trim(),
+			    txtParent4Name.Text.Trim(),
+			    txtLongIndexName.Text.Trim()
+		       };
+
+				for (int i = 0; i < names.Length - 1; i++)
+				{
+					if (string.IsNullOrWhiteSpace(names[i]))
+						continue;
+
+					for (int j = i + 1; j < names.Length; j++)
+					{
+						if (string.Equals(names[i], names[j], StringComparison.OrdinalIgnoreCase))
+						{
+							MessageBox.Show("Repeated Names in Hierarchy is Not Allowed");
+							return;
+						}
+					}
+				}
+
+				//if (_cabinet.IndexExists(txtTableName.Text))
+				//{
+				//	MessageBox.Show("Archive Already Exists, Select Another Name Please");
+				//	return;
+				//}
+
+				int hierarchyLevel = 0;
+				if (!string.IsNullOrWhiteSpace(txtParent1Name.Text)) hierarchyLevel = 1;
+				if (!string.IsNullOrWhiteSpace(txtParent2Name.Text) && hierarchyLevel >= 1) hierarchyLevel = 2;
+				if (!string.IsNullOrWhiteSpace(txtParent3Name.Text) && hierarchyLevel >= 2) hierarchyLevel = 3;
+				if (!string.IsNullOrWhiteSpace(txtParent4Name.Text) && hierarchyLevel >= 3) hierarchyLevel = 4;
+
+				// 5. Update record in database
+				string updateSql = @"
+            UPDATE Indexes
+            SET FullTextEnabled = @FullTextEnabled,
+                EncryptionEnabled = @EncryptionEnabled,
+                LongIndexName = @LongIndexName,
+                Parent1Name = @Parent1Name,
+                Parent2Name = @Parent2Name,
+                Parent3Name = @Parent3Name,
+                Parent4Name = @Parent4Name,
+                CabArabicName = @CabArabicName,
+                HirarchyLevel = @HirarchyLevel
+            WHERE IndexID = @IndexID";
+
+				using (SqlConnection conn = DatabaseHelper.GetConnection())
+				using (SqlCommand cmd = new SqlCommand(updateSql, conn))
+				{
+					cmd.Parameters.AddWithValue("@FullTextEnabled", chkFullText.IsChecked == true ? 1 : 0);
+					cmd.Parameters.AddWithValue("@EncryptionEnabled", chkEncryption.IsChecked == true ? 1 : 0);
+					cmd.Parameters.AddWithValue("@LongIndexName", txtLongIndexName.Text.Trim());
+					cmd.Parameters.AddWithValue("@Parent1Name", txtParent1Name.Text.Trim());
+					cmd.Parameters.AddWithValue("@Parent2Name", txtParent2Name.Text.Trim());
+					cmd.Parameters.AddWithValue("@Parent3Name", txtParent3Name.Text.Trim());
+					cmd.Parameters.AddWithValue("@Parent4Name", txtParent4Name.Text.Trim());
+					cmd.Parameters.AddWithValue("@CabArabicName", CabArabicName);
+					cmd.Parameters.AddWithValue("@HirarchyLevel", hierarchyLevel);
+					cmd.Parameters.AddWithValue("@IndexID", CurrentSInd.SIndID);
+
+					conn.Open();
+					await cmd.ExecuteNonQueryAsync();
+				}
+
+				MessageBox.Show("Archive Updated Successfully");
+				var vm = (DesignWindowViewModel)this.DataContext;
+				vm.LoadTreeView();
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message);
+			}
+		}
+
+
+		private bool IsNumeric(string value)
+        {
+            return double.TryParse(value, out _);
+        }
+
+		
+		public class DesignWindowViewModel
         {
             public ObservableCollection<FieldViewModel> Fields { get; set; } = new ObservableCollection<FieldViewModel>();
             public void AddField() => Fields.Add(new FieldViewModel());
             public ObservableCollection<TreeNode> PartnerTree { get; set; } = new ObservableCollection<TreeNode>();
 
-            public void LoadTreeView()
+			
+			public void LoadTreeView()
             {
                 Cabinet cabinet = new Cabinet();
                 var nodes = cabinet.GetAllNodes();           // database fetch
