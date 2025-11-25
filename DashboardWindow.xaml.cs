@@ -1,4 +1,7 @@
-﻿using System.Windows;
+﻿using IMS.Data.Dashboard;
+using IMS.Data.Utilities;
+using IMS.Models.DashboardModel;
+using System.Windows;
 using System.Windows.Controls; // MenuItem के लिए
 using System.Windows.Input;
 using System.Windows.Media; // Visibility के लिए
@@ -7,6 +10,7 @@ namespace IMS
 {
     public partial class DashboardWindow : Window
     {
+        private Dashboard _dashboardWindow = new Dashboard();
         public DashboardWindow()
         {
             InitializeComponent();
@@ -14,7 +18,20 @@ namespace IMS
             WelcomeContentPanel.Visibility = Visibility.Visible;
             AdminContentPanel.Visibility = Visibility.Collapsed;
         }
+        private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
 
+            if (e.Key == Key.W && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                ChangePasswordPanel.Visibility = Visibility.Visible;
+                e.Handled = true; 
+            }
+            if (e.Key == Key.B && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                mnuAbout_Click(null, null);
+                e.Handled = true;
+            }
+        }
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (e.ChangedButton == MouseButton.Left)
@@ -84,21 +101,113 @@ namespace IMS
             Application.Current.Shutdown();
         }
 
-        private void GeneralSettings_Click(object sender, RoutedEventArgs e)
+     
+       private void mnuLoadCombo_Click(object sender, RoutedEventArgs e)
         {
-            MenuItem menuItem = sender as MenuItem;
-            if (menuItem != null && menuItem.Header != null)
+            SessionManager.GeneralSetting.Loadcombos = mnuLCI.IsChecked == true;
+        }
+		
+		private void mnuFontSize_Click(object sender, RoutedEventArgs e)
+        {
+            _dashboardWindow.ChangeFontSize();
+        }
+        private void mnuChangePassword_Click(object sender, RoutedEventArgs e)
+        {
+            ChangePasswordPanel.Visibility = Visibility.Visible;
+        }
+        private void ChangePassword_Click(object sender, RoutedEventArgs e)
+        {
+            int userId = SessionManager.SessionUser.UserID;
+            string oldPassword = OldPasswordBox.Password;
+            string newPassword = NewPasswordBox.Password;
+
+            bool result = _dashboardWindow.ChangeUserPassword(userId, oldPassword, newPassword);
+
+            if (result)
             {
-                string headerText = menuItem.Header.ToString();
-                MessageBox.Show($"Clicked: {headerText}", "Menu Action", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("Password changed successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                ChangePasswordPanel.Visibility = Visibility.Collapsed;
             }
-            else if (menuItem != null)
+            else
             {
-                MessageBox.Show("Clicked a menu item with no header.", "Menu Action", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("Old password is incorrect!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+            OldPasswordBox.Password = "";
+            NewPasswordBox.Password = "";
+            ConfirmPasswordBox.Password = "";
         }
 
-        private void MigrateAuditsAndAlerts_Click(object sender, RoutedEventArgs e)
+        private void CancelChangePassword_Click(object sender, RoutedEventArgs e)
+        {
+
+            ChangePasswordPanel.Visibility = Visibility.Collapsed;
+
+            OldPasswordBox.Password = "";
+            NewPasswordBox.Password = "";
+            ConfirmPasswordBox.Password = "";
+        }
+		private void mnuRighttoleft_Click(object sender, RoutedEventArgs e)
+		{
+			SessionManager.RightToLeft.RightLeft = mnuRtoL.IsChecked;
+		}
+		private void mnuAbout_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("IMS 2014");
+        }
+        private void SplitonBackslash_click(object sender, RoutedEventArgs e)
+        {
+            SessionManager.Multilist.SplitonBackslah = mnuLCI.IsChecked == true;
+        }
+        private void SplitOnForwardSlash_Click(object sender, RoutedEventArgs e) 
+        {
+            SessionManager.Multilist.SplitOnForwardSlash = mnuLCI.IsChecked == true;
+        }
+        private void SplitOnSemicolon_Click(object sender, RoutedEventArgs e) 
+        { 
+            SessionManager.Multilist.SplitOnSemicolon = mnuLCI.IsChecked == true;
+        }
+        private void SplitOnHyphen_Click(object sender, RoutedEventArgs e) 
+        {
+            SessionManager.Multilist.SplitOnHyphen = mnuLCI.IsChecked == true;
+        }
+        private void SplitOnUnderscore_Click(object sender, RoutedEventArgs e) 
+        {
+            SessionManager.Multilist.SplitOnUnderscore = mnuLCI.IsChecked == true;
+        }
+        private void mnuExternalViewer_Click(object sender, RoutedEventArgs e)
+        {
+            if (mnuExternalViewer.IsChecked == true)
+            {
+                mnuAppViewer.IsChecked = false;
+                SessionManager.PdfOption.ViewUsingWeb = true;
+            }
+            else
+            {
+                mnuExternalViewer.IsChecked = true;
+            }
+        }
+        private void mnuAppViewer_Click(object sender, RoutedEventArgs e)
+        {
+            if (mnuAppViewer.IsChecked == true)
+            {
+                mnuExternalViewer.IsChecked = false;
+                SessionManager.PdfOption.ViewUsingWeb = false;
+            }
+            else
+            {
+                mnuAppViewer.IsChecked = true;
+            }
+        }
+		private void ManageSettings_Click(object sender, RoutedEventArgs e)
+		{
+			SettingsWindow settingsWindow = new SettingsWindow();
+
+			settingsWindow.Show();
+
+		}
+		
+		private void MigrateAuditsAndAlerts_Click(object sender, RoutedEventArgs e)
         {
             // 1. Show the overlay
             overlayGrid.Visibility = Visibility.Visible;
@@ -125,7 +234,6 @@ namespace IMS
 
             overlayGrid.Visibility = Visibility.Collapsed;
         }
-
 
         private void ReservedUsersInfo_Click(object sender, RoutedEventArgs e)
         {
@@ -156,7 +264,7 @@ namespace IMS
 
         private void PostAnnouncement_Click(object sender, RoutedEventArgs e)
         {
-            overlayGrid.Visibility = Visibility.Visible;
+			overlayGrid.Visibility = Visibility.Visible;
 
             var dialog = new PostAnnouncementWindow();
             dialog.Owner = this;

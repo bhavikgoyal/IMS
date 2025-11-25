@@ -1,5 +1,10 @@
-﻿using System;
+﻿using IMS.Data.Authority;
+using IMS.Data.Dashboard;
+using IMS.Models.AuthorityModel;
+using IMS.Models.DashboardModel;
+using System;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 
 namespace IMS
@@ -9,7 +14,9 @@ namespace IMS
         public SimpleSearchWindow()
         {
             InitializeComponent();
-        }
+			LoadCabs();
+
+		}
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
@@ -48,7 +55,26 @@ namespace IMS
                 DragMove();
         }
 
-    }
+		private void LoadCabs()
+		{
+			Dashboard cabinet = new Dashboard();
+			List<SimpleSearch> groups = cabinet.GetAllLongIndexNames();
+
+			cmbCabs.ItemsSource = groups;                  // Bind the list
+			cmbCabs.DisplayMemberPath = "LongIndexName";   // What is displayed
+			cmbCabs.SelectedValuePath = "IndexID";        
+		}
+		private void cmbCabs_SelectionChanged(object sender, SelectionChangedEventArgs e)
+		{
+			if (cmbCabs.SelectedItem is SimpleSearch selectedCab)
+			{
+				int indexID = selectedCab.IndexID;
+				string name = selectedCab.LongIndexName;
+			}
+		}
+
+
+	}
     public class FileData // This is what you need
     {
         public string emp_sec { get; set; }

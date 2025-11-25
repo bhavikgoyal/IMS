@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Windows.Media;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,6 +14,8 @@ namespace IMS.Models.DesignModel
     {
         public int IndexID { get; set; }
         public string LongIndexName { get; set; }
+        public string ShortIndexName { get; set; }
+        public string TableName { get; set; }
         public string Parent1Name { get; set; }
         public string Parent2Name { get; set; }
         public string Parent3Name { get; set; }
@@ -23,6 +27,25 @@ namespace IMS.Models.DesignModel
     public class FieldViewModel : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
+
+        public FieldViewModel()
+        {
+            FldType = "Text";
+
+            FLDType = new ObservableCollection<string> { "Text", "Number", "Date", "Memo" };
+            FixedOptions = new ObservableCollection<string>
+            {
+                "%NOW%", "%DATE%", "%TIME%", "%USER%", "%USERL%", "%GROUP%", "%EMAIL%",
+                "%YEAR%", "%MONTH%", "%WEEK%", "%DAY%", "%HOUR%", "%MINUTE%", "%SECOND%",
+                "%CABSN%", "%CABLN%", "%DEPT%", "%SUBDEPT%", "%MANAGER%", "%EXTRAINFO%",
+                "%SUM(Field1,Field2,...)%", "%SUB(Field1,Field2,...)%", "%MUL(Field1,Field2,...)%",
+                "%DIV(Field1,Field2,...)%", "%AVG(Field1,Field2,...)%"
+           };
+
+        }
+
+        public ObservableCollection<string> FLDType { get; set; }
+        public ObservableCollection<string> FixedOptions { get; set; }
 
         private string colName;
         public string ColName
@@ -58,6 +81,13 @@ namespace IMS.Models.DesignModel
             get => colorVal;
             set { colorVal = value; OnPropertyChanged(nameof(ColorVal)); }
         }
+        private Brush backgroundBrush = Brushes.White;
+        public Brush BackgroundBrush
+        {
+            get => backgroundBrush;
+            set { backgroundBrush = value; OnPropertyChanged(nameof(BackgroundBrush)); }
+        }
+
 
         private string rule;
         public string Rule
@@ -119,4 +149,6 @@ namespace IMS.Models.DesignModel
         protected void OnPropertyChanged(string prop) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(prop));
     }
+
+
 }

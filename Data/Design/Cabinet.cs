@@ -1,4 +1,5 @@
 ﻿using IMS.Models.DesignModel;
+using Scripting;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -10,12 +11,12 @@ using System.Reflection.Metadata;
 using System.Text.RegularExpressions;
 using System.Windows;
 
+
 namespace IMS.Data.Design
 {
     public class Cabinet
     {
-        private bool AddFieldFlag2 = false;
-        private DesignWindow designWindow; 
+        private DesignWindow designWindow;
 
         public List<TreeNode> GetAllNodes()
         {
@@ -128,34 +129,43 @@ namespace IMS.Data.Design
 
             return newIndexID;
         }
-        public bool IndexExists(string newArchiveName)
-        {
-            try
-            {
-                using (SqlConnection con = DatabaseHelper.GetConnection())
-                {
-                    con.Open();
+		public bool IndexExists(string newArchiveName)
+		{
+			try
+			{
+				using (SqlConnection con = DatabaseHelper.GetConnection())
+				{
+					con.Open();
 
-                    string query = $@"
-                SELECT COUNT(*) 
-                FROM Indexes
-                WHERE ShortIndexName LIKE @ShortIndexName";
+			
+					string query = $@"SELECT COUNT(*) FROM Indexes WHERE ShortIndexName LIKE @ShortIndexName";
 
-                    using (SqlCommand cmd = new SqlCommand(query, con))
-                    {
-                        cmd.Parameters.AddWithValue("@ShortIndexName", newArchiveName);
-                        int count = (int)cmd.ExecuteScalar();
-                        return count > 0;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                return false;
-            }
-        }
-        public bool IndexLNExists(string newArchiveName)
+					using (SqlCommand cmd = new SqlCommand(query, con))
+					{
+					
+						string safeName = newArchiveName.Replace("'", "''");
+						cmd.Parameters.AddWithValue("@ShortIndexName", safeName);
+
+						// Execute scalar to get count
+						object result = cmd.ExecuteScalar();
+						if (result != null && int.TryParse(result.ToString(), out int count))
+						{
+							return count > 0;
+						}
+						else
+						{
+							return false;
+						}
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+				return false;
+			}
+		}
+		public bool IndexLNExists(string newArchiveName)
         {
             try
             {
@@ -478,5 +488,106 @@ namespace IMS.Data.Design
             }
         }
 
-    }
+        public string FindCabTableName(string shortIndexName)
+        {
+            try
+            {
+                string cabTableNameToReturn = null;
+                string lowerShortIndex = shortIndexName.Replace("'", "''").ToLower();
+
+                using (SqlConnection conn = DatabaseHelper.GetConnection())
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = $@"
+                SELECT TableName 
+                FROM Indexes
+                WHERE LOWER(ShortIndexName) = @IndexName
+                   OR LOWER(LongIndexName) = @IndexName";
+
+                    cmd.Parameters.AddWithValue("@IndexName", lowerShortIndex);
+
+                    conn.Open();
+                    var result = cmd.ExecuteScalar();
+
+                    if (result != null && result != DBNull.Value)
+                        cabTableNameToReturn = result.ToString();
+                    else
+                        cabTableNameToReturn = null;
+                }
+
+                return cabTableNameToReturn;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return null;
+            }
+        }
+
+		public static Models.Module FindTheIndexName(string nameOfClickedNode)
+		{
+			var module = new Models.Module();
+			string findTheIndexName = null;
+
+			try
+			{
+				using (SqlConnection conn = DatabaseHelper.GetConnection())
+				{
+					string sql = $"SELECT * FROM Indexes WHERE LongIndexName = @LongIndexName";
+
+					using (SqlCommand cmd = new SqlCommand(sql, conn))
+					{
+						cmd.Parameters.AddWithValue("@LongIndexName", nameOfClickedNode.Replace("'", "''"));
+						conn.Open();
+
+						using (SqlDataReader reader = cmd.ExecuteReader())
+						{
+							if (reader.Read())
+							{
+							module.SIndID = reader["IndexID"] != DBNull.Value ? reader["IndexID"].ToString() : string.Empty;
+							module.RoutingEnabled = reader["RoutingEnabled"] != DBNull.Value? (Convert.ToBoolean(reader["RoutingEnabled"]) ? 1 : 0): 0;
+							module.WorkflowEnabled = reader["WorkflowEnabled"] != DBNull.Value ?( Convert.ToBoolean(reader["WorkflowEnabled"]) ? 1 : 0): 0;
+							module.FullTextEnabled = reader["FullTextEnabled"] != DBNull.Value ?(Convert.ToBoolean(reader["FullTextEnabled"]) ? 1 : 0): 0;
+							module.EncryptionEnabled = reader["EncryptionEnabled"] != DBNull.Value ?(Convert.ToBoolean(reader["EncryptionEnabled"]) ? 1 :0):0;
+							module.DirIndexingEnabled = reader["DirIndexingEnabled"] != DBNull.Value ? (Convert.ToBoolean(reader["DirIndexingEnabled"]) 
+                             ? 1 : 0): 0;
+							module.FormsEnabled = reader["FormsEnabled"] != DBNull.Value ? (Convert.ToBoolean(reader["FormsEnabled"]) ? 1 : 0) : 0;
+							module.SIndLongName = reader["LongIndexName"] != DBNull.Value ? reader["LongIndexName"].ToString() : string.Empty;
+							module.SelectedTableName = reader["TableName"] != DBNull.Value && !string.IsNullOrWhiteSpace(reader["TableName"].ToString())
+													? reader["TableName"].ToString()
+													: reader["ShortIndexName"].ToString();
+
+								if (reader["ShortIndexName"] != DBNull.Value)
+									findTheIndexName = reader["ShortIndexName"].ToString();
+							}
+							else
+							{
+								// No record found
+								module.SIndID = string.Empty;
+								module.SIndLongName = string.Empty;
+								module.SelectedTableName = string.Empty;
+
+								module.RoutingEnabled = 0;
+								module.WorkflowEnabled = 0;
+								module.FullTextEnabled = 0;
+								module.EncryptionEnabled = 0;
+								module.DirIndexingEnabled = 0;
+								module.FormsEnabled = 0;
+
+								MessageBox.Show("No Such Index! Please Contact System Administrator");
+							}
+						}
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"Error fetching index: {ex.Message}");
+			}
+
+			return module;
+		}
+
+
+	}
 }
