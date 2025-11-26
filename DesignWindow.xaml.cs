@@ -4,7 +4,6 @@ using IMS.Models;
 using IMS.Models.DesignModel;
 using System;
 using System.Windows.Media;
-using Scripting;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data.SqlClient;
@@ -21,456 +20,455 @@ using System.Security.Cryptography.X509Certificates;
 
 namespace IMS
 {
-   
-    public partial class DesignWindow : Window
-    {
-        public Cabinet _cabinet;
-        private const int MaxFields = 93;
-        private bool EXFlag = false;
-        private string EXCabConnString = "";
-        private string EXCabTableName = "";
-        private string EXDBEngine = "MSSQL";
-        private string EXCabSchemaName = "";
-        string CabArabicName = "";
+
+	public partial class DesignWindow : Window
+	{
+		public Cabinet _cabinet;
+		private const int MaxFields = 93;
+		private bool EXFlag = false;
+		private string EXCabConnString = "";
+		private string EXCabTableName = "";
+		private string EXDBEngine = "MSSQL";
+		private string EXCabSchemaName = "";
+		string CabArabicName = "";
 		private Models.Module CurrentSInd;
 
 		public ObservableCollection<FieldViewModel> Fields { get; set; } = new ObservableCollection<FieldViewModel>();
-        private DesignWindowViewModel DesignViewModel = new DesignWindowViewModel();
+		private DesignWindowViewModel DesignViewModel = new DesignWindowViewModel();
 		public DesignWindow()
-        {
-            InitializeComponent();
-            DataContext = DesignViewModel;
+		{
+			InitializeComponent();
+			DataContext = DesignViewModel;
 			DesignViewModel.LoadTreeView();
-            _cabinet = new Cabinet();
-			
+			_cabinet = new Cabinet();
+
 
 		}
 
-        private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            if (e.ChangedButton == MouseButton.Left)
-                this.DragMove();
-        }
+		private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+		{
+			if (e.ChangedButton == MouseButton.Left)
+				this.DragMove();
+		}
 
-        private void MinimizeButton_Click(object sender, RoutedEventArgs e)
-        {
-            this.WindowState = WindowState.Minimized;
-        }
+		private void MinimizeButton_Click(object sender, RoutedEventArgs e)
+		{
+			this.WindowState = WindowState.Minimized;
+		}
 
-        private void MaximizeRestoreButton_Click(object sender, RoutedEventArgs e)
-        {
-            this.WindowState = this.WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
-        }
+		private void MaximizeRestoreButton_Click(object sender, RoutedEventArgs e)
+		{
+			this.WindowState = this.WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+		}
 
-        private void CloseButton_Click(object sender, RoutedEventArgs e)
-        {
-            OpenDashboardAndClose();
-        }
+		private void CloseButton_Click(object sender, RoutedEventArgs e)
+		{
+			OpenDashboardAndClose();
+		}
 
-        private void ExitMenuItem_Click(object sender, RoutedEventArgs e)
-        {
-            OpenDashboardAndClose();
-        }
+		private void ExitMenuItem_Click(object sender, RoutedEventArgs e)
+		{
+			OpenDashboardAndClose();
+		}
 
-        private void OpenDashboardAndClose()
-        {
-            DashboardWindow dashboard = new DashboardWindow();
-            dashboard.Show();
-            this.Close();
-        }
+		private void OpenDashboardAndClose()
+		{
+			DashboardWindow dashboard = new DashboardWindow();
+			dashboard.Show();
+			this.Close();
+		}
 
-        private void btnAddField_Click(object sender, RoutedEventArgs e)
-        {
+		private void btnAddField_Click(object sender, RoutedEventArgs e)
+		{
 			if (myTreeView.SelectedItem == null)
 			{
 				MessageBox.Show("Click On Selected Cabinet Name First Please", "IMS", MessageBoxButton.OK, MessageBoxImage.Information);
 				return;
 			}
 			if (DesignViewModel.Fields.Count >= MaxFields)
-            {
-                MessageBox.Show("Maximum 93 fields allowed!", "Limit Reached", MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
+			{
+				MessageBox.Show("Maximum 93 fields allowed!", "Limit Reached", MessageBoxButton.OK, MessageBoxImage.Information);
+				return;
+			}
 
 			DesignViewModel.AddField();
-        }
+		}
 
-        private void btnCreate_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                // Clean Short Index Name
-                string tempShortName = _cabinet.CleanString(txtShortIndexName.Text);
-                if (tempShortName.Length > 10)
-                {
-                    MessageBox.Show("Cabinet Short Name must not exceed 10 characters.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
+		private void btnCreate_Click(object sender, RoutedEventArgs e)
+		{
+			try
+			{
+				// Clean Short Index Name
+				string tempShortName = _cabinet.CleanString(txtShortIndexName.Text);
+				if (tempShortName.Length > 10)
+				{
+					MessageBox.Show("Cabinet Short Name must not exceed 10 characters.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+					return;
+				}
 
-                // Clean Long Index Name
-                string newIndexName = _cabinet.CleanString(txtTableName.Text);
-                txtShortIndexName.Text = tempShortName;
-                txtTableName.Text = newIndexName;
+				// Clean Long Index Name
+				string newIndexName = _cabinet.CleanString(txtTableName.Text);
+				txtShortIndexName.Text = tempShortName;
+				txtTableName.Text = newIndexName;
 
-                // Get new index ID
-                int newIndexID = _cabinet.FindNewIndexID(newIndexName.ToLower());
+				// Get new index ID
+				int newIndexID = _cabinet.FindNewIndexID(newIndexName.ToLower());
 
-                // Validate names
-                if (string.IsNullOrWhiteSpace(newIndexName) || string.IsNullOrWhiteSpace(tempShortName))
-                {
-                    MessageBox.Show("Improper Index Name! Avoid special characters.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
+				// Validate names
+				if (string.IsNullOrWhiteSpace(newIndexName) || string.IsNullOrWhiteSpace(tempShortName))
+				{
+					MessageBox.Show("Improper Index Name! Avoid special characters.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+					return;
+				}
 
-                if (_cabinet.IsReservedWord(newIndexName))
-                {
-                    MessageBox.Show("Improper Index Name! Avoid reserved words.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
+				if (_cabinet.IsReservedWord(newIndexName))
+				{
+					MessageBox.Show("Improper Index Name! Avoid reserved words.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+					return;
+				}
 
-                // Validate hierarchy uniqueness
-                var parentNames = new List<string> { txtParent1Name.Text, txtParent2Name.Text, txtParent3Name.Text, txtParent4Name.Text, txtLongIndexName.Text };
-                if (parentNames.Where(n => !string.IsNullOrWhiteSpace(n)).Distinct(StringComparer.OrdinalIgnoreCase).Count()
-                    < parentNames.Count(n => !string.IsNullOrWhiteSpace(n)))
-                {
-                    MessageBox.Show("Repeated names in hierarchy are not allowed.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
+				// Validate hierarchy uniqueness
+				var parentNames = new List<string> { txtParent1Name.Text, txtParent2Name.Text, txtParent3Name.Text, txtParent4Name.Text, txtLongIndexName.Text };
+				if (parentNames.Where(n => !string.IsNullOrWhiteSpace(n)).Distinct(StringComparer.OrdinalIgnoreCase).Count()
+					< parentNames.Count(n => !string.IsNullOrWhiteSpace(n)))
+				{
+					MessageBox.Show("Repeated names in hierarchy are not allowed.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+					return;
+				}
 
-                // Check for existing indexes
-                if (_cabinet.IndexExists(tempShortName))
-                {
-                    MessageBox.Show("Archive already exists, select another name.", "Duplicate Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
+				// Check for existing indexes
+				if (_cabinet.IndexExists(tempShortName))
+				{
+					MessageBox.Show("Archive already exists, select another name.", "Duplicate Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+					return;
+				}
 
-                if (_cabinet.IndexLNExists(txtLongIndexName.Text))
-                {
-                    MessageBox.Show("Long name already exists, select another name.", "Duplicate Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
+				if (_cabinet.IndexLNExists(txtLongIndexName.Text))
+				{
+					MessageBox.Show("Long name already exists, select another name.", "Duplicate Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+					return;
+				}
 
-                // Determine Cabinet Arabic Name
-                string cabArabicName = string.IsNullOrWhiteSpace(txtLongIndexName.Text) ? tempShortName : txtLongIndexName.Text;
+				// Determine Cabinet Arabic Name
+				string cabArabicName = string.IsNullOrWhiteSpace(txtLongIndexName.Text) ? tempShortName : txtLongIndexName.Text;
 
-                // Create index
-                if (chkExternalDB.IsChecked == true)
-                {
-                    _cabinet.CreateExternalCab(
-                        EXCabConnString,
-                        EXCabTableName,
-                        EXCabSchemaName,
-                        tempShortName,
-                        newIndexID,
-                        EXDBEngine,
-                        txtLongIndexName.Text,
-                        txtTableName.Text,
-                        txtParent1Name.Text,
-                        txtParent2Name.Text,
-                        txtParent3Name.Text,
-                        txtParent4Name.Text
-                    );
+				// Create index
+				if (chkExternalDB.IsChecked == true)
+				{
+					_cabinet.CreateExternalCab(
+						EXCabConnString,
+						EXCabTableName,
+						EXCabSchemaName,
+						tempShortName,
+						newIndexID,
+						EXDBEngine,
+						txtLongIndexName.Text,
+						txtTableName.Text,
+						txtParent1Name.Text,
+						txtParent2Name.Text,
+						txtParent3Name.Text,
+						txtParent4Name.Text
+					);
 
-                    // Clear external DB settings
-                    EXCabConnString = null;
-                    EXCabTableName = null;
-                    EXCabSchemaName = null;
-                    EXDBEngine = null;
-                }
-                else
-                {
+					// Clear external DB settings
+					EXCabConnString = null;
+					EXCabTableName = null;
+					EXCabSchemaName = null;
+					EXDBEngine = null;
+				}
+				else
+				{
 
-                    _cabinet.CreateIndex_SQL(
-                        tempShortName,
-                        newIndexID,
-                        cabArabicName,
-                        txtParent1Name.Text.Trim(),
-                        txtParent2Name.Text.Trim(),
-                        txtParent3Name.Text.Trim(),
-                        txtParent4Name.Text.Trim(),
-                        txtLongIndexName.Text.Trim()
-                    );
-
-
-                }
-
-                MessageBox.Show("Index created successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+					_cabinet.CreateIndex_SQL(
+						tempShortName,
+						newIndexID,
+						cabArabicName,
+						txtParent1Name.Text.Trim(),
+						txtParent2Name.Text.Trim(),
+						txtParent3Name.Text.Trim(),
+						txtParent4Name.Text.Trim(),
+						txtLongIndexName.Text.Trim()
+					);
+				}
+				MessageBox.Show("Index created successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
 				var vm = (DesignWindowViewModel)this.DataContext;
 				vm.LoadTreeView();
 			}
-            catch (Exception ex)
-            {
-                MessageBox.Show("Error creating index: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
+			catch (Exception ex)
+			{
+				MessageBox.Show("Error creating index: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+			}
+				
+		
+		}
 
-        private void chkWorkFlow_Click(object sender, RoutedEventArgs e)
-        {
-            if (chkWorkFlow.IsChecked == true)
-            {
-                // WorkFlow checked: disable related checkboxes
-                chkRouting.IsChecked = false;
-                chkRouting.IsEnabled = false;
+		private void chkWorkFlow_Click(object sender, RoutedEventArgs e)
+		{
+			if (chkWorkFlow.IsChecked == true)
+			{
+				// WorkFlow checked: disable related checkboxes
+				chkRouting.IsChecked = false;
+				chkRouting.IsEnabled = false;
 
-                chkEncryption.IsChecked = false;
-                chkEncryption.IsEnabled = false;
-            }
-            else
-            {
-                // WorkFlow unchecked: enable related checkboxes
-                chkRouting.IsChecked = false;
-                chkRouting.IsEnabled = true;
+				chkEncryption.IsChecked = false;
+				chkEncryption.IsEnabled = false;
+			}
+			else
+			{
+				// WorkFlow unchecked: enable related checkboxes
+				chkRouting.IsChecked = false;
+				chkRouting.IsEnabled = true;
 
-                chkEncryption.IsChecked = false;
-                chkEncryption.IsEnabled = true;
-            }
-        }
+				chkEncryption.IsChecked = false;
+				chkEncryption.IsEnabled = true;
+			}
+		}
 
-        private void chkRouting_Click(object sender, RoutedEventArgs e)
-        {
-            if (chkRouting.IsChecked == true)
-            {
-                // Routing checked: disable related checkboxes
-                chkWorkFlow.IsChecked = false;
-                chkWorkFlow.IsEnabled = false;
+		private void chkRouting_Click(object sender, RoutedEventArgs e)
+		{
+			if (chkRouting.IsChecked == true)
+			{
+				// Routing checked: disable related checkboxes
+				chkWorkFlow.IsChecked = false;
+				chkWorkFlow.IsEnabled = false;
 
-                chkEncryption.IsChecked = false;
-                chkEncryption.IsEnabled = false;
-            }
-            else
-            {
-                // Routing unchecked: enable related checkboxes
-                chkWorkFlow.IsChecked = false;
-                chkWorkFlow.IsEnabled = true;
+				chkEncryption.IsChecked = false;
+				chkEncryption.IsEnabled = false;
+			}
+			else
+			{
+				// Routing unchecked: enable related checkboxes
+				chkWorkFlow.IsChecked = false;
+				chkWorkFlow.IsEnabled = true;
 
-                chkEncryption.IsChecked = false;
-                chkEncryption.IsEnabled = true;
-            }
-        }
+				chkEncryption.IsChecked = false;
+				chkEncryption.IsEnabled = true;
+			}
+		}
 
-        private void chkEncryption_Click(object sender, RoutedEventArgs e)
-        {
-            if (chkEncryption.IsChecked == true)
-            {
-                // Encryption checked: disable and uncheck dependent checkboxes
-                chkWorkFlow.IsChecked = false;
-                chkWorkFlow.IsEnabled = false;
+		private void chkEncryption_Click(object sender, RoutedEventArgs e)
+		{
+			if (chkEncryption.IsChecked == true)
+			{
+				// Encryption checked: disable and uncheck dependent checkboxes
+				chkWorkFlow.IsChecked = false;
+				chkWorkFlow.IsEnabled = false;
 
-                chkRouting.IsChecked = false;
-                chkRouting.IsEnabled = false;
+				chkRouting.IsChecked = false;
+				chkRouting.IsEnabled = false;
 
-                chkFullText.IsChecked = false;
-                chkFullText.IsEnabled = false;
+				chkFullText.IsChecked = false;
+				chkFullText.IsEnabled = false;
 
-                chkForms.IsChecked = false;
-                chkForms.IsEnabled = false;
-            }
-            else
-            {
-                // Encryption unchecked: enable and reset dependent checkboxes
-                chkWorkFlow.IsChecked = false;
-                chkWorkFlow.IsEnabled = true;
+				chkForms.IsChecked = false;
+				chkForms.IsEnabled = false;
+			}
+			else
+			{
+				// Encryption unchecked: enable and reset dependent checkboxes
+				chkWorkFlow.IsChecked = false;
+				chkWorkFlow.IsEnabled = true;
 
-                chkRouting.IsChecked = false;
-                chkRouting.IsEnabled = true;
+				chkRouting.IsChecked = false;
+				chkRouting.IsEnabled = true;
 
-                chkFullText.IsChecked = false;
-                chkFullText.IsEnabled = true;
+				chkFullText.IsChecked = false;
+				chkFullText.IsEnabled = true;
 
-                chkForms.IsChecked = false;
-                chkForms.IsEnabled = true;
-            }
-        }
+				chkForms.IsChecked = false;
+				chkForms.IsEnabled = true;
+			}
+		}
 
-        private void chkForms_Click(object sender, RoutedEventArgs e)
-        {
-            if (chkForms.IsChecked == true)
-            {
-                // Forms checked: enable/disable related checkboxes
-                chkWorkFlow.IsChecked = true;
-                chkWorkFlow.IsEnabled = false;
+		private void chkForms_Click(object sender, RoutedEventArgs e)
+		{
+			if (chkForms.IsChecked == true)
+			{
+				// Forms checked: enable/disable related checkboxes
+				chkWorkFlow.IsChecked = true;
+				chkWorkFlow.IsEnabled = false;
 
-                chkRouting.IsChecked = false;
-                chkRouting.IsEnabled = false;
+				chkRouting.IsChecked = false;
+				chkRouting.IsEnabled = false;
 
-                chkEncryption.IsChecked = false;
-                chkEncryption.IsEnabled = false;
+				chkEncryption.IsChecked = false;
+				chkEncryption.IsEnabled = false;
 
-                chkDirIndexing.IsChecked = false;
-                chkDirIndexing.IsEnabled = false;
+				chkDirIndexing.IsChecked = false;
+				chkDirIndexing.IsEnabled = false;
 
-                chkFullText.IsChecked = false;
-                chkFullText.IsEnabled = false;
-            }
-            else
-            {
-                // Forms unchecked: reset all checkboxes
-                chkWorkFlow.IsChecked = false;
-                chkWorkFlow.IsEnabled = true;
+				chkFullText.IsChecked = false;
+				chkFullText.IsEnabled = false;
+			}
+			else
+			{
+				// Forms unchecked: reset all checkboxes
+				chkWorkFlow.IsChecked = false;
+				chkWorkFlow.IsEnabled = true;
 
-                chkRouting.IsChecked = false;
-                chkRouting.IsEnabled = true;
+				chkRouting.IsChecked = false;
+				chkRouting.IsEnabled = true;
 
-                chkEncryption.IsChecked = false;
-                chkEncryption.IsEnabled = true;
+				chkEncryption.IsChecked = false;
+				chkEncryption.IsEnabled = true;
 
-                chkDirIndexing.IsChecked = false;
-                chkDirIndexing.IsEnabled = true;
+				chkDirIndexing.IsChecked = false;
+				chkDirIndexing.IsEnabled = true;
 
-                chkFullText.IsChecked = false;
-                chkFullText.IsEnabled = true;
-            }
-        }
+				chkFullText.IsChecked = false;
+				chkFullText.IsEnabled = true;
+			}
+		}
 
-        private void chkFullText_Click(object sender, RoutedEventArgs e)
-        {
-            if ((txtShortIndexName.Text?.Length ?? 0) + 9 > 30)
-            {
-                MessageBox.Show("Short Field Name Should not exceed 21 characters", "Validation", MessageBoxButton.OK, MessageBoxImage.Warning);
-                chkFullText.IsChecked = false;
-            }
-        }
+		private void chkFullText_Click(object sender, RoutedEventArgs e)
+		{
+			if ((txtShortIndexName.Text?.Length ?? 0) + 9 > 30)
+			{
+				MessageBox.Show("Short Field Name Should not exceed 21 characters", "Validation", MessageBoxButton.OK, MessageBoxImage.Warning);
+				chkFullText.IsChecked = false;
+			}
+		}
 
-        private void chkDirIndexing_Checked(object sender, RoutedEventArgs e)
-        {
-            // You can implement similar logic as encryption if needed
-            // Currently empty, ready for future logic
-        }
-        private void chkExternalDB_Click(object sender, RoutedEventArgs e)
-        {
-            if (EXFlag)
-            {
-                EXFlag = false;
-                return;
-            }
+		private void chkDirIndexing_Checked(object sender, RoutedEventArgs e)
+		{
+			// You can implement similar logic as encryption if needed
+			// Currently empty, ready for future logic
+		}
+		private void chkExternalDB_Click(object sender, RoutedEventArgs e)
+		{
+			if (EXFlag)
+			{
+				EXFlag = false;
+				return;
+			}
 
-            if (chkExternalDB.IsChecked == true)
-            {
-                // Disable other options
-                chkForms.IsChecked = false;
-                chkForms.IsEnabled = false;
+			if (chkExternalDB.IsChecked == true)
+			{
+				// Disable other options
+				chkForms.IsChecked = false;
+				chkForms.IsEnabled = false;
 
-                chkWorkFlow.IsChecked = false;
-                chkWorkFlow.IsEnabled = false;
+				chkWorkFlow.IsChecked = false;
+				chkWorkFlow.IsEnabled = false;
 
-                chkRouting.IsChecked = false;
-                chkRouting.IsEnabled = false;
+				chkRouting.IsChecked = false;
+				chkRouting.IsEnabled = false;
 
-                chkEncryption.IsChecked = false;
-                chkEncryption.IsEnabled = false;
+				chkEncryption.IsChecked = false;
+				chkEncryption.IsEnabled = false;
 
-                chkDirIndexing.IsChecked = false;
-                chkDirIndexing.IsEnabled = false;
+				chkDirIndexing.IsChecked = false;
+				chkDirIndexing.IsEnabled = false;
 
-                chkFullText.IsChecked = false;
-                chkFullText.IsEnabled = false;
+				chkFullText.IsChecked = false;
+				chkFullText.IsEnabled = false;
 
-                txtTableName.IsEnabled = false;
+				txtTableName.IsEnabled = false;
 
-                // InputBox equivalent in WPF
-                EXCabConnString = Microsoft.VisualBasic.Interaction.InputBox(
-                    "Enter External Cabinet Connection String Please",
-                    "External Cabinet Connection String",
-                    EXCabConnString);
+				// InputBox equivalent in WPF
+				EXCabConnString = Microsoft.VisualBasic.Interaction.InputBox(
+					"Enter External Cabinet Connection String Please",
+					"External Cabinet Connection String",
+					EXCabConnString);
 
-                if (string.IsNullOrWhiteSpace(EXCabConnString))
-                {
-                    chkExternalDB.IsChecked = false;
-                    return;
-                }
+				if (string.IsNullOrWhiteSpace(EXCabConnString))
+				{
+					chkExternalDB.IsChecked = false;
+					return;
+				}
 
-                EXCabTableName = Microsoft.VisualBasic.Interaction.InputBox(
-                    "Enter External Cabinet Table Name Please",
-                    "External Cabinet Table Name",
-                    EXCabTableName);
+				EXCabTableName = Microsoft.VisualBasic.Interaction.InputBox(
+					"Enter External Cabinet Table Name Please",
+					"External Cabinet Table Name",
+					EXCabTableName);
 
-                if (string.IsNullOrWhiteSpace(EXCabTableName))
-                {
-                    chkExternalDB.IsChecked = false;
-                    return;
-                }
+				if (string.IsNullOrWhiteSpace(EXCabTableName))
+				{
+					chkExternalDB.IsChecked = false;
+					return;
+				}
 
-                EXDBEngine = Microsoft.VisualBasic.Interaction.InputBox(
-                    "Enter External Cabinet Database Engine Name Please\nORACLE,MSSQL,MYSQL,ACCESS,EXCEL,FOXPRO,...",
-                    "External Cabinet Table Name",
-                    "MSSQL");
+				EXDBEngine = Microsoft.VisualBasic.Interaction.InputBox(
+					"Enter External Cabinet Database Engine Name Please\nORACLE,MSSQL,MYSQL,ACCESS,EXCEL,FOXPRO,...",
+					"External Cabinet Table Name",
+					"MSSQL");
 
-                if (string.IsNullOrWhiteSpace(EXDBEngine))
-                {
-                    EXDBEngine = "MSSQL";
-                }
+				if (string.IsNullOrWhiteSpace(EXDBEngine))
+				{
+					EXDBEngine = "MSSQL";
+				}
 
-                txtShortIndexName.Text = EXCabTableName;
+				txtShortIndexName.Text = EXCabTableName;
 
-                EXCabSchemaName = Microsoft.VisualBasic.Interaction.InputBox(
-                    "Enter External Cabinet Schema Name Please",
-                    "External Cabinet Schema Name",
-                    EXCabSchemaName);
-            }
-            else
-            {
-                // Enable all options
-                txtTableName.IsEnabled = true;
+				EXCabSchemaName = Microsoft.VisualBasic.Interaction.InputBox(
+					"Enter External Cabinet Schema Name Please",
+					"External Cabinet Schema Name",
+					EXCabSchemaName);
+			}
+			else
+			{
+				// Enable all options
+				txtTableName.IsEnabled = true;
 
-                chkForms.IsEnabled = true;
-                chkWorkFlow.IsChecked = false;
-                chkWorkFlow.IsEnabled = true;
+				chkForms.IsEnabled = true;
+				chkWorkFlow.IsChecked = false;
+				chkWorkFlow.IsEnabled = true;
 
-                chkRouting.IsChecked = false;
-                chkRouting.IsEnabled = true;
+				chkRouting.IsChecked = false;
+				chkRouting.IsEnabled = true;
 
-                chkEncryption.IsChecked = false;
-                chkEncryption.IsEnabled = true;
+				chkEncryption.IsChecked = false;
+				chkEncryption.IsEnabled = true;
 
-                chkDirIndexing.IsChecked = false;
-                chkDirIndexing.IsEnabled = true;
+				chkDirIndexing.IsChecked = false;
+				chkDirIndexing.IsEnabled = true;
 
-                chkFullText.IsChecked = false;
-                chkFullText.IsEnabled = true;
-            }
-        }
+				chkFullText.IsChecked = false;
+				chkFullText.IsEnabled = true;
+			}
+		}
 
-        private void txtShortIndexName_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            txtTableName.Text = txtShortIndexName.Text;
-        }
-        private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
-        {
-            if (e.NewValue is TreeNode selectedNode)
-            {
+		private void txtShortIndexName_TextChanged(object sender, TextChangedEventArgs e)
+		{
+			txtTableName.Text = txtShortIndexName.Text;
+		}
+		private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+		{
+			if (e.NewValue is TreeNode selectedNode)
+			{
 				CurrentSInd = Cabinet.FindTheIndexName(selectedNode.LongIndexName);
 				int indexId = selectedNode.IndexID;
 				using (SqlConnection conn = DatabaseHelper.GetConnection())
-                {
-                    string query = @"SELECT LongIndexName, ShortIndexName, TableName, Parent1Name, Parent2Name, Parent3Name, Parent4Name FROM Indexes
+				{
+					string query = @"SELECT LongIndexName, ShortIndexName, TableName, Parent1Name, Parent2Name, Parent3Name, Parent4Name FROM Indexes
                              WHERE IndexID = @IndexID";
 
-                    SqlCommand cmd = new SqlCommand(query, conn);
-                    cmd.Parameters.AddWithValue("@IndexID", indexId);
+					SqlCommand cmd = new SqlCommand(query, conn);
+					cmd.Parameters.AddWithValue("@IndexID", indexId);
 
-                    conn.Open();
-                    using (SqlDataReader reader = cmd.ExecuteReader())
-                    {
-                        if (reader.Read())
-                        {
-                            txtIndexID.Text = selectedNode.IndexID.ToString();
-                            txtLongIndexName.Text = reader["LongIndexName"].ToString();
-                            txtShortIndexName.Text = reader["ShortIndexName"].ToString();
-                            txtTableName.Text = reader["TableName"].ToString();
-                            txtParent1Name.Text = reader["Parent1Name"].ToString();
-                            txtParent2Name.Text = reader["Parent2Name"].ToString();
-                            txtParent3Name.Text = reader["Parent3Name"].ToString();
-                            txtParent4Name.Text = reader["Parent4Name"].ToString();
+					conn.Open();
+					using (SqlDataReader reader = cmd.ExecuteReader())
+					{
+						if (reader.Read())
+						{
+							txtIndexID.Text = selectedNode.IndexID.ToString();
+							txtLongIndexName.Text = reader["LongIndexName"].ToString();
+							txtShortIndexName.Text = reader["ShortIndexName"].ToString();
+							txtTableName.Text = reader["TableName"].ToString();
+							txtParent1Name.Text = reader["Parent1Name"].ToString();
+							txtParent2Name.Text = reader["Parent2Name"].ToString();
+							txtParent3Name.Text = reader["Parent3Name"].ToString();
+							txtParent4Name.Text = reader["Parent4Name"].ToString();
 
-                            FieldsPanel.Visibility = Visibility.Visible;
-                            LoadFieldsForIndex(indexId);
+							FieldsPanel.Visibility = Visibility.Visible;
+							LoadFieldsForIndex(indexId);
 							LoadScanFieldOrder(indexId);
 							LoadSearchFieldOrder(indexId);
 						}
-                    }
-                }
-            }
-        }
+					}
+				}
+			}
+		}
 		private string GetFieldType(int fldTypeInt)
 		{
 			var entry = FieldTypeMap.FirstOrDefault(f => f.Value == fldTypeInt);
@@ -497,9 +495,9 @@ namespace IMS
 
 					using (SqlDataReader reader = cmd.ExecuteReader())
 					{
-						while (reader.Read()) 
+						while (reader.Read())
 						{
-							
+
 							int colorDec = 16777215;
 							var colorStr = reader["ColorValue"]?.ToString();
 							if (!string.IsNullOrEmpty(colorStr))
@@ -534,26 +532,45 @@ namespace IMS
 					}
 				}
 			}
-
+			if (!DesignViewModel.Fields.Any(f => f.ColName.Equals("OriginalFileName", StringComparison.OrdinalIgnoreCase)))
+			{
+				DesignViewModel.Fields.Add(new FieldViewModel
+				{
+					ColName = "OriginalFileName",
+					Caption = "Original File Name",
+					FldType = "Text",
+					Fixed = "",
+					ColorVal = "16777215", // white
+					BackgroundBrush = Brushes.White,
+					L = true,
+					M = false,
+					SL = false,
+					MS = false,
+					Ctr = false,
+					VS = true,
+					VR = true,
+					Rule = "0"
+				});
+			}
 			FieldsPanel.Visibility = Visibility.Visible;
-        }
+		}
 
-        private readonly List<(int Value, Brush Brush)> ColorCycle = new List<(int, Brush)>
-        {
-                (16777215, Brushes.White),
-                (255, Brushes.Red),
-                (65535, Brushes.Yellow),
-                (0, Brushes.Black),
-                (65280, Brushes.Green),
-                (16711680, Brushes.Blue)
-         };
+		private readonly List<(int Value, Brush Brush)> ColorCycle = new List<(int, Brush)>
+		{
+				(16777215, Brushes.White),
+				(255, Brushes.Red),
+				(65535, Brushes.Yellow),
+				(0, Brushes.Black),
+				(65280, Brushes.Green),
+				(16711680, Brushes.Blue)
+		 };
 		private readonly List<(int Value, string TypeName)> FieldTypeMap = new List<(int, string)>
-        {
-	        (0, "Text"),
-	        (1, "Date"),
+		{
+			(0, "Text"),
+			(1, "Date"),
 			(2, "Number"),
 			(3, "Memo")
-        };
+		};
 
 		private void TextBox_ColorCycle(object sender, MouseButtonEventArgs e)
 		{
@@ -607,11 +624,11 @@ namespace IMS
 
 		private void LoadSearchFieldOrder(int indexId)
 		{
-			listFieldOrderR.Items.Clear(); 
+			listFieldOrderR.Items.Clear();
 
 			using (SqlConnection conn = DatabaseHelper.GetConnection())
 			{
-				string query = @"SELECT FieldName FROM IndexesDialogs WHERE IndexID = @IndexID ORDER BY FieldOrder"; 
+				string query = @"SELECT FieldName FROM IndexesDialogs WHERE IndexID = @IndexID ORDER BY FieldOrder";
 
 				using (SqlCommand cmd = new SqlCommand(query, conn))
 				{
@@ -661,12 +678,12 @@ namespace IMS
 
 				// 3. Validate hierarchy duplicates
 				string[] names = {
-			    txtParent1Name.Text.Trim(),
-			    txtParent2Name.Text.Trim(),
-			    txtParent3Name.Text.Trim(),
-			    txtParent4Name.Text.Trim(),
-			    txtLongIndexName.Text.Trim()
-		       };
+				txtParent1Name.Text.Trim(),
+				txtParent2Name.Text.Trim(),
+				txtParent3Name.Text.Trim(),
+				txtParent4Name.Text.Trim(),
+				txtLongIndexName.Text.Trim()
+			   };
 
 				for (int i = 0; i < names.Length - 1; i++)
 				{
@@ -738,30 +755,92 @@ namespace IMS
 		}
 
 
-		private bool IsNumeric(string value)
-        {
-            return double.TryParse(value, out _);
-        }
+		private async void cmdDelArchive_Click(object sender, RoutedEventArgs e)
+		{
+			if (CurrentSInd.SIndID == null)
+				return;
 
-		
-		public class DesignWindowViewModel
-        {
-            public ObservableCollection<FieldViewModel> Fields { get; set; } = new ObservableCollection<FieldViewModel>();
-            public void AddField() => Fields.Add(new FieldViewModel());
-            public ObservableCollection<TreeNode> PartnerTree { get; set; } = new ObservableCollection<TreeNode>();
+			// Ask user
+			var result = MessageBox.Show(
+				"Are you sure you want to delete the archive named: " + CurrentSInd.SelectedTableName,
+				"Delete Archive",
+				MessageBoxButton.YesNo,
+				MessageBoxImage.Warning);
 
+			if (result == MessageBoxResult.No)
+				return;
+
+			try
+			{
+				using (SqlConnection con = DatabaseHelper.GetConnection())
+				{
+					await con.OpenAsync();
+
+				
+					async Task Exec(string sql)
+					{
+						using (SqlCommand cmd = new SqlCommand(sql, con))
+						{
+							await cmd.ExecuteNonQueryAsync();
+						}
+					}
+
+					string safeIndexName = CurrentSInd.SelectedTableName.Replace("'", "''").ToLower();
+
+				    await Exec($"DELETE FROM Indexes WHERE LOWER(ShortIndexName)='{safeIndexName}'");
+					await Exec($"DELETE FROM IndexesDialogs WHERE IndexID={CurrentSInd.SIndID}");
+					await Exec($"DELETE FROM Workflow WHERE LOWER(TableName)='{safeIndexName}' AND (IndexID={CurrentSInd.SIndID} OR IndexIDToSendTo={CurrentSInd.SIndID})");
+					await Exec($"DELETE FROM WorkflowEmails WHERE IndexID={CurrentSInd.SIndID}");
+					await Exec($"DELETE FROM WorkflowFields WHERE IndexID={CurrentSInd.SIndID}");
+					await Exec($"DELETE FROM DocumentSecurityGroups WHERE IndexID={CurrentSInd.SIndID}");
+					await Exec($"DELETE FROM Alerts WHERE IndexID={CurrentSInd.SIndID}");
+					await Exec($"DELETE FROM Comments WHERE IndexID={CurrentSInd.SIndID}");
+					await Exec($"DELETE FROM AllCounters WHERE IndexID={CurrentSInd.SIndID}");
+
+					 await Exec($"DROP TABLE {safeIndexName}");
+            await Exec($"DROP TABLE {safeIndexName}_Blob");
+            if (CurrentSInd.FormsEnabled == 1)
+                await Exec($"DROP TABLE {safeIndexName}_FormName_L_U");
+            if (CurrentSInd.FullTextEnabled == 1)
+                await Exec($"DROP TABLE {safeIndexName}_FullText");
+				}
+
+				MessageBox.Show("Archive deleted successfully.");
+				var vm = (DesignWindowViewModel)this.DataContext;
+				vm.LoadTreeView();
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show("Error deleting archive:\n" + ex.Message);
+			}
 			
-			public void LoadTreeView()
-            {
-                Cabinet cabinet = new Cabinet();
-                var nodes = cabinet.GetAllNodes();           // database fetch
-                var tree = cabinet.BuildTree(nodes);        // build hierarchy
+		}
 
-                PartnerTree.Clear();
-                foreach (var node in tree)
-                    PartnerTree.Add(node);
-            }
-        }
-    }
-   
+
+		private bool IsNumeric(string value)
+		{
+			return double.TryParse(value, out _);
+		}
+
+
+		public class DesignWindowViewModel
+		{
+			public ObservableCollection<FieldViewModel> Fields { get; set; } = new ObservableCollection<FieldViewModel>();
+			public void AddField() => Fields.Add(new FieldViewModel());
+			public ObservableCollection<TreeNode> PartnerTree { get; set; } = new ObservableCollection<TreeNode>();
+
+
+			public void LoadTreeView()
+			{
+				Cabinet cabinet = new Cabinet();
+				var nodes = cabinet.GetAllNodes();           // database fetch
+				var tree = cabinet.BuildTree(nodes);        // build hierarchy
+
+				PartnerTree.Clear();
+				foreach (var node in tree)
+					PartnerTree.Add(node);
+			}
+		}
+	}
+
 }
