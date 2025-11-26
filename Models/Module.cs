@@ -11,24 +11,25 @@ namespace IMS.Models
 		public string SIndName { get; set; }
 		public string SIndID { get; set; }
 		public string SIndLongName { get; set; }
+		public string CurrentSInd { get; set; }
 
+		public int RoutingEnabled { get; set; }
+		public int WorkflowEnabled { get; set; }
+		public int FullTextEnabled { get; set; }
+		public int EncryptionEnabled { get; set; }
+		public int DirIndexingEnabled { get; set; }
+		public int FormsEnabled { get; set; }
+		public int MailEnabled { get; set; }
+		public int FaxEnabled { get; set; }
+		public string SelectedTableName { get; set; }
 
-		public int RoutingEnabled;
-		public int WorkflowEnabled;
-		public int FullTextEnabled;
-		public int EncryptionEnabled;
-		public int DirIndexingEnabled;
-		public int FormsEnabled;
-		public int MailEnabled;
-		public int FaxEnabled;
-		public string SelectedTableName;
+		public int WorkflowEnabledSearch { get; set; }
+		public int RoutingEnabledSearch { get; set; }
+		public int FullTextEnabledSearch { get; set; }
+		public int FormsEnabledSearch { get; set; }
+		public int EncryptionEnabledSearch { get; set; }
+		public int DirIndexingEnabledSearch { get; set; }
+		public string SelectedTableNameSearch { get; set; }
 
-		public int WorkflowEnabledSearch;
-		public int RoutingEnabledSearch;
-		public int FullTextEnabledSearch;
-		public int FormsEnabledSearch;
-		public int EncryptionEnabledSearch;
-		public int DirIndexingEnabledSearch;
-		public string SelectedTableNameSearch;
 	}
 }
