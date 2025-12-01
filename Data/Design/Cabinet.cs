@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Text.RegularExpressions;
 using System.Windows;
+using System.Windows.Controls;
 
 
 namespace IMS.Data.Design
@@ -233,8 +234,8 @@ namespace IMS.Data.Design
             {
                 indexToCreate = indexToCreate.Replace(" ", "_");
 
-                using (var con = new SqlConnection(NameOfConnString))
-                {
+				using (SqlConnection con = DatabaseHelper.GetConnection())
+				{
                     con.Open();
 
                     if (dbEngine.Equals("MSSQL", StringComparison.OrdinalIgnoreCase))
@@ -586,7 +587,6 @@ namespace IMS.Data.Design
 
 			return module;
 		}
-
 
 	}
 }
