@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data;
 using System.Data.SqlClient;
+using System.DirectoryServices;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -31,6 +32,7 @@ namespace IMS
         private UserRepository userRepo = new UserRepository();
         private FunctionalSecurity funcRepo = new FunctionalSecurity();
         private CabSecurity cabsecurity = new CabSecurity();
+        private readonly WfRepository wfRepo = new WfRepository();
         public ObservableCollection<string> AllUsersWFGroup { get; set; } = new ObservableCollection<string>();
         public ObservableCollection<string> AddedUsersWFGroup { get; set; } = new ObservableCollection<string>();
 
@@ -41,6 +43,8 @@ namespace IMS
         private string CurrentFunctionalGroupName = string.Empty;
         private int CurrentFunctionalGroupID = 0;
         private int NewFunctionalGroupIDCreated = -1;
+        private int CurrentWFGroupID = 0;
+        private string CurrentWFGroupName = string.Empty;
 
         private Dictionary<string, int> _originalUserPositions = new Dictionary<string, int>();
 
@@ -64,6 +68,7 @@ namespace IMS
             LoadFunctionalSecurityGroups();
 
             LoadDocumentSecurityGroups();
+            LoadWfGroups();
         }
 
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -346,6 +351,8 @@ namespace IMS
             foreach (var user in sorted)
                 AllUsersWFGroup.Add(user);
         }
+
+        // =============================  CAB SECURITY ==============================
 
         private void comboDocumentSecurityGroups_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -805,6 +812,9 @@ namespace IMS
             foreach (var it in items) listBox.Items.Add(it);
         }
 
+
+        //  ========================  FUNCTIONAL SECURITY =============================
+
         private void comboFunctionalSecurityGroups_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             try
@@ -959,7 +969,6 @@ namespace IMS
         {
             try
             {
-                // Ensure we have a functional group id (resolve from selected combo or typed text)
                 if (CurrentFunctionalGroupID <= 0)
                 {
                     if (comboFunctionalSecurityGroups.SelectedItem is FunctionalSecurityGroups s)
@@ -1039,7 +1048,6 @@ namespace IMS
                     ["CanScan"] = chkCanScan.IsChecked == true
                 };
 
-                // 3) Save rights using repository; show full exception details on failure
                 bool rightsSaved = false;
                 try
                 {
@@ -1051,13 +1059,10 @@ namespace IMS
                                     "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
-
-                // 4) Final feedback and reload UI
                 if (usersSaved && rightsSaved)
                 {
                     MessageBox.Show("Functional group users and rights saved successfully.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
 
-                    // reload fresh data for UI consistency
                     try
                     {
                         LoadFunctionalGroupUsersAndUsersNotInGroup(CurrentFunctionalGroupID);
@@ -1065,7 +1070,6 @@ namespace IMS
                     }
                     catch
                     {
-                        // ignore reload exceptions here (we already saved successfully)
                     }
                 }
                 else if (!usersSaved && !rightsSaved)
@@ -1076,14 +1080,13 @@ namespace IMS
                 {
                     MessageBox.Show("Failed to save functional group users.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
-                else // !rightsSaved
+                else
                 {
                     MessageBox.Show("Failed to save functional group rights.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
             catch (Exception ex)
             {
-                // show full outer exception if something unexpected happens
                 MessageBox.Show($"Apply error: {ex.Message}\n\n{ex.ToString()}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
@@ -1107,7 +1110,6 @@ namespace IMS
 
                     if (CurrentFunctionalGroupID > 0)
                     {
-                        // load users and rights for this group
                         LoadFunctionalGroupUsersAndUsersNotInGroup(CurrentFunctionalGroupID);
                         LoadFunctionalGroupRights(CurrentFunctionalGroupID);
                         MessageBox.Show($"Group '{CurrentFunctionalGroupName}' loaded.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -1127,17 +1129,14 @@ namespace IMS
                 }
 
                 CurrentFunctionalGroupName = text;
-                // Ask to create
                 var res = MessageBox.Show($"Create New Functional Group Named '{CurrentFunctionalGroupName}'?", "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Question);
                 if (res == MessageBoxResult.Yes)
                 {
                     NewFunctionalGroupIDCreated = funcRepo.CreateFunctionalGroup(CurrentFunctionalGroupName);
                     if (NewFunctionalGroupIDCreated > 0)
                     {
-                        // reload combobox
                         LoadFunctionalSecurityGroups();
                         comboFunctionalSecurityGroups.Text = CurrentFunctionalGroupName;
-                        // trigger selection flow
                         comboFunctionalSecurityGroups_SelectionChanged(null, null);
                     }
                     else
@@ -1189,7 +1188,6 @@ namespace IMS
                             AllUsersWFGroup.Clear();
                             AddedUsersWFGroup.Clear();
                             comboFunctionalSecurityGroups.Text = string.Empty;
-                            // optionally clear rights UI
                             ResetFunctionalRightsUI();
                         }
                         else
@@ -1210,7 +1208,6 @@ namespace IMS
         }
         private void ResetFunctionalRightsUI()
         {
-            // Set all right checkboxes to false — list every checkbox you've placed
             chkCanScan.IsChecked = false;
             chkCanApprove.IsChecked = false;
             chkCanApproveAll.IsChecked = false;
@@ -1227,5 +1224,840 @@ namespace IMS
             chkCanImportBatch.IsChecked = false;
             chkCanDeleteFiles.IsChecked = false;
         }
+
+        // ====================  WF GROUPS ===================
+
+        private void LoadWfGroups()
+        {
+            try
+            {
+                var groups = wfRepo.GetWfGroups() ?? new List<FunctionalSecurityGroups>();
+                comboWfGroups.ItemsSource = groups;
+
+                if (groups.Count > 0)
+                    comboWfGroups.SelectedIndex = 0;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading WF groups: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void comboWfGroups_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                if (comboWfGroups.ItemsSource == null) return;
+
+                int groupId = 0;
+
+                if (comboWfGroups.SelectedItem is FunctionalSecurityGroups sel)
+                {
+                    groupId = sel.GroupID;
+                }
+                else
+                {
+                    var txt = (comboWfGroups.Text ?? string.Empty).Trim();
+                    groupId = wfRepo.GetWfGroupIdByName(txt);
+                }
+
+                if (groupId <= 0)
+                {
+                    AllUsersWFGroup.Clear();
+                    AddedUsersWFGroup.Clear();
+                    return;
+                }
+
+                LoadWfGroupUsersAndUsersNotInGroup(groupId);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error selecting WF group: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void LoadWfGroupUsersAndUsersNotInGroup(int groupId)
+        {
+            try
+            {
+                var allUsers = userRepo.GetAllUsernames()?.OrderBy(u => u).ToList() ?? new List<string>();
+                var addedUsers = wfRepo.GetUsersForWfGroup(groupId) ?? new List<string>();
+
+                var notAdded = allUsers.Except(addedUsers, StringComparer.OrdinalIgnoreCase).OrderBy(u => u).ToList();
+
+                AllUsersWFGroup.Clear();
+                foreach (var u in notAdded) AllUsersWFGroup.Add(u);
+
+                AddedUsersWFGroup.Clear();
+                foreach (var u in addedUsers) AddedUsersWFGroup.Add(u);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading WF group users: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void btnApplyWf_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (CurrentWFGroupID <= 0)
+                {
+                    if (comboWfGroups.SelectedItem is FunctionalSecurityGroups sel)
+                    {
+                        CurrentWFGroupID = sel.GroupID;
+                        CurrentWFGroupName = sel.GroupName;
+                    }
+                    else
+                    {
+                        var txt = (comboWfGroups.Text ?? string.Empty).Trim();
+                        CurrentWFGroupID = wfRepo.GetWfGroupIdByName(txt);
+                        CurrentWFGroupName = txt;
+                    }
+                }
+
+                if (CurrentWFGroupID <= 0)
+                {
+                    MessageBox.Show("Please select a valid WF group before saving.",
+                                    "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
+                var usersToSave = AddedUsersWFGroup.ToList();
+
+                bool ok = wfRepo.SetUsersForWfGroup(CurrentWFGroupID, usersToSave);
+
+                if (ok)
+                {
+                    MessageBox.Show("WF group users saved successfully.",
+                                    "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                    LoadWfGroupUsersAndUsersNotInGroup(CurrentWFGroupID);
+                }
+                else
+                {
+                    MessageBox.Show("Failed to save WF group users.",
+                                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error saving WF group: {ex.Message}",
+                                "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void btnLoadCreateWfGroup_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (comboWfGroups.ItemsSource == null)
+                    return;
+
+                string name = string.Empty;
+                int id = 0;
+
+                if (comboWfGroups.SelectedItem is FunctionalSecurityGroups sel)
+                {
+                    id = sel.GroupID;
+                    name = sel.GroupName;
+                }
+                else
+                {
+                    name = (comboWfGroups.Text ?? string.Empty).Trim();
+                }
+
+                if (string.IsNullOrWhiteSpace(name))
+                {
+                    MessageBox.Show("Please select or type a workflow group name.",
+                                    "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+                bool exists = wfRepo.DoesWfGroupExist(name);
+
+                if (exists)
+                {
+                    if (id <= 0)
+                        id = wfRepo.GetWfGroupIdByName(name);
+
+                    if (id > 0)
+                    {
+                        CurrentWFGroupID = id;
+                        CurrentWFGroupName = name;
+
+                        LoadWfGroupUsersAndUsersNotInGroup(id);
+
+                        MessageBox.Show($"Group '{name}' loaded.",
+                                        "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    else
+                    {
+                        MessageBox.Show("Selected WF group could not be found.",
+                                        "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    }
+
+                    return;
+                }
+
+                var res = MessageBox.Show(
+                    $"Create new WF group named '{name}' ?",
+                    "Create Workflow Group",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Question);
+
+                if (res == MessageBoxResult.Yes)
+                {
+                    int newId = wfRepo.CreateWfGroup(name);
+                    if (newId <= 0)
+                    {
+                        MessageBox.Show("Failed to create WF group.",
+                                        "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        return;
+                    }
+
+                    CurrentWFGroupID = newId;
+                    CurrentWFGroupName = name;
+
+                    LoadWfGroups();
+
+                    var items = comboWfGroups.Items.Cast<FunctionalSecurityGroups>().ToList();
+                    var found = items.FirstOrDefault(g => g.GroupID == newId);
+                    if (found != null)
+                        comboWfGroups.SelectedItem = found;
+                    else
+                        comboWfGroups.Text = $"{name} (ID={newId})";
+                    LoadWfGroupUsersAndUsersNotInGroup(newId);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error in Load/Create WF group: {ex.Message}",
+                                "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void btnDeleteWfGroup_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (!(comboWfGroups.SelectedItem is FunctionalSecurityGroups sel))
+                {
+                    MessageBox.Show("Please select a WF group to delete.",
+                                    "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
+                int gid = sel.GroupID;
+                string name = sel.GroupName;
+
+                if (gid <= 0)
+                {
+                    gid = wfRepo.GetWfGroupIdByName(name);
+                }
+
+                if (gid <= 0)
+                {
+                    MessageBox.Show("Selected WF group has no valid ID to delete.",
+                                    "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                var res = MessageBox.Show(
+                    $"Delete workflow group '{name}' ? This will remove the group and all user assignments.",
+                    "Confirm Delete",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Question);
+
+                if (res != MessageBoxResult.Yes)
+                    return;
+
+                bool ok = wfRepo.DeleteWfGroup(gid);
+
+                if (ok)
+                {
+                    MessageBox.Show("Workflow group deleted.",
+                                    "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                    CurrentWFGroupID = 0;
+                    CurrentWFGroupName = string.Empty;
+
+                    LoadWfGroups();
+                    AllUsersWFGroup.Clear();
+                    AddedUsersWFGroup.Clear();
+                }
+                else
+                {
+                    MessageBox.Show("Failed to delete workflow group.",
+                                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error deleting WF group: {ex.Message}",
+                                "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+
+        //=========================== User ========================= 
+
+
+        private void btnResetPassword_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(UserIDTextBox.Text))
+                    return;
+
+                if (!int.TryParse(UserIDTextBox.Text, out int userId))
+                {
+                    MessageBox.Show("Invalid User ID",
+                                    "Error",
+                                    MessageBoxButton.OK,
+                                    MessageBoxImage.Error);
+                    return;
+                }
+
+                string typedPassword = ExtraInfoTextBox.Text.Trim();
+
+                var confirm = MessageBox.Show(
+                    "Are you sure you want to reset the password to the typed password?",
+                    "Confirm Reset",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Question);
+
+                if (confirm == MessageBoxResult.No)
+                    return;
+
+                if (typedPassword.Contains(","))
+                {
+                    MessageBox.Show("Password cannot contain comma (,).",
+                                    "Invalid Password",
+                                    MessageBoxButton.OK,
+                                    MessageBoxImage.Warning);
+
+                    PasswordBox.Password = string.Empty;
+                    return;
+                }
+
+                bool ok = userRepo.UpdateUserPasswordPlain(userId, typedPassword);
+
+                if (!ok)
+                {
+                    MessageBox.Show("Password reset failed.",
+                                    "Error",
+                                    MessageBoxButton.OK,
+                                    MessageBoxImage.Error);
+                    return;
+                }
+
+                MessageBox.Show("Password Reset Successfully",
+                                "Success",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message,
+                                "Error",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Error);
+            }
+        }
+
+        private void btnCreateUpdateUser_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                string userIdText = UserIDTextBox.Text.Trim();
+                string userName = NameTextBox.Text.Trim();
+                string longName = LongnameTextBox.Text.Trim();
+                string email = EmailTextBox.Text.Trim();
+                string password = PasswordBox.Password;   
+                string manager = ManagerTextBox.Text.Trim();
+                string dept = DeptTextBox.Text.Trim();
+                string subDept = SubDeptTextBox.Text.Trim();
+                string extraInfo = ExtraInfoTextBox.Text.Trim();
+
+                if (string.IsNullOrWhiteSpace(userName))
+                {
+                    MessageBox.Show("User name is required.",
+                                    "Validation",
+                                    MessageBoxButton.OK,
+                                    MessageBoxImage.Warning);
+                    NameTextBox.Focus();
+                    return;
+                }
+
+                if (string.IsNullOrWhiteSpace(password))
+                {
+                    var res = MessageBox.Show(
+                        "Password is empty. Do you want to continue?",
+                        "Confirm",
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Question);
+
+                    if (res == MessageBoxResult.No)
+                        return;
+                }
+
+                int userType = 0;
+                if (rdoWindowsUser.IsChecked == true)
+                    userType = 0;  
+                else if (rdoActive.IsChecked == true)
+                    userType = 1;  
+
+                bool isNew = string.IsNullOrWhiteSpace(userIdText);
+
+                if (isNew)
+                {
+                    if (userRepo.DoesUserNameExist(userName, null))
+                    {
+                        MessageBox.Show("User name already exists. Please choose another name.",
+                                        "Duplicate User",
+                                        MessageBoxButton.OK,
+                                        MessageBoxImage.Warning);
+                        return;
+                    }
+
+                    int newId = userRepo.CreateUser(
+                        userName,
+                        longName,
+                        email,
+                        password,  
+                        manager,
+                        dept,
+                        subDept,
+                        extraInfo,
+                        userType);
+
+                    if (newId > 0)
+                    {
+                        UserIDTextBox.Text = newId.ToString();
+
+                        MessageBox.Show("User created successfully.",
+                                        "Info",
+                                        MessageBoxButton.OK,
+                                        MessageBoxImage.Information);
+
+                        LoadUsers();
+
+                        UsersAvailableListBox.SelectedItem = userName;
+                    }
+                    else
+                    {
+                        MessageBox.Show("Failed to create user.",
+                                        "Error",
+                                        MessageBoxButton.OK,
+                                        MessageBoxImage.Error);
+                    }
+                }
+                else
+                {
+                    if (!int.TryParse(userIdText, out int userId) || userId <= 0)
+                    {
+                        MessageBox.Show("Invalid User ID.",
+                                        "Error",
+                                        MessageBoxButton.OK,
+                                        MessageBoxImage.Error);
+                        return;
+                    }
+                    if (userRepo.DoesUserNameExist(userName, userId))
+                    {
+                        MessageBox.Show("Another user with the same name already exists.",
+                                        "Duplicate User",
+                                        MessageBoxButton.OK,
+                                        MessageBoxImage.Warning);
+                        return;
+                    }
+
+                    bool ok = userRepo.UpdateUser(
+                        userId,
+                        userName,
+                        longName,
+                        email,
+                        password,
+                        manager,
+                        dept,
+                        subDept,
+                        extraInfo,
+                        userType);
+
+                    if (ok)
+                    {
+                        MessageBox.Show("User updated successfully.",
+                                        "Info",
+                                        MessageBoxButton.OK,
+                                        MessageBoxImage.Information);
+
+                        LoadUsers();
+                        UsersAvailableListBox.SelectedItem = userName;
+                    }
+                    else
+                    {
+                        MessageBox.Show("Failed to update user.",
+                                        "Error",
+                                        MessageBoxButton.OK,
+                                        MessageBoxImage.Error);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Error while saving user: {ex.Message}",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+        }
+
+        private void btnDeleteUser_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(UserIDTextBox.Text))
+                {
+                    MessageBox.Show("Please select a user to delete.",
+                                    "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
+                if (!int.TryParse(UserIDTextBox.Text, out int userId) || userId <= 0)
+                {
+                    MessageBox.Show("Invalid User ID.",
+                                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                string userName = NameTextBox.Text;
+
+                var confirm = MessageBox.Show(
+                    $"Are you sure you want to delete user [{userName}]?",
+                    "Confirm Delete",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Warning);
+
+                if (confirm == MessageBoxResult.No)
+                    return;
+
+                bool ok = userRepo.DeleteUser(userId);
+
+                if (ok)
+                {
+                    MessageBox.Show("User deleted successfully.",
+                                    "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                    ClearUserForm();
+                    LoadUsers();
+                }
+                else
+                {
+                    MessageBox.Show("User delete failed.",
+                                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message,
+                                "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void btnDeleteAllUsers_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var confirm = MessageBox.Show(
+                    "WARNING!\nThis will permanently delete ALL users.\n\nDo you want to continue?",
+                    "Delete All Users",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Stop);
+
+                if (confirm == MessageBoxResult.No)
+                    return;
+
+                bool ok = userRepo.DeleteAllUsers();
+
+                if (ok)
+                {
+                    MessageBox.Show("All users deleted successfully.",
+                                    "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                    ClearUserForm();
+                    LoadUsers();
+                }
+                else
+                {
+                    MessageBox.Show("Delete all users failed.",
+                                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message,
+                                "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+        private void ClearUserForm()
+        {
+            UserIDTextBox.Text = "";
+            NameTextBox.Text = "";
+            LongnameTextBox.Text = "";
+            EmailTextBox.Text = "";
+            PasswordBox.Password = "";
+            ManagerTextBox.Text = "";
+            DeptTextBox.Text = "";
+            SubDeptTextBox.Text = "";
+            ExtraInfoTextBox.Text = "";
+
+            rdoWindowsUser.IsChecked = false;
+            rdoActive.IsChecked = false;
+            rdoUser.IsChecked = false;
+            rdoGroup.IsChecked = false;
+        }
+
+        private void btnLdapImport_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var confirm = MessageBox.Show(
+                    "This will import / update users from LDAP (Active Directory).\n\nDo you want to continue?",
+                    "LDAP Import",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Question);
+
+                if (confirm == MessageBoxResult.No)
+                    return;
+
+                string ldapPath = "LDAP://YOUR-DC-SERVER/DC=yourdomain,DC=local"; // TODO: change this
+                string ldapUser = null;    
+                string ldapPassword = null;
+
+                string filter = "(objectClass=user)";
+                if (chkLdapFilter.IsChecked == true && !string.IsNullOrWhiteSpace(txtLdapFilter.Text))
+                {
+                    filter = txtLdapFilter.Text.Trim();
+                }
+
+                int created = 0;
+                int updated = 0;
+
+                using (var entry = new DirectoryEntry(ldapPath, ldapUser, ldapPassword))
+                using (var searcher = new DirectorySearcher(entry))
+                {
+                    searcher.Filter = filter;
+                    searcher.PageSize = 500;
+                    searcher.PropertiesToLoad.Add("sAMAccountName");
+                    searcher.PropertiesToLoad.Add("displayName");
+                    searcher.PropertiesToLoad.Add("mail");
+                    searcher.PropertiesToLoad.Add("department");
+                    searcher.PropertiesToLoad.Add("manager");
+
+                    var results = searcher.FindAll();
+
+                    foreach (SearchResult r in results)
+                    {
+                        string userName = GetLdapProp(r, "sAMAccountName");
+                        if (string.IsNullOrWhiteSpace(userName))
+                            continue;
+
+                        string longName = GetLdapProp(r, "displayName");
+                        string email = GetLdapProp(r, "mail");
+                        string dept = GetLdapProp(r, "department");
+                        string manager = GetLdapProp(r, "manager");
+
+                        // VB6 style logic: agar user hai to UPDATE, nahi hai to CREATE
+                        if (userRepo.DoesUserNameExist(userName))
+                        {
+                            var existing = userRepo.GetUserDetailsByUserName(userName);
+                            if (existing != null)
+                            {
+                                bool ok = userRepo.UpdateUser(
+                                    existing.UserID,
+                                    userName,
+                                    string.IsNullOrWhiteSpace(longName) ? existing.UserLongName : longName,
+                                    string.IsNullOrWhiteSpace(email) ? existing.UserEmail : email,
+                                    existing.UserPassword,  
+                                    string.IsNullOrWhiteSpace(manager) ? existing.Manager : manager,
+                                    string.IsNullOrWhiteSpace(dept) ? existing.Department : dept,
+                                    existing.SubDept,
+                                    existing.ExtraInfo,
+                                    existing.UserType
+                                );
+
+                                if (ok) updated++;
+                            }
+                        }
+                        else
+                        {
+                            int newId = userRepo.CreateUser(
+                                userName,
+                                string.IsNullOrWhiteSpace(longName) ? userName : longName,
+                                email,
+                                "123",     
+                                manager,
+                                dept,
+                                "",           
+                                "",          
+                                0          
+                            );
+
+                            if (newId > 0)
+                                created++;
+                        }
+                    }
+                }
+
+                LoadUsers();
+
+                MessageBox.Show(
+                    $"LDAP Import completed.\n\nCreated: {created}\nUpdated: {updated}",
+                    "LDAP Import",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"LDAP import failed: {ex.Message}",
+                                "Error",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Error);
+            }
+        }
+        private string GetLdapProp(SearchResult r, string propName)
+        {
+            try
+            {
+                if (r.Properties.Contains(propName) && r.Properties[propName].Count > 0)
+                {
+                    return r.Properties[propName][0]?.ToString() ?? string.Empty;
+                }
+            }
+            catch { }
+            return string.Empty;
+        }
+
+        private void btnUserInfo_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(UserIDTextBox.Text))
+                {
+                    MessageBox.Show("Please select a user first.",
+                                    "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
+                if (!int.TryParse(UserIDTextBox.Text, out int userId))
+                {
+                    MessageBox.Show("Invalid user selection.",
+                                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                var user = userRepo.GetUserDetailsById(userId);
+
+                if (user == null)
+                {
+                    MessageBox.Show("User record not found.",
+                                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                string msg = $@"
+                User Details
+                -----------------------
+                User ID    : {user.UserID}
+                User Name  : {user.UserName}
+                Full Name  : {user.UserLongName}
+                Email      : {user.UserEmail}
+                Manager    : {user.Manager}
+                Department : {user.Department}
+                Sub Dept   : {user.SubDept}
+                User Type  : {(user.UserType == 1 ? "Active" : "Windows")}
+                Last Login : {user.LastLogin}
+                ";
+
+                MessageBox.Show(msg, "User Information",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message,
+                                "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void btnLoggedOnUsers_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var users = userRepo.GetLoggedOnUsers_VB6Style();
+
+                if (users.Count == 0)
+                {
+                    MessageBox.Show("No users are currently logged in.",
+                                    "Logged On Users",
+                                    MessageBoxButton.OK,
+                                    MessageBoxImage.Information);
+                    return;
+                }
+
+                StringBuilder msg = new StringBuilder();
+                msg.AppendLine("Logged On Users");
+                msg.AppendLine("-------------------");
+
+                foreach (var u in users) 
+                {
+                    msg.AppendLine(u.UserName + "   " + u.LastLogin);
+                }
+
+                MessageBox.Show(msg.ToString(),
+                                "Logged On Users",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void Menu_ShowPhotos_Click(object sender, RoutedEventArgs e)
+        {
+            if (miShowPhotos.IsChecked == true)
+            {
+                PhotoBorder.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                PhotoBorder.Visibility = Visibility.Collapsed;
+            }
+        }
+        private void Menu_ShowAllScreens_Click(object sender, RoutedEventArgs e) { }
+        private void Menu_ExecuteGeneralQuery_Click(object sender, RoutedEventArgs e) { }
+        private void Menu_SortCabinetsLongName_Click(object sender, RoutedEventArgs e) { }
+        private void Menu_DeactivateAllUsers_Click(object sender, RoutedEventArgs e) { }
+        private void Menu_ActivateAllUsers_Click(object sender, RoutedEventArgs e) { }
+        private void Menu_LockAllUsers_Click(object sender, RoutedEventArgs e) { }
+        private void Menu_UnlockAllUsers_Click(object sender, RoutedEventArgs e) { }
+        private void Menu_MakeUserInternal_Click(object sender, RoutedEventArgs e) { }
+        private void Menu_MakeAllInternal_Click(object sender, RoutedEventArgs e) { }
+        private void Menu_MakeUserExternal_Click(object sender, RoutedEventArgs e) { }
+        private void Menu_MakeAllExternal_Click(object sender, RoutedEventArgs e) { }
+        private void Menu_ResetAllPasswords_Click(object sender, RoutedEventArgs e) { }
+        private void Menu_addingeachuser_Click(object sender, RoutedEventArgs e) { }
+        private void Menu_replaceexistuser_Click(object sender, RoutedEventArgs e) { }
+        private void Menu_ldapobject_Click(object sender, RoutedEventArgs e) { }
+        private void Menu_turnoffalert_Click(object sender, RoutedEventArgs e) { }
+        private void Menu_cleanAlertsaudits_Click(object sender, RoutedEventArgs e) { }
+        private void Menu_refreshcountcabinets_Click(object sender, RoutedEventArgs e) { }
+        private void Menu_minimizeallimages_Click(object sender, RoutedEventArgs e) { }
+        private void Menu_minimizecertaincabinet_Click(object sender, RoutedEventArgs e) { }
+        private void Menu_unlockdocumentfromcabinets_Click(object sender, RoutedEventArgs e) { }
+        private void Menu_deleteemptyrecordCabinets_Click(object sender, RoutedEventArgs e) { }
+        private void Menu_resetcounterCabinets_Click(object sender, RoutedEventArgs e) { }
     }
 }
