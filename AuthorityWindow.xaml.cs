@@ -33,6 +33,8 @@ namespace IMS
         private FunctionalSecurity funcRepo = new FunctionalSecurity();
         private CabSecurity cabsecurity = new CabSecurity();
         private readonly WfRepository wfRepo = new WfRepository();
+        private GeneralQueryRepository generalRepo = new GeneralQueryRepository();
+
         public ObservableCollection<string> AllUsersWFGroup { get; set; } = new ObservableCollection<string>();
         public ObservableCollection<string> AddedUsersWFGroup { get; set; } = new ObservableCollection<string>();
 
@@ -2037,7 +2039,65 @@ namespace IMS
             }
         }
         private void Menu_ShowAllScreens_Click(object sender, RoutedEventArgs e) { }
-        private void Menu_ExecuteGeneralQuery_Click(object sender, RoutedEventArgs e) { }
+       
+        private void Menu_ExecuteGeneralQuery_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var dlg = new GeneralQueryWindow();
+                dlg.Owner = this;
+
+                bool? result = dlg.ShowDialog();
+                if (result != true)
+                    return;
+
+                string sql = dlg.SqlText?.Trim();
+
+                if (string.IsNullOrWhiteSpace(sql))
+                {
+                    MessageBox.Show("Please write a SQL query first.",
+                                    "Execute Query",
+                                    MessageBoxButton.OK,
+                                    MessageBoxImage.Information);
+                    return;
+                }
+
+                var confirm = MessageBox.Show(
+                    $"Are You Sure You Want To Execute This Query:\n{sql}",
+                    "Execute Query",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Question);
+
+                if (confirm != MessageBoxResult.Yes)
+                    return;
+
+                if (sql.TrimStart().StartsWith("select", StringComparison.OrdinalIgnoreCase))
+                {
+                    DataTable dt = generalRepo.ExecuteSelectQuery(sql);
+
+                    MessageBox.Show($"Query executed successfully.\nRows Returned: {dt.Rows.Count}",
+                                    "Execute Query",
+                                    MessageBoxButton.OK,
+                                    MessageBoxImage.Information);
+                }
+                else
+                {
+                    int affected = generalRepo.ExecuteNonQuery(sql);
+
+                    MessageBox.Show($"Query executed successfully.\nRows Affected: {affected}",
+                                    "Execute Query",
+                                    MessageBoxButton.OK,
+                                    MessageBoxImage.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error while executing query:\n\n" + ex.Message,
+                                "Execute Query",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Error);
+            }
+        }
         private void Menu_SortCabinetsLongName_Click(object sender, RoutedEventArgs e) { }
         private void Menu_DeactivateAllUsers_Click(object sender, RoutedEventArgs e) { }
         private void Menu_ActivateAllUsers_Click(object sender, RoutedEventArgs e) { }
