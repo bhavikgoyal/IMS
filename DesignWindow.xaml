@@ -1120,8 +1120,8 @@ AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,4,0,0" He
                   </StackPanel>
                   <StackPanel Grid.Row="1" Grid.Column="1"  Margin="10,10,0,0" HorizontalAlignment="Stretch">
                     <Button x:Name="btnAddField" Content="Add Index" Style="{StaticResource ActionButtonStyle}" Background="#4CAF50" Click="btnAddField_Click" />
-                    <Button x:Name="btnupdateField" Content="Update Indexes" Style="{StaticResource ActionButtonStyle}" Background="#2196F3" Margin="0,10,0,0"/>
-                    <Button x:Name="btndelField" Content="Delete Index" Style="{StaticResource ActionButtonStyle}" Background="#F44336" Margin="0,10,0,0"/>
+                    <Button x:Name="btnupdateField" Content="Update Indexes" Style="{StaticResource ActionButtonStyle}" Background="#2196F3" Margin="0,10,0,0" Click="btnUpdateIndex_Click" />
+                    <Button x:Name="btndelField" Content="Delete Index" Style="{StaticResource ActionButtonStyle}" Background="#F44336" Margin="0,10,0,0" Click="btnDelField_Click"/>
                   </StackPanel>
                 </Grid>
                 <CheckBox Grid.Row="2" Content="Delete Data Directory" Style="{StaticResource ModernCheckBoxStyleDelete}"
@@ -1175,8 +1175,8 @@ AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,4,0,0" He
                     <DataTemplate>
                       <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
                         <CheckBox Width="20" IsChecked="{Binding IsChecked}" Margin="0,0,5,0"/>
-                        <TextBox Width="120" Text="{Binding ColName, UpdateSourceTrigger=PropertyChanged}" />
-                        <TextBox Width="120" Text="{Binding Caption, UpdateSourceTrigger=PropertyChanged}" Margin="5,0,0,0"/>
+                        <TextBox  Width="120" Text="{Binding ColName, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBox  Width="120" Text="{Binding Caption, UpdateSourceTrigger=PropertyChanged}" Margin="5,0,0,0"/>
                         <ComboBox Width="50" Margin="5,0,0,0"
           ItemsSource="{Binding FLDType}" 
                           SelectedItem="{Binding FldType, UpdateSourceTrigger=PropertyChanged}" />
@@ -1229,7 +1229,7 @@ AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,4,0,0" He
                    Foreground="#333333"
                    FontSize="16"
                    FontWeight="SemiBold"
-                   Padding="5,7,10,5"/>
+                   Padding="5,7,10,5" MouseDoubleClick="Scanmodule_click"/>
 
               <ListBox x:Name="listFieldOrderS"
                      FontSize="14"
@@ -1238,10 +1238,10 @@ AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,4,0,0" He
                      Height="200"/>
 
               <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                <Button Width="40" Height="40" BorderThickness="0" Cursor="Hand" ToolTip="Move Up" Background="#FFF">
+                <Button Width="40" Height="40" BorderThickness="0" Cursor="Hand" ToolTip="Move Up" Background="#FFF" Click="BtnMoveUp_Click">
                   <Image Source="/Images/upbtn.png"/>
                 </Button>
-                <Button Width="40" Height="40" BorderThickness="0" Cursor="Hand" ToolTip="Move Down" Background="#FFF" Margin="10,0,0,0">
+                <Button Width="40" Height="40" BorderThickness="0" Cursor="Hand" ToolTip="Move Down" Background="#FFF" Margin="10,0,0,0" Click="BtnMoveDown_Click">
                   <Image Source="/Images/downbtn.png"/>
                 </Button>
               </StackPanel>
@@ -1260,7 +1260,7 @@ AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,4,0,0" He
                    Foreground="#333333"
                    FontSize="16"
                    FontWeight="SemiBold"
-                   Padding="5,7,10,5"/>
+                   Padding="5,7,10,5" />
 
               <ListBox x:Name="listFieldOrderR"
                      FontSize="14"

@@ -46,21 +46,42 @@ namespace IMS.Models.DesignModel
 
         public ObservableCollection<string> FLDType { get; set; }
         public ObservableCollection<string> FixedOptions { get; set; }
-
+        private bool isChecked;
+        public bool IsChecked
+        {
+            get => isChecked;
+            set { isChecked = value; OnPropertyChanged(nameof(IsChecked)); }
+        }
         private string colName;
         public string ColName
         {
             get => colName;
-            set { colName = value; OnPropertyChanged(nameof(ColName)); }
+            set
+            {
+                if (colName != value)
+                {
+                    colName = value;
+                    OnPropertyChanged(nameof(ColName));
+
+                    // Automatic update of Caption
+                    Caption = value;
+                }
+            }
         }
 
         private string caption;
         public string Caption
         {
             get => caption;
-            set { caption = value; OnPropertyChanged(nameof(Caption)); }
+            set
+            {
+                if (caption != value)
+                {
+                    caption = value;
+                    OnPropertyChanged(nameof(Caption));
+                }
+            }
         }
-
         private string fldType;
         public string FldType
         {
@@ -145,7 +166,11 @@ namespace IMS.Models.DesignModel
             get => vr;
             set { vr = value; OnPropertyChanged(nameof(VR)); }
         }
+        public string NameOfFieldLookup { get; set; }
+        public string NameOfTableLookup { get; set; }
+        public string ColorFieldValue { get; set; }
 
+        public string CurrentFieldSchema { get; set; }
         protected void OnPropertyChanged(string prop) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(prop));
     }
