@@ -32,8 +32,10 @@ namespace IMS
 		private string EXCabSchemaName = "";
 		string CabArabicName = "";
 		private Models.Module CurrentSInd;
+		private int _selectedIndexId = 0;
 
-		public ObservableCollection<FieldViewModel> Fields { get; set; } = new ObservableCollection<FieldViewModel>();
+
+        public ObservableCollection<FieldViewModel> Fields { get; set; } = new ObservableCollection<FieldViewModel>();
 		private DesignWindowViewModel DesignViewModel = new DesignWindowViewModel();
 		public DesignWindow()
 		{
@@ -42,8 +44,7 @@ namespace IMS
 			DesignViewModel.LoadTreeView();
 			_cabinet = new Cabinet();
 
-
-		}
+        }
 
 		private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
 		{
@@ -93,8 +94,86 @@ namespace IMS
 
 			DesignViewModel.AddField();
 		}
+        private void btnUpdateIndex_Click(object sender, RoutedEventArgs e)
+        {
+            if (_selectedIndexId == 0)
+            {
+                MessageBox.Show("Click On Selected Cabinet Name First Please", "IMS",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
 
-		private void btnCreate_Click(object sender, RoutedEventArgs e)
+            try
+            {
+                using (var conn = DatabaseHelper.GetConnection())
+                {
+                    conn.Open();
+
+                    var lastField = DesignViewModel.Fields.LastOrDefault();
+					if (lastField != null)
+					{
+						_cabinet.InsertIndex(_selectedIndexId, lastField, conn);
+						_cabinet.AddColumnIfNotExists(_selectedIndexId, lastField);
+
+					}
+				}
+                LoadScanFieldOrder(_selectedIndexId);
+                LoadSearchFieldOrder(_selectedIndexId);
+                MessageBox.Show("ADD successfully!", "IMS",
+					MessageBoxButton.OK, MessageBoxImage.Information);
+               
+            }
+			catch (Exception ex)
+            {
+                MessageBox.Show("Error inserting field: " + ex.Message, "IMS",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+        private void btnDelField_Click(object sender, RoutedEventArgs e)
+        {
+            if (_selectedIndexId == 0)
+            {
+                MessageBox.Show("Click On Selected Cabinet Name First Please", "IMS",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+            var selectedFields = DesignViewModel.Fields.Where(f => f.IsChecked).ToList();
+            if (!selectedFields.Any())
+            {
+                MessageBox.Show("Please select at least one field to delete.", "IMS",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            try
+            {
+                using (var conn = DatabaseHelper.GetConnection())
+                {
+                    conn.Open();
+                    // Delete selected fields from DB and columns
+                    _cabinet.DeleteSelectedFields(_selectedIndexId, selectedFields, conn);
+                }
+
+                // Refresh UI field order
+                LoadScanFieldOrder(_selectedIndexId);
+                LoadSearchFieldOrder(_selectedIndexId);
+
+                // Remove deleted fields from ObservableCollection
+                foreach (var f in selectedFields)
+                    DesignViewModel.Fields.Remove(f);
+
+                // Success message
+                MessageBox.Show("Fields Deleted Successfully", "IMS",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error deleting fields: " + ex.Message, "IMS",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void btnCreate_Click(object sender, RoutedEventArgs e)
 		{
 			try
 			{
@@ -437,14 +516,14 @@ namespace IMS
 			if (e.NewValue is TreeNode selectedNode)
 			{
 				CurrentSInd = Cabinet.FindTheIndexName(selectedNode.LongIndexName);
-				int indexId = selectedNode.IndexID;
+                _selectedIndexId = selectedNode.IndexID;
 				using (SqlConnection conn = DatabaseHelper.GetConnection())
 				{
 					string query = @"SELECT LongIndexName, ShortIndexName, TableName, Parent1Name, Parent2Name, Parent3Name, Parent4Name FROM Indexes
                              WHERE IndexID = @IndexID";
 
 					SqlCommand cmd = new SqlCommand(query, conn);
-					cmd.Parameters.AddWithValue("@IndexID", indexId);
+					cmd.Parameters.AddWithValue("@IndexID", _selectedIndexId);
 
 					conn.Open();
 					using (SqlDataReader reader = cmd.ExecuteReader())
@@ -461,19 +540,15 @@ namespace IMS
 							txtParent4Name.Text = reader["Parent4Name"].ToString();
 
 							FieldsPanel.Visibility = Visibility.Visible;
-							LoadFieldsForIndex(indexId);
-							LoadScanFieldOrder(indexId);
-							LoadSearchFieldOrder(indexId);
+							LoadFieldsForIndex(_selectedIndexId);
+							LoadScanFieldOrder(_selectedIndexId);
+							LoadSearchFieldOrder(_selectedIndexId);
 						}
 					}
 				}
 			}
 		}
-		private string GetFieldType(int fldTypeInt)
-		{
-			var entry = FieldTypeMap.FirstOrDefault(f => f.Value == fldTypeInt);
-			return entry.TypeName ?? "Text"; // default to Text
-		}
+		
 		private void LoadFieldsForIndex(int indexId)
 		{
 			// Clear previous fields
@@ -504,13 +579,13 @@ namespace IMS
 							{
 								int.TryParse(colorStr, out colorDec);
 							}
-							var brush = ColorCycle.FirstOrDefault(c => c.Value == colorDec).Brush ?? Brushes.White;
+							var brush = _cabinet.ColorCycle.FirstOrDefault(c => c.Value == colorDec).Brush ?? Brushes.White;
 
-							int fldTypeInt = 0;
-							int.TryParse(reader["FieldType"].ToString(), out fldTypeInt);
-							string fldTypeStr = GetFieldType(fldTypeInt);
-							// Add new field
-							DesignViewModel.Fields.Add(new FieldViewModel
+                            int fldTypeInt = 0;
+                            int.TryParse(reader["FieldType"].ToString(), out fldTypeInt);
+                            string fldTypeStr = _cabinet.GetFieldType(fldTypeInt);
+                            // Add new field
+                            DesignViewModel.Fields.Add(new FieldViewModel
 							{
 								ColName = reader["FieldName"].ToString(),
 								Caption = reader["FieldCaption"].ToString(),
@@ -555,47 +630,6 @@ namespace IMS
 			FieldsPanel.Visibility = Visibility.Visible;
 		}
 
-		private readonly List<(int Value, Brush Brush)> ColorCycle = new List<(int, Brush)>
-		{
-				(16777215, Brushes.White),
-				(255, Brushes.Red),
-				(65535, Brushes.Yellow),
-				(0, Brushes.Black),
-				(65280, Brushes.Green),
-				(16711680, Brushes.Blue)
-		 };
-		private readonly List<(int Value, string TypeName)> FieldTypeMap = new List<(int, string)>
-		{
-			(0, "Text"),
-			(1, "Date"),
-			(2, "Number"),
-			(3, "Memo")
-		};
-
-		private void TextBox_ColorCycle(object sender, MouseButtonEventArgs e)
-		{
-			if (sender is TextBox tb && tb.DataContext is FieldViewModel field)
-			{
-				var currentBrush = tb.Background;
-
-				// Find current index in cycle
-				int index = ColorCycle.FindIndex(c => c.Brush == currentBrush);
-				if (index == -1) index = 0; // default if not found
-
-				// Move to next color
-				int nextIndex = (index + 1) % ColorCycle.Count;
-				var nextColor = ColorCycle[nextIndex];
-
-				// Set background and foreground
-				tb.Background = nextColor.Brush;
-				tb.Foreground = (nextColor.Brush == Brushes.Black || nextColor.Brush == Brushes.Blue)
-								? Brushes.Yellow
-								: Brushes.Black;
-
-				// Update the ViewModel decimal value
-				field.ColorVal = nextColor.Value.ToString();
-			}
-		}
 		private void LoadScanFieldOrder(int indexId)
 		{
 			listFieldOrderS.Items.Clear(); // clear previous items
@@ -754,7 +788,6 @@ namespace IMS
 			}
 		}
 
-
 		private async void cmdDelArchive_Click(object sender, RoutedEventArgs e)
 		{
 			if (CurrentSInd.SIndID == null)
@@ -816,14 +849,74 @@ namespace IMS
 			
 		}
 
+        public void TextBox_ColorCycle(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is TextBox tb && tb.DataContext is FieldViewModel field)
+            {
+                var currentBrush = tb.Background;
 
-		private bool IsNumeric(string value)
+                // Find current index in cycle
+                int index = _cabinet.ColorCycle.FindIndex(c => c.Brush == currentBrush);
+                if (index == -1) index = 0; // default if not found
+
+                // Move to next color
+                int nextIndex = (index + 1) % _cabinet.ColorCycle.Count;
+                var nextColor = _cabinet.ColorCycle[nextIndex];
+
+                // Set background and foreground
+                tb.Background = nextColor.Brush;
+                tb.Foreground = (nextColor.Brush == Brushes.Black || nextColor.Brush == Brushes.Blue)
+                                ? Brushes.Yellow
+                                : Brushes.Black;
+
+                // Update the ViewModel decimal value
+                field.ColorVal = nextColor.Value.ToString();
+            }
+        }
+
+        private bool IsNumeric(string value)
 		{
 			return double.TryParse(value, out _);
 		}
+        private void BtnMoveUp_Click(object sender, RoutedEventArgs e)
+        {
+            var list = listFieldOrderS; // or listFieldOrderR
+            int index = list.SelectedIndex;
+            if (index > 0)
+            {
+                var item = list.Items[index];
+                list.Items.RemoveAt(index);
+                list.Items.Insert(index - 1, item);
+                list.SelectedIndex = index - 1;
 
+                _cabinet.UpdateScanOrder(list);
+            }
+        }
+        private void BtnMoveDown_Click(object sender, RoutedEventArgs e)
+        {
+            var list = listFieldOrderS; // or listFieldOrderR
+            int index = list.SelectedIndex;
+            if (index < list.Items.Count - 1 && index >= 0)
+            {
+                var item = list.Items[index];
+                list.Items.RemoveAt(index);
+                list.Items.Insert(index + 1, item);
+                list.SelectedIndex = index + 1;
 
-		public class DesignWindowViewModel
+                _cabinet.UpdateScanOrder(list);
+            }
+        }
+        private void Scanmodule_click(object sender, RoutedEventArgs e)
+        {
+            listFieldOrderR.Items.Clear();
+            foreach (var item in listFieldOrderS.Items)
+            {
+                listFieldOrderR.Items.Add(item);
+            }
+
+            _cabinet.UpdateScanOrder(listFieldOrderR);
+        }
+        public class DesignWindowViewModel
 		{
 			public ObservableCollection<FieldViewModel> Fields { get; set; } = new ObservableCollection<FieldViewModel>();
 			public void AddField() => Fields.Add(new FieldViewModel());

@@ -17,11 +17,8 @@ namespace IMS
 
         private void LoginButton_Click(object sender, RoutedEventArgs e)
         {
-            string username = "BhavikGoyal";
-            string password = "Bhavik@123";
-
-            //string username = txtUsername.Text;
-            // string password = txtPassword.Password;
+            string username = txtUsername.Text;
+            string password = txtPassword.Password;
 
             if (string.IsNullOrWhiteSpace(username) && string.IsNullOrWhiteSpace(password))
             {
