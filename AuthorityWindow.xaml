@@ -160,68 +160,68 @@
           <ControlTemplate TargetType="ComboBox">
             <Grid>
               <Border x:Name="Border"
-           Background="{TemplateBinding Background}"
-           BorderBrush="{TemplateBinding BorderBrush}"
-           BorderThickness="1"
-           CornerRadius="5"
-           Padding="5"
-           SnapsToDevicePixels="True" />
+                  Background="{TemplateBinding Background}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="1"
+                  CornerRadius="5"
+                  Padding="5"
+                  SnapsToDevicePixels="True" />
               <TextBox x:Name="PART_EditableTextBox"
-           Style="{x:Null}"
-           Margin="8,0,25,0"
-           VerticalAlignment="Center"
-           HorizontalAlignment="Left"
-           Focusable="True"
-           Background="Transparent"
-           BorderThickness="0"
-           Visibility="Collapsed"
-           IsReadOnly="{TemplateBinding IsReadOnly}" />
+                  Style="{x:Null}"
+                  Margin="8,0,25,0"
+                  VerticalAlignment="Center"
+                  HorizontalAlignment="Left"
+                  Focusable="True"
+                  Background="Transparent"
+                  BorderThickness="0"
+                  Visibility="Collapsed"
+                  IsReadOnly="{TemplateBinding IsReadOnly}" />
               <ContentPresenter x:Name="PART_ContentPresenter"
-           Margin="8,0,25,0"
-           VerticalAlignment="Center"
-           HorizontalAlignment="Left"
-           Content="{TemplateBinding SelectionBoxItem}"
-           ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
-           ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
-           RecognizesAccessKey="True"
-           Visibility="Visible" />
+                   Margin="8,0,25,0"
+                   VerticalAlignment="Center"
+                   HorizontalAlignment="Left"
+                   Content="{TemplateBinding SelectionBoxItem}"
+                   ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                   ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                   RecognizesAccessKey="True"
+                   Visibility="Visible" />
               <ToggleButton x:Name="DropDownToggle"
-           IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
-           Focusable="False"
-           ClickMode="Press"
-           Background="Transparent"
-           BorderBrush="Transparent"
-           HorizontalAlignment="Right"
-           VerticalAlignment="Center"
-           Width="30"
-           Height="30" Padding="5,0,5,0"
-           Margin="0,0,0,0">
+                   IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                   Focusable="False"
+                   ClickMode="Press"
+                   Background="Transparent"
+                   BorderBrush="Transparent"
+                   HorizontalAlignment="Right"
+                   VerticalAlignment="Center"
+                   Width="30"
+                   Height="30" Padding="5,0,5,0"
+                   Margin="0,0,0,0">
                 <Path Data="M 0 0 L 4 4 L 8 0 Z"
-           Fill="#555"
-           Width="12"
-           Stretch="Uniform"
-           HorizontalAlignment="Center"
-           VerticalAlignment="Center" />
+                   Fill="#555"
+                   Width="12"
+                   Stretch="Uniform"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center" />
               </ToggleButton>
               <Popup x:Name="Popup"
-           Placement="Bottom"
-           IsOpen="{TemplateBinding IsDropDownOpen}"
-           AllowsTransparency="True"
-           Focusable="False"
-           PopupAnimation="Slide">
+                   Placement="Bottom"
+                   IsOpen="{TemplateBinding IsDropDownOpen}"
+                   AllowsTransparency="True"
+                   Focusable="False"
+                   PopupAnimation="Slide">
                 <Grid MaxHeight="200"
-           Width="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}"
-           SnapsToDevicePixels="True">
+                   Width="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}"
+                   SnapsToDevicePixels="True">
                   <Border x:Name="DropDownBorder"
-           Background="White"
-           BorderBrush="#CCC"
-           BorderThickness="1"
-           CornerRadius="4"
-           Margin="0,2,0,0" />
+                     Background="White"
+                     BorderBrush="#CCC"
+                     BorderThickness="1"
+                     CornerRadius="4"
+                     Margin="0,2,0,0" />
                   <ScrollViewer Margin="4,2,4,2"
-           SnapsToDevicePixels="True">
+                      SnapsToDevicePixels="True">
                     <StackPanel IsItemsHost="True"
-           KeyboardNavigation.DirectionalNavigation="Contained" />
+                        KeyboardNavigation.DirectionalNavigation="Contained" />
                   </ScrollViewer>
                 </Grid>
               </Popup>
@@ -264,68 +264,68 @@
           <ControlTemplate TargetType="ComboBox">
             <Grid>
               <Border x:Name="Border"
-       Background="{TemplateBinding Background}"
-       BorderBrush="{TemplateBinding BorderBrush}"
-       BorderThickness="1"
-       CornerRadius="5"
-       Padding="5"
-       SnapsToDevicePixels="True" />
+                   Background="{TemplateBinding Background}"
+                   BorderBrush="{TemplateBinding BorderBrush}"
+                   BorderThickness="1"
+                   CornerRadius="5"
+                   Padding="5"
+                   SnapsToDevicePixels="True" />
               <TextBox x:Name="PART_EditableTextBox"
-       Style="{x:Null}"
-       Margin="8,0,25,0"
-       VerticalAlignment="Center"
-       HorizontalAlignment="Left"
-       Focusable="True"
-       Background="Transparent"
-       BorderThickness="0"
-       Visibility="Collapsed"
-       IsReadOnly="{TemplateBinding IsReadOnly}" />
+                   Style="{x:Null}"
+                   Margin="8,0,25,0"
+                   VerticalAlignment="Center"
+                   HorizontalAlignment="Left"
+                   Focusable="True"
+                   Background="Transparent"
+                   BorderThickness="0"
+                   Visibility="Collapsed"
+                   IsReadOnly="{TemplateBinding IsReadOnly}" />
               <ContentPresenter x:Name="PART_ContentPresenter"
-       Margin="8,0,25,0"
-       VerticalAlignment="Center"
-       HorizontalAlignment="Left"
-       Content="{TemplateBinding SelectionBoxItem}"
-       ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
-       ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
-       RecognizesAccessKey="True"
-       Visibility="Visible" />
+                   Margin="8,0,25,0"
+                   VerticalAlignment="Center"
+                   HorizontalAlignment="Left"
+                   Content="{TemplateBinding SelectionBoxItem}"
+                   ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                   ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                   RecognizesAccessKey="True"
+                   Visibility="Visible" />
               <ToggleButton x:Name="DropDownToggle"
-       IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
-       Focusable="False"
-       ClickMode="Press"
-       Background="Transparent"
-       BorderBrush="Transparent"
-       HorizontalAlignment="Right"
-       VerticalAlignment="Center"
-       Width="30"
-       Height="40" Padding="5,0,5,0"
-       Margin="0,0,0,0">
+                   IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                   Focusable="False"
+                   ClickMode="Press"
+                   Background="Transparent"
+                   BorderBrush="Transparent"
+                   HorizontalAlignment="Right"
+                   VerticalAlignment="Center"
+                   Width="30"
+                   Height="40" Padding="5,0,5,0"
+                   Margin="0,0,0,0">
                 <Path Data="M 0 0 L 4 4 L 8 0 Z"
-       Fill="#555"
-       Width="12"
-       Stretch="Uniform"
-       HorizontalAlignment="Center"
-       VerticalAlignment="Center" />
+                   Fill="#555"
+                   Width="12"
+                   Stretch="Uniform"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center" />
               </ToggleButton>
               <Popup x:Name="Popup"
-       Placement="Bottom"
-       IsOpen="{TemplateBinding IsDropDownOpen}"
-       AllowsTransparency="True"
-       Focusable="False"
-       PopupAnimation="Slide">
+                   Placement="Bottom"
+                   IsOpen="{TemplateBinding IsDropDownOpen}"
+                   AllowsTransparency="True"
+                   Focusable="False"
+                   PopupAnimation="Slide">
                 <Grid MaxHeight="200"
-       Width="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}"
-       SnapsToDevicePixels="True">
+                     Width="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}"
+                     SnapsToDevicePixels="True">
                   <Border x:Name="DropDownBorder"
-       Background="White"
-       BorderBrush="#CCC"
-       BorderThickness="1"
-       CornerRadius="4"
-       Margin="0,2,0,0" />
+                       Background="White"
+                       BorderBrush="#CCC"
+                       BorderThickness="1"
+                       CornerRadius="4"
+                       Margin="0,2,0,0" />
                   <ScrollViewer Margin="4,2,4,2"
-       SnapsToDevicePixels="True">
+                      SnapsToDevicePixels="True">
                     <StackPanel IsItemsHost="True"
-       KeyboardNavigation.DirectionalNavigation="Contained" />
+                         KeyboardNavigation.DirectionalNavigation="Contained" />
                   </ScrollViewer>
                 </Grid>
               </Popup>
@@ -725,33 +725,33 @@
                 <ColumnDefinition Width="*" />
               </Grid.ColumnDefinitions>
               <Border x:Name="CheckBoxBorder"
-     Grid.Column="0"
-     Width="17" Height="17"
-     BorderBrush="#B0B0B0"
-     BorderThickness="1.5"
-     Background="White"
-     CornerRadius="4"
-     VerticalAlignment="Center"
-     HorizontalAlignment="Left"
-     Margin="0,0,5,0">
+                 Grid.Column="0"
+                 Width="17" Height="17"
+                 BorderBrush="#B0B0B0"
+                 BorderThickness="1.5"
+                 Background="White"
+                 CornerRadius="4"
+                 VerticalAlignment="Center"
+                 HorizontalAlignment="Left"
+                 Margin="0,0,5,0">      
                 <Path x:Name="CheckMark"
-     Width="10" Height="10"
-     Stretch="Uniform"
-     Fill="White"
-     Data="M 0 5 L 3 8 L 8 0 L 0 5 Z"
-     RenderTransformOrigin="0.5,0.5"
-     Visibility="Collapsed">
+                     Width="10" Height="10"
+                     Stretch="Uniform"
+                     Fill="White"
+                     Data="M 0 5 L 3 8 L 8 0 L 0 5 Z"
+                     RenderTransformOrigin="0.5,0.5"
+                     Visibility="Collapsed">
                   <Path.RenderTransform>
                     <ScaleTransform ScaleX="0" ScaleY="0" />
                   </Path.RenderTransform>
                 </Path>
               </Border>
               <ContentPresenter Grid.Column="1"
-     Margin="{TemplateBinding Padding}"
-     VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-     HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-     SnapsToDevicePixels="True"
-     RecognizesAccessKey="True" />
+                   Margin="{TemplateBinding Padding}"
+                   VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                   HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                   SnapsToDevicePixels="True"
+                   RecognizesAccessKey="True" />
             </Grid>
             <ControlTemplate.Triggers>
               <Trigger Property="IsChecked" Value="True">
@@ -817,33 +817,33 @@
                 <ColumnDefinition Width="*" />
               </Grid.ColumnDefinitions>
               <Border x:Name="CheckBoxBorder"
- Grid.Column="0"
- Width="16" Height="16"
- BorderBrush="#B0B0B0"
- BorderThickness="1.5"
- Background="White"
- CornerRadius="4"
- VerticalAlignment="Center"
- HorizontalAlignment="Left"
- Margin="0,0,5,0">
-                <Path x:Name="CheckMark"
- Width="10" Height="10"
- Stretch="Uniform"
- Fill="White"
- Data="M 0 5 L 3 8 L 8 0 L 0 5 Z"
- RenderTransformOrigin="0.5,0.5"
- Visibility="Collapsed">
+                 Grid.Column="0"
+                 Width="16" Height="16"
+                 BorderBrush="#B0B0B0"
+                 BorderThickness="1.5"
+                 Background="White"
+                 CornerRadius="4"
+                 VerticalAlignment="Center"
+                 HorizontalAlignment="Left"
+                 Margin="0,0,5,0">
+                                <Path x:Name="CheckMark"
+                 Width="10" Height="10"
+                 Stretch="Uniform"
+                 Fill="White"
+                 Data="M 0 5 L 3 8 L 8 0 L 0 5 Z"
+                 RenderTransformOrigin="0.5,0.5"
+                 Visibility="Collapsed">
                   <Path.RenderTransform>
                     <ScaleTransform ScaleX="0" ScaleY="0" />
                   </Path.RenderTransform>
                 </Path>
               </Border>
               <ContentPresenter Grid.Column="1"
- Margin="{TemplateBinding Padding}"
- VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
- HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
- SnapsToDevicePixels="True"
- RecognizesAccessKey="True" />
+                   Margin="{TemplateBinding Padding}"
+                   VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                   HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                   SnapsToDevicePixels="True"
+                   RecognizesAccessKey="True" />      
             </Grid>
             <ControlTemplate.Triggers>
               <Trigger Property="IsChecked" Value="True">
@@ -930,46 +930,84 @@
         <!-- ********** MODIFIED GENERAL MENU ITEM ********** -->
         <MenuItem Header="General">
           <!-- General Settings Sub-menu -->
-          <MenuItem Header="General Settings">
-            <MenuItem Header="Load Combos Immediately"/>
-            <MenuItem Header="Change Font Size"/>
-            <MenuItem Header="Change Language">
-              <MenuItem.InputGestureText>Ctrl+G</MenuItem.InputGestureText>
+          <MenuItem x:Name="miShowPhotos" Header="Show Photos"
+                    IsCheckable="True"
+                  Click="Menu_ShowPhotos_Click"/>
+          <MenuItem Header="Show All Screens"
+                  Click="Menu_ShowAllScreens_Click"/>
+          <MenuItem Header="Execute General Query"
+                  Click="Menu_ExecuteGeneralQuery_Click"/>
+          <MenuItem Header="Sort Cabinets By Long Name"
+                  Click="Menu_SortCabinetsLongName_Click"/>
+
+          <Separator />
+
+          <!-- 2. USER OPTIONS (sub menu) -->
+          <MenuItem Header="User Options">
+
+            <!-- 2.1 Import Users Options (sub-sub menu) -->
+            <MenuItem Header="Import Users Options">
+              <MenuItem Header="Ask when Adding Each User"
+                          Click="Menu_addingeachuser_Click"/>
+              <MenuItem Header="Replace Existing Users"
+                          Click="Menu_replaceexistuser_Click"/>
+              <MenuItem Header="LDAP Object Name"
+            Click="Menu_ldapobject_Click"/>
             </MenuItem>
-            <MenuItem Header="Change Password">
-              <MenuItem.InputGestureText>Ctrl+W</MenuItem.InputGestureText>
-            </MenuItem>
-            <MenuItem Header="Manage Settings"/>
-            <MenuItem Header="Right To Left"/>
-            <MenuItem Header="Apply Color Indicators"/>
-            <MenuItem Header="About...">
-              <MenuItem.InputGestureText>Ctrl+B</MenuItem.InputGestureText>
-            </MenuItem>
+
+            <Separator />
+
+            <MenuItem Header="Deactivate All Users"
+                      Click="Menu_DeactivateAllUsers_Click"/>
+            <MenuItem Header="Activate All Users"
+                      Click="Menu_ActivateAllUsers_Click"/>
+            <MenuItem Header="Lock All Users"
+                      Click="Menu_LockAllUsers_Click"/>
+            <MenuItem Header="Unlock All Users"
+                      Click="Menu_UnlockAllUsers_Click"/>
+
+            <Separator />
+
+            <MenuItem Header="Make User Internal"
+                      Click="Menu_MakeUserInternal_Click"/>
+            <MenuItem Header="Make All Internal"
+                      Click="Menu_MakeAllInternal_Click"/>
+            <MenuItem Header="Make User External"
+                      Click="Menu_MakeUserExternal_Click"/>
+            <MenuItem Header="Make All External"
+                      Click="Menu_MakeAllExternal_Click"/>
+
+            <Separator />
+
+            <MenuItem Header="Reset All Passwords"
+                      Click="Menu_ResetAllPasswords_Click"/>
           </MenuItem>
 
-          <!-- Alerts Sub-menu (assuming it would have options) -->
-          <MenuItem Header="Alerts">
-            <MenuItem Header="Email Notifications"/>
-            <MenuItem Header="SMS Notifications"/>
-            <MenuItem Header="In-App Notifications"/>
+          <Separator />
+
+          <!-- 3. Audits / Alerts -->
+          <MenuItem Header="Audits  Alerts">
+            <MenuItem Header="Turn Off All Alerts(BE Careful)"
+                      Click="Menu_turnoffalert_Click"/>
+            <MenuItem Header="Clean Alerts Audits(Old-New)(BE Very Careful)"
+                      Click="Menu_cleanAlertsaudits_Click"/>
           </MenuItem>
 
-          <!-- PDF Options Sub-menu (assuming it would have options) -->
-          <MenuItem Header="PDF Options">
-            <MenuItem Header="Compression Settings"/>
-            <MenuItem Header="Security Settings"/>
-            <MenuItem Header="Export Quality"/>
+          <!-- 4. Cabinet Maintenance -->
+          <MenuItem Header="Cabinet Maintenance">
+            <MenuItem Header="Refresh Page Count For Cabinets"
+                      Click="Menu_refreshcountcabinets_Click"/>
+            <MenuItem Header="Minimize All Images"
+                      Click="Menu_minimizeallimages_Click"/>
+            <MenuItem Header="Minimize Certain Cabinet"
+                      Click="Menu_minimizecertaincabinet_Click"/>
+            <MenuItem Header="Unlock All Documents From Cabinets"
+                      Click="Menu_unlockdocumentfromcabinets_Click"/>
+            <MenuItem Header="Delete Empty Records From Cabinets"
+                      Click="Menu_deleteemptyrecordCabinets_Click"/>
+            <MenuItem Header="Reset All Counter-Fields For All Cabinets"
+          Click="Menu_resetcounterCabinets_Click"/>
           </MenuItem>
-
-          <!-- Multi List Separator Options Sub-menu (assuming it would have options) -->
-          <MenuItem Header="Multi List Separator Options">
-            <MenuItem Header="Comma (,)" IsChecked="True" IsCheckable="True"/>
-            <MenuItem Header="Semicolon (;)" IsCheckable="True"/>
-            <MenuItem Header="Tab" IsCheckable="True"/>
-          </MenuItem>
-
-          <!-- Help MenuItem (from your original "General" but now structured as part of the broader General options) -->
-          <MenuItem Header="Help"/>
 
         </MenuItem>
         <!-- ********** END MODIFIED GENERAL MENU ITEM ********** -->
@@ -1101,7 +1139,6 @@
                               FontWeight="SemiBold" />
                 </Border>
                 <TextBox Grid.Row="15" Margin="10,10,10,10" AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="5,6,5,0" Height="30" x:Name="SubDeptTextBox" />
-                
               </Grid>
             </Border>
 
@@ -1127,7 +1164,7 @@
                   <TextBox Grid.Row="1" Margin="10,10,10,10" AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="5,6,5,0" Height="30" x:Name="ExtraInfoTextBox" />
                   
                   <StackPanel Grid.Row="2" Margin="10,0,10,0" HorizontalAlignment="Stretch">
-                    <Button Content="Reset Password" Style="{StaticResource ActionButtonStyle}" Background="#4CAF50"/>
+                    <Button x:Name="btnResetPassword"  Click="btnResetPassword_Click" Content="Reset Password" Style="{StaticResource ActionButtonStyle}" Background="#4CAF50"/>
                   </StackPanel>
                 </Grid>
                 <Grid Grid.Row="1" Margin="0,10,0,0">
@@ -1190,12 +1227,14 @@
                       </Grid.ColumnDefinitions>
                       <StackPanel Grid.Column="0" Margin="10" VerticalAlignment="Center">
                         <CheckBox 
+                                x:Name="chkLdapFilter"
                                   Content="LDAP Filter" 
                                   Style="{StaticResource ModernCheckBoxStyle}" 
                                   IsChecked="True" />
                       </StackPanel>
                       <StackPanel Grid.Column="1" Margin="10,10,10,10" VerticalAlignment="Center">
                         <TextBox 
+                                x:Name="txtLdapFilter"
                                 AcceptsReturn="True" 
                                 VerticalScrollBarVisibility="Disabled" 
                                 Padding="5,6,5,0" 
@@ -1209,15 +1248,29 @@
                       <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <StackPanel Grid.Row="0" Grid.Column="0"  Margin="10,10,10,10" HorizontalAlignment="Stretch">
-                      <Button Content="Create/Update User" Style="{StaticResource ActionButtonStyle}" Background="#2196F3"/>
-                      <Button Content="Delete User" Style="{StaticResource ActionButtonStyle}" Background="#F44336" Margin="0,10,0,0"/>
-                      <Button Content="Delete All Users" Style="{StaticResource ActionButtonStyle}" Background="#F44336" Margin="0,10,0,0"/>
+                      <Button x:Name="btnCreateUpdateUser" Click="btnCreateUpdateUser_Click" Content="Create/Update User" Style="{StaticResource ActionButtonStyle}" Background="#2196F3"/>
+                      <Button Click="btnDeleteUser_Click" Content="Delete User" Style="{StaticResource ActionButtonStyle}" Background="#F44336" Margin="0,10,0,0"/>
+                      <Button Click="btnDeleteAllUsers_Click" Content="Delete All Users" Style="{StaticResource ActionButtonStyle}" Background="#F44336" Margin="0,10,0,0"/>
                     </StackPanel>
                     <StackPanel Grid.Row="1" Grid.Column="1"  Margin="10,0,10,10" HorizontalAlignment="Stretch">
-                      <Button Content="LDAP Import" Style="{StaticResource ActionButtonStyle}" Background="#4CAF50"/>
-                      <Button Content="User Info!" Style="{StaticResource ActionButtonStyle}" Background="#4CAF50" Margin="0,10,0,0"/>
-                      <Button Content="Logged On Users" Style="{StaticResource ActionButtonStyle}" Background="#F44336" Margin="0,10,0,0"/>
+                      <Button x:Name="btnLdapImport" Click="btnLdapImport_Click" Content="LDAP Import" Style="{StaticResource ActionButtonStyle}" Background="#4CAF50"/>
+                      <Button Click="btnUserInfo_Click" Content="User Info!" Style="{StaticResource ActionButtonStyle}" Background="#4CAF50" Margin="0,10,0,0"/>
+                      <Button Click="btnLoggedOnUsers_Click" Content="Logged On Users" Style="{StaticResource ActionButtonStyle}" Background="#F44336" Margin="0,10,0,0"/>
                     </StackPanel>
+                    <Border x:Name="PhotoBorder"
+                      Grid.Row="2"
+                      Grid.ColumnSpan="2"
+                      Margin="10,10,10,10"
+                      Width="200"
+                      Height="220"
+                      HorizontalAlignment="Center"
+                      BorderBrush="Red"
+                      BorderThickness="2"
+                      Background="White"
+                      Visibility="Collapsed">
+                                  <Image x:Name="imgUserPhoto"
+                       Stretch="Uniform" />
+                    </Border>
                   </Grid>
                 </Grid>
               </Grid>
@@ -1799,9 +1852,6 @@
         </Grid>
       </Grid>
       
-      
-      
-      
       <!-- WF Groups -->
       <Grid Grid.Row="2" x:Name="WfGroupsDiv" Visibility="Collapsed">
         <Grid>
@@ -1827,17 +1877,12 @@
               <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
             <Border Grid.Column="0" Padding="0" BorderThickness="0" Margin="10,10,10,0" Effect="{StaticResource MaterialDesignShadowDepth1}">
-              <ComboBox Grid.Row="0" Style="{StaticResource ModernComboBoxFunSecondStyle}" Height="40"
-                   Text="" IsEditable="True" IsTextSearchEnabled="True">
-                <ComboBoxItem Content="Admin (ID=1)"/>
-                <ComboBoxItem Content="Full (ID=2)"/>
-                <ComboBoxItem Content="read only (ID=3)"/>
-                <ComboBoxItem Content="Trinee (ID=4)"/>
-                <ComboBoxItem Content="Memo"/>
+              <ComboBox x:Name="comboWfGroups" Grid.Row="0" Style="{StaticResource ModernComboBoxFunSecondStyle}" Height="40"
+                   Text="" IsEditable="True" IsTextSearchEnabled="True"  DisplayMemberPath="DisplayText" SelectedValuePath="GroupID" SelectionChanged="comboWfGroups_SelectionChanged" >
               </ComboBox>
             </Border>
             <Border Grid.Column="1" BorderThickness="0" Margin="10,10,10,0" Effect="{StaticResource MaterialDesignShadowDepth1}">
-              <Button Style="{StaticResource ActionButtonStyleGrp}" Background="#4CAF50" Padding="8">
+              <Button x:Name="btnLoadCreateWfGroup" Click="btnLoadCreateWfGroup_Click" Style="{StaticResource ActionButtonStyleGrp}" Background="#4CAF50" Padding="8">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                   <Image Source="/Images/team.png" Margin="0,0,10,0"/>
                   <TextBlock Text="LOAD / CREATE GROUP" VerticalAlignment="Center" Foreground="White"/>
@@ -1845,7 +1890,7 @@
               </Button>
             </Border>
             <Border Grid.Column="2" BorderThickness="0" BorderBrush="#000" Margin="10,10,10,0" Effect="{StaticResource MaterialDesignShadowDepth1}">
-              <Button Style="{StaticResource ActionButtonStyleGrp}" Background="#F44336" Padding="8">
+              <Button x:Name="btnDeleteWfGroup" Click="btnDeleteWfGroup_Click" Style="{StaticResource ActionButtonStyleGrp}" Background="#F44336" Padding="8">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                   <Image Source="/Images/team.png" Margin="0,0,10,0"/>
                   <TextBlock Text="DELETE GROUP" VerticalAlignment="Center" Foreground="White"/>
@@ -1862,7 +1907,7 @@
               </Grid.ColumnDefinitions>
               <Grid Grid.Column="0"></Grid>
               <Grid Grid.Column="1" Margin="0,10,0,0">
-                <Button Style="{StaticResource ActionButtonStyleGrp}"  Background="#4CAF50" Padding="8">
+                <Button x:Name="btnApplyWf"  Click="btnApplyWf_Click" Style="{StaticResource ActionButtonStyleGrp}"  Background="#4CAF50" Padding="8">
                   <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10,5,10,5">
                     <Image Source="/Images/apply.png" Margin="0,0,0,0"/>
                     <TextBlock Text="APPLY" VerticalAlignment="Center" FontSize="14" Foreground="White"/>
