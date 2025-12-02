@@ -1,5 +1,6 @@
 ﻿using IMS.Data.Authority;
 using IMS.Data.Design;
+using IMS.Models.CaptureModel;
 using IMS.Models.DesignModel;
 using System;
 using System.Collections.Generic;
@@ -15,6 +16,8 @@ namespace IMS.Data.Capture
     {
         public ObservableCollection<TreeNode> PartnerTree { get; set; } = new ObservableCollection<TreeNode>();
         public ObservableCollection<FieldViewModel> Fields { get; set; } = new ObservableCollection<FieldViewModel>();
+
+        public ObservableCollection<ScannedDocument> ScannedDocuments { get; } = new ObservableCollection<ScannedDocument>();
 
         private Cabinet cabinet = new Cabinet();
 
