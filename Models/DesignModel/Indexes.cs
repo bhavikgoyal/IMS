@@ -44,6 +44,13 @@ namespace IMS.Models.DesignModel
 
         }
 
+        private string valueText;
+        public string Value
+        {
+            get => valueText;
+            set { valueText = value; OnPropertyChanged(nameof(Value)); }
+        }
+
         public ObservableCollection<string> FLDType { get; set; }
         public ObservableCollection<string> FixedOptions { get; set; }
         private bool isChecked;

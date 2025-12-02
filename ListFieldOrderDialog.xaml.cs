@@ -25,28 +25,23 @@ namespace IMS
         }
         private void OkButton_Click_ForDialog(object sender, RoutedEventArgs e)
         {
-            // यहाँ आप TextBox से वैल्यू पढ़ सकते हैं
-            // उदाहरण: string inputValue = YourTextBoxName.Text;
 
-            this.DialogResult = true; // यह दिखाता है कि यूजर ने OK पर क्लिक किया
-            this.Close(); // डायलॉग बंद करें
+            this.DialogResult = true; 
+            this.Close(); 
         }
 
-        // Cancel बटन पर क्लिक करने पर
         private void CancelButton_Click_ForDialog(object sender, RoutedEventArgs e)
         {
-            this.DialogResult = false; // यह दिखाता है कि यूजर ने Cancel पर क्लिक किया
-            this.Close(); // डायलॉग बंद करें
+            this.DialogResult = false;
+            this.Close();
         }
 
-        // टाइटल बार में Close बटन पर क्लिक करने पर
         private void CloseButton_Click_ForDialog(object sender, RoutedEventArgs e)
         {
-            this.DialogResult = false; // Cancel के समान व्यवहार
-            this.Close(); // डायलॉग बंद करें
+            this.DialogResult = false; 
+            this.Close();
         }
 
-        // आप यहाँ चाहें तो Dragging के लिए भी कोड जोड़ सकते हैं अगर आपने Window_MouseLeftButtonDown इवेंट जोड़ा है
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (e.ChangedButton == MouseButton.Left)
