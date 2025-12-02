@@ -16,6 +16,8 @@ using System.Windows.Navigation;
 using System.Data;
 using System.Xml.Linq;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading.Channels;
+using System.Security.Policy;
 
 
 namespace IMS
@@ -35,7 +37,7 @@ namespace IMS
 		private int _selectedIndexId = 0;
 
 
-        public ObservableCollection<FieldViewModel> Fields { get; set; } = new ObservableCollection<FieldViewModel>();
+		public ObservableCollection<FieldViewModel> Fields { get; set; } = new ObservableCollection<FieldViewModel>();
 		private DesignWindowViewModel DesignViewModel = new DesignWindowViewModel();
 		public DesignWindow()
 		{
@@ -44,7 +46,7 @@ namespace IMS
 			DesignViewModel.LoadTreeView();
 			_cabinet = new Cabinet();
 
-        }
+		}
 
 		private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
 		{
@@ -94,22 +96,22 @@ namespace IMS
 
 			DesignViewModel.AddField();
 		}
-        private void btnUpdateIndex_Click(object sender, RoutedEventArgs e)
-        {
-            if (_selectedIndexId == 0)
-            {
-                MessageBox.Show("Click On Selected Cabinet Name First Please", "IMS",
-                    MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
+		private void btnUpdateIndex_Click(object sender, RoutedEventArgs e)
+		{
+			if (_selectedIndexId == 0)
+			{
+				MessageBox.Show("Click On Selected Cabinet Name First Please", "IMS",
+					MessageBoxButton.OK, MessageBoxImage.Information);
+				return;
+			}
 
-            try
-            {
-                using (var conn = DatabaseHelper.GetConnection())
-                {
-                    conn.Open();
+			try
+			{
+				using (var conn = DatabaseHelper.GetConnection())
+				{
+					conn.Open();
 
-                    var lastField = DesignViewModel.Fields.LastOrDefault();
+					var lastField = DesignViewModel.Fields.LastOrDefault();
 					if (lastField != null)
 					{
 						_cabinet.InsertIndex(_selectedIndexId, lastField, conn);
@@ -117,63 +119,63 @@ namespace IMS
 
 					}
 				}
-                LoadScanFieldOrder(_selectedIndexId);
-                LoadSearchFieldOrder(_selectedIndexId);
-                MessageBox.Show("ADD successfully!", "IMS",
+				LoadScanFieldOrder(_selectedIndexId);
+				LoadSearchFieldOrder(_selectedIndexId);
+				MessageBox.Show("ADD successfully!", "IMS",
 					MessageBoxButton.OK, MessageBoxImage.Information);
-               
-            }
+
+			}
 			catch (Exception ex)
-            {
-                MessageBox.Show("Error inserting field: " + ex.Message, "IMS",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-        private void btnDelField_Click(object sender, RoutedEventArgs e)
-        {
-            if (_selectedIndexId == 0)
-            {
-                MessageBox.Show("Click On Selected Cabinet Name First Please", "IMS",
-                    MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
-            var selectedFields = DesignViewModel.Fields.Where(f => f.IsChecked).ToList();
-            if (!selectedFields.Any())
-            {
-                MessageBox.Show("Please select at least one field to delete.", "IMS",
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
+			{
+				MessageBox.Show("Error inserting field: " + ex.Message, "IMS",
+					MessageBoxButton.OK, MessageBoxImage.Error);
+			}
+		}
+		private void btnDelField_Click(object sender, RoutedEventArgs e)
+		{
+			if (_selectedIndexId == 0)
+			{
+				MessageBox.Show("Click On Selected Cabinet Name First Please", "IMS",
+					MessageBoxButton.OK, MessageBoxImage.Information);
+				return;
+			}
+			var selectedFields = DesignViewModel.Fields.Where(f => f.IsChecked).ToList();
+			if (!selectedFields.Any())
+			{
+				MessageBox.Show("Please select at least one field to delete.", "IMS",
+					MessageBoxButton.OK, MessageBoxImage.Warning);
+				return;
+			}
 
-            try
-            {
-                using (var conn = DatabaseHelper.GetConnection())
-                {
-                    conn.Open();
-                    // Delete selected fields from DB and columns
-                    _cabinet.DeleteSelectedFields(_selectedIndexId, selectedFields, conn);
-                }
+			try
+			{
+				using (var conn = DatabaseHelper.GetConnection())
+				{
+					conn.Open();
+					// Delete selected fields from DB and columns
+					_cabinet.DeleteSelectedFields(_selectedIndexId, selectedFields, conn);
+				}
 
-                // Refresh UI field order
-                LoadScanFieldOrder(_selectedIndexId);
-                LoadSearchFieldOrder(_selectedIndexId);
+				// Refresh UI field order
+				LoadScanFieldOrder(_selectedIndexId);
+				LoadSearchFieldOrder(_selectedIndexId);
 
-                // Remove deleted fields from ObservableCollection
-                foreach (var f in selectedFields)
-                    DesignViewModel.Fields.Remove(f);
+				// Remove deleted fields from ObservableCollection
+				foreach (var f in selectedFields)
+					DesignViewModel.Fields.Remove(f);
 
-                // Success message
-                MessageBox.Show("Fields Deleted Successfully", "IMS",
-                    MessageBoxButton.OK, MessageBoxImage.Information);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Error deleting fields: " + ex.Message, "IMS",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
+				// Success message
+				MessageBox.Show("Fields Deleted Successfully", "IMS",
+					MessageBoxButton.OK, MessageBoxImage.Information);
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show("Error deleting fields: " + ex.Message, "IMS",
+					MessageBoxButton.OK, MessageBoxImage.Error);
+			}
+		}
 
-        private void btnCreate_Click(object sender, RoutedEventArgs e)
+		private void btnCreate_Click(object sender, RoutedEventArgs e)
 		{
 			try
 			{
@@ -277,8 +279,8 @@ namespace IMS
 			{
 				MessageBox.Show("Error creating index: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
 			}
-				
-		
+
+
 		}
 
 		private void chkWorkFlow_Click(object sender, RoutedEventArgs e)
@@ -516,7 +518,7 @@ namespace IMS
 			if (e.NewValue is TreeNode selectedNode)
 			{
 				CurrentSInd = Cabinet.FindTheIndexName(selectedNode.LongIndexName);
-                _selectedIndexId = selectedNode.IndexID;
+				_selectedIndexId = selectedNode.IndexID;
 				using (SqlConnection conn = DatabaseHelper.GetConnection())
 				{
 					string query = @"SELECT LongIndexName, ShortIndexName, TableName, Parent1Name, Parent2Name, Parent3Name, Parent4Name FROM Indexes
@@ -548,7 +550,7 @@ namespace IMS
 				}
 			}
 		}
-		
+
 		private void LoadFieldsForIndex(int indexId)
 		{
 			// Clear previous fields
@@ -581,11 +583,11 @@ namespace IMS
 							}
 							var brush = _cabinet.ColorCycle.FirstOrDefault(c => c.Value == colorDec).Brush ?? Brushes.White;
 
-                            int fldTypeInt = 0;
-                            int.TryParse(reader["FieldType"].ToString(), out fldTypeInt);
-                            string fldTypeStr = _cabinet.GetFieldType(fldTypeInt);
-                            // Add new field
-                            DesignViewModel.Fields.Add(new FieldViewModel
+							int fldTypeInt = 0;
+							int.TryParse(reader["FieldType"].ToString(), out fldTypeInt);
+							string fldTypeStr = _cabinet.GetFieldType(fldTypeInt);
+							// Add new field
+							DesignViewModel.Fields.Add(new FieldViewModel
 							{
 								ColName = reader["FieldName"].ToString(),
 								Caption = reader["FieldCaption"].ToString(),
@@ -632,11 +634,11 @@ namespace IMS
 
 		private void LoadScanFieldOrder(int indexId)
 		{
-			listFieldOrderS.Items.Clear(); // clear previous items
+			listFieldOrderScan.Items.Clear(); // clear previous items
 
 			using (SqlConnection conn = DatabaseHelper.GetConnection())
 			{
-				string query = @"SELECT FieldName FROM IndexesDialogs WHERE IndexID = @IndexID ORDER BY FieldOrder"; // optional FieldOrder
+				string query = @"SELECT FieldName FROM IndexesDialogs WHERE IndexID = @IndexID ORDER BY ScanFieldOrder"; // optional FieldOrder
 
 				using (SqlCommand cmd = new SqlCommand(query, conn))
 				{
@@ -647,7 +649,7 @@ namespace IMS
 						while (reader.Read())
 						{
 							string fieldName = reader["FieldName"].ToString();
-							listFieldOrderS.Items.Add(fieldName);
+							listFieldOrderScan.Items.Add(fieldName);
 						}
 					}
 				}
@@ -658,11 +660,11 @@ namespace IMS
 
 		private void LoadSearchFieldOrder(int indexId)
 		{
-			listFieldOrderR.Items.Clear();
+			listFieldOrderSearch.Items.Clear();
 
 			using (SqlConnection conn = DatabaseHelper.GetConnection())
 			{
-				string query = @"SELECT FieldName FROM IndexesDialogs WHERE IndexID = @IndexID ORDER BY FieldOrder";
+				string query = @"SELECT FieldName FROM IndexesDialogs WHERE IndexID = @IndexID ORDER BY SearchFieldOrder";
 
 				using (SqlCommand cmd = new SqlCommand(query, conn))
 				{
@@ -673,7 +675,7 @@ namespace IMS
 						while (reader.Read())
 						{
 							string fieldName = reader["FieldName"].ToString();
-							listFieldOrderR.Items.Add(fieldName);
+							listFieldOrderSearch.Items.Add(fieldName);
 						}
 					}
 				}
@@ -809,7 +811,7 @@ namespace IMS
 				{
 					await con.OpenAsync();
 
-				
+
 					async Task Exec(string sql)
 					{
 						using (SqlCommand cmd = new SqlCommand(sql, con))
@@ -820,7 +822,7 @@ namespace IMS
 
 					string safeIndexName = CurrentSInd.SelectedTableName.Replace("'", "''").ToLower();
 
-				    await Exec($"DELETE FROM Indexes WHERE LOWER(ShortIndexName)='{safeIndexName}'");
+					await Exec($"DELETE FROM Indexes WHERE LOWER(ShortIndexName)='{safeIndexName}'");
 					await Exec($"DELETE FROM IndexesDialogs WHERE IndexID={CurrentSInd.SIndID}");
 					await Exec($"DELETE FROM Workflow WHERE LOWER(TableName)='{safeIndexName}' AND (IndexID={CurrentSInd.SIndID} OR IndexIDToSendTo={CurrentSInd.SIndID})");
 					await Exec($"DELETE FROM WorkflowEmails WHERE IndexID={CurrentSInd.SIndID}");
@@ -830,12 +832,12 @@ namespace IMS
 					await Exec($"DELETE FROM Comments WHERE IndexID={CurrentSInd.SIndID}");
 					await Exec($"DELETE FROM AllCounters WHERE IndexID={CurrentSInd.SIndID}");
 
-					 await Exec($"DROP TABLE {safeIndexName}");
-            await Exec($"DROP TABLE {safeIndexName}_Blob");
-            if (CurrentSInd.FormsEnabled == 1)
-                await Exec($"DROP TABLE {safeIndexName}_FormName_L_U");
-            if (CurrentSInd.FullTextEnabled == 1)
-                await Exec($"DROP TABLE {safeIndexName}_FullText");
+					await Exec($"DROP TABLE {safeIndexName}");
+					await Exec($"DROP TABLE {safeIndexName}_Blob");
+					if (CurrentSInd.FormsEnabled == 1)
+						await Exec($"DROP TABLE {safeIndexName}_FormName_L_U");
+					if (CurrentSInd.FullTextEnabled == 1)
+						await Exec($"DROP TABLE {safeIndexName}_FullText");
 				}
 
 				MessageBox.Show("Archive deleted successfully.");
@@ -846,76 +848,135 @@ namespace IMS
 			{
 				MessageBox.Show("Error deleting archive:\n" + ex.Message);
 			}
-			
+
 		}
 
-        public void TextBox_ColorCycle(object sender, MouseButtonEventArgs e)
-        {
-            if (sender is TextBox tb && tb.DataContext is FieldViewModel field)
-            {
-                var currentBrush = tb.Background;
+		public void TextBox_ColorCycle(object sender, MouseButtonEventArgs e)
+		{
+			if (sender is TextBox tb && tb.DataContext is FieldViewModel field)
+			{
+				var currentBrush = tb.Background;
 
-                // Find current index in cycle
-                int index = _cabinet.ColorCycle.FindIndex(c => c.Brush == currentBrush);
-                if (index == -1) index = 0; // default if not found
+				// Find current index in cycle
+				int index = _cabinet.ColorCycle.FindIndex(c => c.Brush == currentBrush);
+				if (index == -1) index = 0; // default if not found
 
-                // Move to next color
-                int nextIndex = (index + 1) % _cabinet.ColorCycle.Count;
-                var nextColor = _cabinet.ColorCycle[nextIndex];
+				// Move to next color
+				int nextIndex = (index + 1) % _cabinet.ColorCycle.Count;
+				var nextColor = _cabinet.ColorCycle[nextIndex];
 
-                // Set background and foreground
-                tb.Background = nextColor.Brush;
-                tb.Foreground = (nextColor.Brush == Brushes.Black || nextColor.Brush == Brushes.Blue)
-                                ? Brushes.Yellow
-                                : Brushes.Black;
+				// Set background and foreground
+				tb.Background = nextColor.Brush;
+				tb.Foreground = (nextColor.Brush == Brushes.Black || nextColor.Brush == Brushes.Blue)
+								? Brushes.Yellow
+								: Brushes.Black;
 
-                // Update the ViewModel decimal value
-                field.ColorVal = nextColor.Value.ToString();
-            }
-        }
+				// Update the ViewModel decimal value
+				field.ColorVal = nextColor.Value.ToString();
+			}
+		}
 
-        private bool IsNumeric(string value)
+		private bool IsNumeric(string value)
 		{
 			return double.TryParse(value, out _);
 		}
-        private void BtnMoveUp_Click(object sender, RoutedEventArgs e)
-        {
-            var list = listFieldOrderS; // or listFieldOrderR
-            int index = list.SelectedIndex;
-            if (index > 0)
-            {
-                var item = list.Items[index];
-                list.Items.RemoveAt(index);
-                list.Items.Insert(index - 1, item);
-                list.SelectedIndex = index - 1;
+		private void ScanBtnMoveUp_Click(object sender, RoutedEventArgs e)
+		{
+			var list = listFieldOrderScan;
+			int index = list.SelectedIndex;
+			if (index > 0)
+			{
+				var item = list.Items[index];
+				list.Items.RemoveAt(index);
+				list.Items.Insert(index - 1, item);
+				list.SelectedIndex = index - 1;
 
-                _cabinet.UpdateScanOrder(list);
-            }
-        }
-        private void BtnMoveDown_Click(object sender, RoutedEventArgs e)
-        {
-            var list = listFieldOrderS; // or listFieldOrderR
-            int index = list.SelectedIndex;
-            if (index < list.Items.Count - 1 && index >= 0)
-            {
-                var item = list.Items[index];
-                list.Items.RemoveAt(index);
-                list.Items.Insert(index + 1, item);
-                list.SelectedIndex = index + 1;
+				scanmodule.Content = "Double Click To Apply Changes";
+				scanmodule.Background = Brushes.Yellow;
 
-                _cabinet.UpdateScanOrder(list);
-            }
-        }
-        private void Scanmodule_click(object sender, RoutedEventArgs e)
-        {
-            listFieldOrderR.Items.Clear();
-            foreach (var item in listFieldOrderS.Items)
-            {
-                listFieldOrderR.Items.Add(item);
-            }
+			}
+		}
+		private void ScanBtnMoveDown_Click(object sender, RoutedEventArgs e)
+		{
+			var list = listFieldOrderScan;
+			int index = list.SelectedIndex;
+			if (index < list.Items.Count - 1 && index >= 0)
+			{
+				var item = list.Items[index];
+				list.Items.RemoveAt(index);
+				list.Items.Insert(index + 1, item);
+				list.SelectedIndex = index + 1;
 
-            _cabinet.UpdateScanOrder(listFieldOrderR);
+				scanmodule.Content = "Double Click To Apply Changes";
+				scanmodule.Background = Brushes.Yellow;
+
+			}
+		}
+		private void Scanmodule_click(object sender, RoutedEventArgs e)
+		{
+
+			_cabinet.UpdateScanorSearchOrder(listFieldOrderScan, "ScanFieldOrder");
+
+			scanmodule.Content = "Fields Order in Scan Module";
+			scanmodule.Background = (SolidColorBrush)(new BrushConverter().ConvertFrom("#F0F0F0"));
+			MessageBox.Show("Sort Order Changes Applied");
+		}
+		private void SearchBtnMoveUp_Click(object sender, RoutedEventArgs e)
+		{
+			var list = listFieldOrderSearch;
+			int index = list.SelectedIndex;
+			if (index > 0)
+			{
+				var item = list.Items[index];
+				list.Items.RemoveAt(index);
+				list.Items.Insert(index - 1, item);
+				list.SelectedIndex = index - 1;
+
+				searchmodule.Content = "Double Click To Apply Changes";
+				searchmodule.Background = Brushes.Yellow;
+
+			}
+		}
+		private void SearchBtnMoveDown_Click(object sender, RoutedEventArgs e)
+		{
+			var list = listFieldOrderSearch;
+			int index = list.SelectedIndex;
+			if (index < list.Items.Count - 1 && index >= 0)
+			{
+				var item = list.Items[index];
+				list.Items.RemoveAt(index);
+				list.Items.Insert(index + 1, item);
+				list.SelectedIndex = index + 1;
+
+				searchmodule.Content = "Double Click To Apply Changes";
+				searchmodule.Background = Brushes.Yellow;
+
+			}
+		}
+		private void Searchmodule_click(object sender, RoutedEventArgs e)
+		{
+
+			_cabinet.UpdateScanorSearchOrder(listFieldOrderSearch, "SearchFieldOrder");
+			searchmodule.Content = "Fields Order in Search Module";
+			searchmodule.Background = (SolidColorBrush)(new BrushConverter().ConvertFrom("#F0F0F0"));
+			MessageBox.Show("Sort Order Changes Applied");
+		}
+		private void BtnSearchLikeScan_Click(object sender, RoutedEventArgs e)
+		{
+			var result = MessageBox.Show("Are you sure ?", "Confirm",
+			MessageBoxButton.YesNo,
+			MessageBoxImage.Question);
+
+			if (result == MessageBoxResult.No)
+			{ return; }
+
+
+			_cabinet.CopyScanToSearchOrder(_selectedIndexId);
+			MessageBox.Show("Field Order Refreshed Successfully", "Success", MessageBoxButton.OK);
+            LoadSearchFieldOrder(_selectedIndexId);
+
         }
+
         public class DesignWindowViewModel
 		{
 			public ObservableCollection<FieldViewModel> Fields { get; set; } = new ObservableCollection<FieldViewModel>();

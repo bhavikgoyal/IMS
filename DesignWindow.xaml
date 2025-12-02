@@ -1231,17 +1231,17 @@ AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,4,0,0" He
                    FontWeight="SemiBold"
                    Padding="5,7,10,5" MouseDoubleClick="Scanmodule_click"/>
 
-              <ListBox x:Name="listFieldOrderS"
+              <ListBox x:Name="listFieldOrderScan"
                      FontSize="14"
                      Style="{DynamicResource ModernListBoxStyle}"
                      Margin="0,10,0,10"
                      Height="200"/>
 
               <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                <Button Width="40" Height="40" BorderThickness="0" Cursor="Hand" ToolTip="Move Up" Background="#FFF" Click="BtnMoveUp_Click">
+                <Button Width="40" Height="40" BorderThickness="0" Cursor="Hand" ToolTip="Move Up" Background="#FFF" Click="ScanBtnMoveUp_Click">
                   <Image Source="/Images/upbtn.png"/>
                 </Button>
-                <Button Width="40" Height="40" BorderThickness="0" Cursor="Hand" ToolTip="Move Down" Background="#FFF" Margin="10,0,0,0" Click="BtnMoveDown_Click">
+                <Button Width="40" Height="40" BorderThickness="0" Cursor="Hand" ToolTip="Move Down" Background="#FFF" Margin="10,0,0,0" Click="ScanBtnMoveDown_Click">
                   <Image Source="/Images/downbtn.png"/>
                 </Button>
               </StackPanel>
@@ -1260,28 +1260,28 @@ AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,4,0,0" He
                    Foreground="#333333"
                    FontSize="16"
                    FontWeight="SemiBold"
-                   Padding="5,7,10,5" />
+                   Padding="5,7,10,5" MouseDoubleClick="Searchmodule_click"/>
 
-              <ListBox x:Name="listFieldOrderR"
+              <ListBox x:Name="listFieldOrderSearch"
                      FontSize="14"
                      Style="{DynamicResource ModernListBoxStyle}"
                      Margin="0,10,0,10"
                      Height="200"/>
 
               <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                <Button Width="40" Height="40" BorderThickness="0" Cursor="Hand" ToolTip="Move Up" Background="#FFF">
+                <Button Width="40" Height="40" BorderThickness="0" Cursor="Hand" ToolTip="Move Up" Background="#FFF" Click="SearchBtnMoveUp_Click">
                   <Image Source="/Images/upbtn.png"/>
                 </Button>
-                <Button Width="40" Height="40" BorderThickness="0" Cursor="Hand" ToolTip="Move Down" Background="#FFF" Margin="10,0,0,0">
+                <Button Width="40" Height="40" BorderThickness="0" Cursor="Hand" ToolTip="Move Down" Background="#FFF" Margin="10,0,0,0" Click="SearchBtnMoveDown_Click">
                   <Image Source="/Images/downbtn.png"/>
                 </Button>
               </StackPanel>
 
               <Button Height="50" Margin="0,20,0,0" Background="#757575"
-                    Style="{StaticResource ActionButtonStyle}">
+                    Style="{StaticResource ActionButtonStyle}" Click="BtnSearchLikeScan_Click">
                 <TextBlock Text="Make Search Order Like Scan"
                            TextWrapping="Wrap"
-                           TextAlignment="Center"/>
+                           TextAlignment="Center" />
               </Button>
             </StackPanel>
           </StackPanel>
