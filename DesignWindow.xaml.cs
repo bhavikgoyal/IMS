@@ -17,6 +17,9 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Navigation;
 using System.Xml.Linq;
+using System.Security.Cryptography.X509Certificates;
+using System.Threading.Channels;
+using System.Security.Policy;
 
 
 namespace IMS
@@ -637,7 +640,7 @@ namespace IMS
 
 			using (SqlConnection conn = DatabaseHelper.GetConnection())
 			{
-				string query = @"SELECT FieldName FROM IndexesDialogs WHERE IndexID = @IndexID ORDER BY FieldOrder"; // optional FieldOrder
+				string query = @"SELECT FieldName FROM IndexesDialogs WHERE IndexID = @IndexID ORDER BY ScanFieldOrder"; // optional FieldOrder
 
 				using (SqlCommand cmd = new SqlCommand(query, conn))
 				{
@@ -648,7 +651,7 @@ namespace IMS
 						while (reader.Read())
 						{
 							string fieldName = reader["FieldName"].ToString();
-							listFieldOrderS.Items.Add(fieldName);
+							listFieldOrderScan.Items.Add(fieldName);
 						}
 					}
 				}
@@ -659,11 +662,11 @@ namespace IMS
 
 		private void LoadSearchFieldOrder(int indexId)
 		{
-			listFieldOrderR.Items.Clear();
+			listFieldOrderSearch.Items.Clear();
 
 			using (SqlConnection conn = DatabaseHelper.GetConnection())
 			{
-				string query = @"SELECT FieldName FROM IndexesDialogs WHERE IndexID = @IndexID ORDER BY FieldOrder";
+				string query = @"SELECT FieldName FROM IndexesDialogs WHERE IndexID = @IndexID ORDER BY SearchFieldOrder";
 
 				using (SqlCommand cmd = new SqlCommand(query, conn))
 				{
@@ -674,7 +677,7 @@ namespace IMS
 						while (reader.Read())
 						{
 							string fieldName = reader["FieldName"].ToString();
-							listFieldOrderR.Items.Add(fieldName);
+							listFieldOrderSearch.Items.Add(fieldName);
 						}
 					}
 				}
@@ -867,9 +870,9 @@ namespace IMS
 		{
 			return double.TryParse(value, out _);
 		}
-		private void BtnMoveUp_Click(object sender, RoutedEventArgs e)
+		private void ScanBtnMoveUp_Click(object sender, RoutedEventArgs e)
 		{
-			var list = listFieldOrderS;
+			var list = listFieldOrderScan;
 			int index = list.SelectedIndex;
 			if (index > 0)
 			{
@@ -878,12 +881,14 @@ namespace IMS
 				list.Items.Insert(index - 1, item);
 				list.SelectedIndex = index - 1;
 
-				_cabinet.UpdateScanOrder(list);
+				scanmodule.Content = "Double Click To Apply Changes";
+				scanmodule.Background = Brushes.Yellow;
+
 			}
 		}
-		private void BtnMoveDown_Click(object sender, RoutedEventArgs e)
+		private void ScanBtnMoveDown_Click(object sender, RoutedEventArgs e)
 		{
-			var list = listFieldOrderS;
+			var list = listFieldOrderScan;
 			int index = list.SelectedIndex;
 			if (index < list.Items.Count - 1 && index >= 0)
 			{
@@ -892,20 +897,77 @@ namespace IMS
 				list.Items.Insert(index + 1, item);
 				list.SelectedIndex = index + 1;
 
-				_cabinet.UpdateScanOrder(list);
+				scanmodule.Content = "Double Click To Apply Changes";
+				scanmodule.Background = Brushes.Yellow;
+
 			}
 		}
 		private void Scanmodule_click(object sender, RoutedEventArgs e)
 		{
-			listFieldOrderR.Items.Clear();
-			foreach (var item in listFieldOrderS.Items)
-			{
-				listFieldOrderR.Items.Add(item);
-			}
 
-			_cabinet.UpdateScanOrder(listFieldOrderR);
+			_cabinet.UpdateScanorSearchOrder(listFieldOrderScan, "ScanFieldOrder");
+
+			scanmodule.Content = "Fields Order in Scan Module";
+			scanmodule.Background = (SolidColorBrush)(new BrushConverter().ConvertFrom("#F0F0F0"));
+			MessageBox.Show("Sort Order Changes Applied");
 		}
-		public class DesignWindowViewModel
+		private void SearchBtnMoveUp_Click(object sender, RoutedEventArgs e)
+		{
+			var list = listFieldOrderSearch;
+			int index = list.SelectedIndex;
+			if (index > 0)
+			{
+				var item = list.Items[index];
+				list.Items.RemoveAt(index);
+				list.Items.Insert(index - 1, item);
+				list.SelectedIndex = index - 1;
+
+				searchmodule.Content = "Double Click To Apply Changes";
+				searchmodule.Background = Brushes.Yellow;
+
+			}
+		}
+		private void SearchBtnMoveDown_Click(object sender, RoutedEventArgs e)
+		{
+			var list = listFieldOrderSearch;
+			int index = list.SelectedIndex;
+			if (index < list.Items.Count - 1 && index >= 0)
+			{
+				var item = list.Items[index];
+				list.Items.RemoveAt(index);
+				list.Items.Insert(index + 1, item);
+				list.SelectedIndex = index + 1;
+
+				searchmodule.Content = "Double Click To Apply Changes";
+				searchmodule.Background = Brushes.Yellow;
+
+			}
+		}
+		private void Searchmodule_click(object sender, RoutedEventArgs e)
+		{
+
+			_cabinet.UpdateScanorSearchOrder(listFieldOrderSearch, "SearchFieldOrder");
+			searchmodule.Content = "Fields Order in Search Module";
+			searchmodule.Background = (SolidColorBrush)(new BrushConverter().ConvertFrom("#F0F0F0"));
+			MessageBox.Show("Sort Order Changes Applied");
+		}
+		private void BtnSearchLikeScan_Click(object sender, RoutedEventArgs e)
+		{
+			var result = MessageBox.Show("Are you sure ?", "Confirm",
+			MessageBoxButton.YesNo,
+			MessageBoxImage.Question);
+
+			if (result == MessageBoxResult.No)
+			{ return; }
+
+
+			_cabinet.CopyScanToSearchOrder(_selectedIndexId);
+			MessageBox.Show("Field Order Refreshed Successfully", "Success", MessageBoxButton.OK);
+            LoadSearchFieldOrder(_selectedIndexId);
+
+        }
+
+        public class DesignWindowViewModel
 		{
 			public ObservableCollection<FieldViewModel> Fields { get; set; } = new ObservableCollection<FieldViewModel>();
 			public void AddField() => Fields.Add(new FieldViewModel());
