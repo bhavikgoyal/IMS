@@ -787,7 +787,7 @@ namespace IMS.Data.Design
             }
 
         }
-        public void UpdateScanOrder(ListBox listBox)
+        public void UpdateScanorSearchOrder(ListBox listBox, string columnName)
         {
             using (SqlConnection conn = DatabaseHelper.GetConnection())
             {
@@ -798,7 +798,7 @@ namespace IMS.Data.Design
                     string fieldName = listBox.Items[i].ToString();
                     int newOrder = i + 1;
 
-                    string query = "UPDATE IndexesDialogs SET ScanFieldOrder = @Order WHERE FieldName = @Name";
+                    string query = $"UPDATE IndexesDialogs SET {columnName} = @Order WHERE FieldName = @Name";
                     using (SqlCommand cmd = new SqlCommand(query, conn))
                     {
                         cmd.Parameters.AddWithValue("@Order", newOrder);
@@ -1192,6 +1192,23 @@ namespace IMS.Data.Design
                 }
             }
         }
-     
+        public void CopyScanToSearchOrder(int indexId)
+        {
+            if (indexId <= 0)
+                throw new ArgumentException("Invalid IndexID");
+
+            string query = @"
+            UPDATE dbo.IndexesDialogs
+            SET SearchFieldOrder = ScanFieldOrder
+            WHERE IndexID = @IndexID";
+
+            using (SqlConnection conn = DatabaseHelper.GetConnection())
+            using (SqlCommand cmd = new SqlCommand(query, conn))
+            {
+                cmd.Parameters.AddWithValue("@IndexID", indexId);
+                conn.Open();
+                cmd.ExecuteNonQuery();
+            }
+        }
     }
 }
