@@ -845,10 +845,12 @@
         <MenuItem Header="Cabinets">
           <MenuItem x:Name="mnuNewDialog" 
           Header="Create New Dialog From Selected Cabinet" 
+                    Click="mnuNewDialog_Click"
         />
 
           <MenuItem x:Name="mnuNewCab" 
           Header="Copy Selected Cabinet To New Cabinet With Different Name" 
+                    Click="mnuNewCab_Click"
           />
 
           <MenuItem Header="Export To Another Cabinet"/>
@@ -1218,7 +1220,7 @@ AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,4,0,0" He
 
           <StackPanel>
 
-            <!-- ███ SCAN MODULE (TOP) ███ -->
+            <!--  SCAN MODULE (TOP)  -->
             <StackPanel Margin="5">
 
               <Label x:Name="scanmodule"
@@ -1249,7 +1251,7 @@ AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,4,0,0" He
             </StackPanel>
 
 
-            <!-- ███ SEARCH MODULE (BOTTOM) ███ -->
+            <!-- SEARCH MODULE (BOTTOM) -->
             <StackPanel Margin="5" >
 
               <Label x:Name="searchmodule"

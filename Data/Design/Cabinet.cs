@@ -493,7 +493,9 @@ namespace IMS.Data.Design
         public static Models.Module FindTheIndexName(string nameOfClickedNode)
         {
             var module = new Models.Module();
-            string findTheIndexName = null;
+            //string findTheIndexName = null;
+            if (string.IsNullOrWhiteSpace(nameOfClickedNode))
+                return module;
 
             try
             {
@@ -523,8 +525,8 @@ namespace IMS.Data.Design
                                                         ? reader["TableName"].ToString()
                                                         : reader["ShortIndexName"].ToString();
 
-                                if (reader["ShortIndexName"] != DBNull.Value)
-                                    findTheIndexName = reader["ShortIndexName"].ToString();
+                                //if (reader["ShortIndexName"] != DBNull.Value)
+                                //    findTheIndexName = reader["ShortIndexName"].ToString();
                             }
                             else
                             {
@@ -540,7 +542,7 @@ namespace IMS.Data.Design
                                 module.DirIndexingEnabled = 0;
                                 module.FormsEnabled = 0;
 
-                                MessageBox.Show("No Such Index! Please Contact System Administrator");
+                               //MessageBox.Show("No Such Index! Please Contact System Administrator");
                             }
                         }
                     }
@@ -807,5 +809,389 @@ namespace IMS.Data.Design
             }
         }
 
+
+        public int CreateNewDialogFromCabinet(int sourceIndexId, string newDialogName, bool sameLookups)
+        {
+            using (SqlConnection conn = DatabaseHelper.GetConnection())
+            {
+                conn.Open();
+
+                using (SqlTransaction tran = conn.BeginTransaction())
+                {
+                    try
+                    {
+                        DataTable indexTable = new DataTable();
+                        using (SqlCommand cmd = new SqlCommand(
+                            "SELECT * FROM Indexes WHERE IndexID = @IndexID",
+                            conn, tran))
+                        {
+                            cmd.Parameters.AddWithValue("@IndexID", sourceIndexId);
+                            using (SqlDataAdapter da = new SqlDataAdapter(cmd))
+                            {
+                                da.Fill(indexTable);
+                            }
+                        }
+
+                        if (indexTable.Rows.Count == 0)
+                            throw new Exception("Source cabinet not found.");
+
+                        DataRow src = indexTable.Rows[0];
+
+                        int newIndexId = FindNewIndexID(string.Empty);
+
+                        string shortName = src["ShortIndexName"].ToString();
+
+                        string tableName = indexTable.Columns.Contains("TableName") && src["TableName"] != DBNull.Value
+                            ? src["TableName"].ToString()
+                            : shortName;
+
+                        string cabArabicName = indexTable.Columns.Contains("CabArabicName") && src["CabArabicName"] != DBNull.Value
+                            ? src["CabArabicName"].ToString()
+                            : newDialogName;
+
+                        int routingEnabled = indexTable.Columns.Contains("RoutingEnabled") && src["RoutingEnabled"] != DBNull.Value
+                            ? Convert.ToInt32(src["RoutingEnabled"])
+                            : 0;
+
+                        int workflowEnabled = indexTable.Columns.Contains("WorkflowEnabled") && src["WorkflowEnabled"] != DBNull.Value
+                            ? Convert.ToInt32(src["WorkflowEnabled"])
+                            : 0;
+
+                        int fullTextEnabled = indexTable.Columns.Contains("FullTextEnabled") && src["FullTextEnabled"] != DBNull.Value
+                            ? Convert.ToInt32(src["FullTextEnabled"])
+                            : 0;
+
+                        int encryptionEnabled = indexTable.Columns.Contains("EncryptionEnabled") && src["EncryptionEnabled"] != DBNull.Value
+                            ? Convert.ToInt32(src["EncryptionEnabled"])
+                            : 0;
+
+                        int dirIndexingEnabled = indexTable.Columns.Contains("DirIndexingEnabled") && src["DirIndexingEnabled"] != DBNull.Value
+                            ? Convert.ToInt32(src["DirIndexingEnabled"])
+                            : 0;
+
+                        int formsEnabled = indexTable.Columns.Contains("FormsEnabled") && src["FormsEnabled"] != DBNull.Value
+                            ? Convert.ToInt32(src["FormsEnabled"])
+                            : 0;
+
+                        int active = indexTable.Columns.Contains("Active") && src["Active"] != DBNull.Value
+                            ? Convert.ToInt32(src["Active"])
+                            : 1;
+
+                        int hirarchyLevel = indexTable.Columns.Contains("HirarchyLevel") && src["HirarchyLevel"] != DBNull.Value
+                            ? Convert.ToInt32(src["HirarchyLevel"])
+                            : 0;
+
+                        using (SqlCommand cmdIns = new SqlCommand(@"
+                            INSERT INTO Indexes
+                            (
+                                IndexID,
+                                ShortIndexName,
+                                LongIndexName,
+                                TableName,
+                                CabArabicName,
+                                RoutingEnabled,
+                                WorkflowEnabled,
+                                FullTextEnabled,
+                                EncryptionEnabled,
+                                DirIndexingEnabled,
+                                FormsEnabled,
+                                Active,
+                                Parent1Name,
+                                Parent2Name,
+                                Parent3Name,
+                                Parent4Name,
+                                HirarchyLevel
+                            )
+                            VALUES
+                            (
+                                @IndexID,
+                                @ShortIndexName,
+                                @LongIndexName,
+                                @TableName,
+                                @CabArabicName,
+                                @RoutingEnabled,
+                                @WorkflowEnabled,
+                                @FullTextEnabled,
+                                @EncryptionEnabled,
+                                @DirIndexingEnabled,
+                                @FormsEnabled,
+                                @Active,
+                                @Parent1Name,
+                                @Parent2Name,
+                                @Parent3Name,
+                                @Parent4Name,
+                                @HirarchyLevel
+                            )", conn, tran))
+                        {
+                            cmdIns.Parameters.AddWithValue("@IndexID", newIndexId);
+                            cmdIns.Parameters.AddWithValue("@ShortIndexName", shortName);
+                            cmdIns.Parameters.AddWithValue("@LongIndexName", newDialogName);
+                            cmdIns.Parameters.AddWithValue("@TableName", tableName);
+                            cmdIns.Parameters.AddWithValue("@CabArabicName", cabArabicName);
+                            cmdIns.Parameters.AddWithValue("@RoutingEnabled", routingEnabled);
+                            cmdIns.Parameters.AddWithValue("@WorkflowEnabled", workflowEnabled);
+                            cmdIns.Parameters.AddWithValue("@FullTextEnabled", fullTextEnabled);
+                            cmdIns.Parameters.AddWithValue("@EncryptionEnabled", encryptionEnabled);
+                            cmdIns.Parameters.AddWithValue("@DirIndexingEnabled", dirIndexingEnabled);
+                            cmdIns.Parameters.AddWithValue("@FormsEnabled", formsEnabled);
+                            cmdIns.Parameters.AddWithValue("@Active", active);
+                            cmdIns.Parameters.AddWithValue("@Parent1Name", src["Parent1Name"] ?? DBNull.Value);
+                            cmdIns.Parameters.AddWithValue("@Parent2Name", src["Parent2Name"] ?? DBNull.Value);
+                            cmdIns.Parameters.AddWithValue("@Parent3Name", src["Parent3Name"] ?? DBNull.Value);
+                            cmdIns.Parameters.AddWithValue("@Parent4Name", src["Parent4Name"] ?? DBNull.Value);
+                            cmdIns.Parameters.AddWithValue("@HirarchyLevel", hirarchyLevel);
+                            cmdIns.ExecuteNonQuery();
+                        }
+
+                        CopyDialogFields(sourceIndexId, newIndexId, conn, tran);
+
+                        if (!sameLookups)
+                        {
+                        }
+
+                        tran.Commit();
+                        return newIndexId;
+                    }
+                    catch
+                    {
+                        tran.Rollback();
+                        throw;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// IndexesDialogs me sourceIndexId ke rows newIndexId ke liye copy karta hai.
+        /// </summary>
+        private void CopyDialogFields(int sourceIndexId, int newIndexId, SqlConnection conn, SqlTransaction tran)
+        {
+            DataTable dlgTable = new DataTable();
+            using (SqlCommand cmd = new SqlCommand(
+                "SELECT * FROM IndexesDialogs WHERE IndexID = @IndexID",
+                conn, tran))
+            {
+                cmd.Parameters.AddWithValue("@IndexID", sourceIndexId);
+                using (SqlDataAdapter da = new SqlDataAdapter(cmd))
+                {
+                    da.Fill(dlgTable);
+                }
+            }
+
+            if (dlgTable.Rows.Count == 0)
+                return;
+
+            var cols = new List<DataColumn>();
+            foreach (DataColumn c in dlgTable.Columns)
+                cols.Add(c);
+
+            string columnList = string.Join(", ", cols.Select(c => "[" + c.ColumnName + "]"));
+            string paramList = string.Join(", ", cols.Select(c => "@" + c.ColumnName));
+            string insertSql = $"INSERT INTO IndexesDialogs ({columnList}) VALUES ({paramList})";
+
+            using (SqlCommand cmdIns = new SqlCommand(insertSql, conn, tran))
+            {
+                foreach (DataRow row in dlgTable.Rows)
+                {
+                    cmdIns.Parameters.Clear();
+
+                    foreach (DataColumn col in cols)
+                    {
+                        object value;
+
+                        if (col.ColumnName.Equals("IndexID", StringComparison.OrdinalIgnoreCase))
+                        {
+                            value = newIndexId;     
+                        }
+                        else
+                        {
+                            value = row[col] ?? DBNull.Value;
+                        }
+
+                        cmdIns.Parameters.AddWithValue("@" + col.ColumnName, value);
+                    }
+
+                    cmdIns.ExecuteNonQuery();
+                }
+            }
+        }
+
+        public int CopyCabinetWithNewName(int sourceIndexId, string newShortName, string newLongName)
+        {
+            using (SqlConnection conn = DatabaseHelper.GetConnection())
+            {
+                conn.Open();
+                using (SqlTransaction tran = conn.BeginTransaction())
+                {
+                    try
+                    {
+                        // 1) Source cabinet ka Indexes row le aao (DataTable se, DataReader nahi)
+                        DataRow srcIndexRow;
+                        using (SqlCommand cmd = new SqlCommand(
+                            "SELECT * FROM Indexes WHERE IndexID = @id", conn, tran))
+                        {
+                            cmd.Parameters.AddWithValue("@id", sourceIndexId);
+                            using (SqlDataAdapter da = new SqlDataAdapter(cmd))
+                            {
+                                DataTable dt = new DataTable();
+                                da.Fill(dt);
+                                if (dt.Rows.Count == 0)
+                                    throw new Exception("Source cabinet not found.");
+
+                                srcIndexRow = dt.Rows[0];
+                            }
+                        }
+
+                        // 2) Naya IndexID (same transaction me)
+                        int newIndexId;
+                        using (SqlCommand cmd = new SqlCommand(
+                            "SELECT ISNULL(MAX(IndexID),0) + 1 FROM Indexes", conn, tran))
+                        {
+                            newIndexId = Convert.ToInt32(cmd.ExecuteScalar());
+                        }
+
+                        string sourceTable = srcIndexRow["TableName"].ToString();
+                        string newTable = newShortName;  // hum short name ko hi table name banate hain
+
+                        // 3) Nayi physical table banani – structure copy, data nahi
+                        using (SqlCommand cmd = new SqlCommand(
+                            $"SELECT TOP 0 * INTO [{newTable}] FROM [{sourceTable}];",
+                            conn, tran))
+                        {
+                            cmd.ExecuteNonQuery();
+                        }
+
+                        // 3b) Blob table agar exist ho to uska bhi structure copy karo
+                        using (SqlCommand cmdCheck = new SqlCommand(
+                            "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = @tbl",
+                            conn, tran))
+                        {
+                            cmdCheck.Parameters.AddWithValue("@tbl", sourceTable + "_Blob");
+                            int blobExists = Convert.ToInt32(cmdCheck.ExecuteScalar());
+
+                            if (blobExists > 0)
+                            {
+                                using (SqlCommand cmdCopyBlob = new SqlCommand(
+                                    $"SELECT TOP 0 * INTO [{newTable}_Blob] FROM [{sourceTable}_Blob];",
+                                    conn, tran))
+                                {
+                                    cmdCopyBlob.ExecuteNonQuery();
+                                }
+                            }
+                        }
+
+                        // 4) Naya Indexes row insert karo (settings copy, sirf names change)
+                        using (SqlCommand cmdIns = new SqlCommand(@"
+                    INSERT INTO Indexes
+                    (IndexID, ShortIndexName, LongIndexName, TableName, CabArabicName,
+                     RoutingEnabled, WorkflowEnabled, FullTextEnabled, EncryptionEnabled,
+                     DirIndexingEnabled, FormsEnabled, Active,
+                     Parent1Name, Parent2Name, Parent3Name, Parent4Name, HirarchyLevel)
+                    VALUES
+                    (@IndexID, @ShortIndexName, @LongIndexName, @TableName, @CabArabicName,
+                     @RoutingEnabled, @WorkflowEnabled, @FullTextEnabled, @EncryptionEnabled,
+                     @DirIndexingEnabled, @FormsEnabled, @Active,
+                     @Parent1Name, @Parent2Name, @Parent3Name, @Parent4Name, @HirarchyLevel);",
+                            conn, tran))
+                        {
+                            cmdIns.Parameters.AddWithValue("@IndexID", newIndexId);
+                            cmdIns.Parameters.AddWithValue("@ShortIndexName", newShortName);
+                            cmdIns.Parameters.AddWithValue("@LongIndexName", newLongName);
+                            cmdIns.Parameters.AddWithValue("@TableName", newTable);
+                            cmdIns.Parameters.AddWithValue("@CabArabicName", srcIndexRow["CabArabicName"]);
+
+                            cmdIns.Parameters.AddWithValue("@RoutingEnabled", srcIndexRow["RoutingEnabled"]);
+                            cmdIns.Parameters.AddWithValue("@WorkflowEnabled", srcIndexRow["WorkflowEnabled"]);
+                            cmdIns.Parameters.AddWithValue("@FullTextEnabled", srcIndexRow["FullTextEnabled"]);
+                            cmdIns.Parameters.AddWithValue("@EncryptionEnabled", srcIndexRow["EncryptionEnabled"]);
+                            cmdIns.Parameters.AddWithValue("@DirIndexingEnabled", srcIndexRow["DirIndexingEnabled"]);
+                            cmdIns.Parameters.AddWithValue("@FormsEnabled", srcIndexRow["FormsEnabled"]);
+                            cmdIns.Parameters.AddWithValue("@Active", srcIndexRow["Active"]);
+
+                            cmdIns.Parameters.AddWithValue("@Parent1Name", srcIndexRow["Parent1Name"]);
+                            cmdIns.Parameters.AddWithValue("@Parent2Name", srcIndexRow["Parent2Name"]);
+                            cmdIns.Parameters.AddWithValue("@Parent3Name", srcIndexRow["Parent3Name"]);
+                            cmdIns.Parameters.AddWithValue("@Parent4Name", srcIndexRow["Parent4Name"]);
+                            cmdIns.Parameters.AddWithValue("@HirarchyLevel", srcIndexRow["HirarchyLevel"]);
+
+                            cmdIns.ExecuteNonQuery();
+                        }
+
+                        // 5) IndexesDialogs ki sari field definitions copy karo
+                        DataTable fieldsTable = new DataTable();
+                        using (SqlCommand cmd = new SqlCommand(
+                            "SELECT * FROM IndexesDialogs WHERE IndexID = @id", conn, tran))
+                        {
+                            cmd.Parameters.AddWithValue("@id", sourceIndexId);
+                            using (SqlDataAdapter da = new SqlDataAdapter(cmd))
+                            {
+                                da.Fill(fieldsTable);
+                            }
+                        }
+
+                        foreach (DataRow r in fieldsTable.Rows)
+                        {
+                            using (SqlCommand cmdInsField = new SqlCommand(@"
+                        INSERT INTO IndexesDialogs
+                        (FieldCaption, FieldRule, FieldLocked, FieldName, FieldOrder, FieldType,
+                         FixedValue, IncrementalField, IndexID, IsComboVisible, IsDateVisible,
+                         IsListVisible, IsTextVisible, NameOfFieldLookup, NameOfTableLookup,
+                         NotEmpty, ScanFieldOrder, SearchFieldOrder, SSLLookup, SSLLookupIndex,
+                         VisibleInScan, VisibleInSearch, ColorFieldValue, ColorValue,
+                         CurrentFieldSchema, CurrentFieldConStr, FieldFilter, LockedCombo)
+                        VALUES
+                        (@FieldCaption, @FieldRule, @FieldLocked, @FieldName, @FieldOrder, @FieldType,
+                         @FixedValue, @IncrementalField, @IndexID, @IsComboVisible, @IsDateVisible,
+                         @IsListVisible, @IsTextVisible, @NameOfFieldLookup, @NameOfTableLookup,
+                         @NotEmpty, @ScanFieldOrder, @SearchFieldOrder, @SSLLookup, @SSLLookupIndex,
+                         @VisibleInScan, @VisibleInSearch, @ColorFieldValue, @ColorValue,
+                         @CurrentFieldSchema, @CurrentFieldConStr, @FieldFilter, @LockedCombo);",
+                                conn, tran))
+                            {
+                                cmdInsField.Parameters.AddWithValue("@FieldCaption", r["FieldCaption"]);
+                                cmdInsField.Parameters.AddWithValue("@FieldRule", r["FieldRule"] ?? (object)DBNull.Value);
+                                cmdInsField.Parameters.AddWithValue("@FieldLocked", r["FieldLocked"]);
+                                cmdInsField.Parameters.AddWithValue("@FieldName", r["FieldName"]);
+                                cmdInsField.Parameters.AddWithValue("@FieldOrder", r["FieldOrder"]);
+                                cmdInsField.Parameters.AddWithValue("@FieldType", r["FieldType"]);
+                                cmdInsField.Parameters.AddWithValue("@FixedValue", r["FixedValue"] ?? (object)DBNull.Value);
+                                cmdInsField.Parameters.AddWithValue("@IncrementalField", r["IncrementalField"]);
+                                cmdInsField.Parameters.AddWithValue("@IndexID", newIndexId);
+                                cmdInsField.Parameters.AddWithValue("@IsComboVisible", r["IsComboVisible"]);
+                                cmdInsField.Parameters.AddWithValue("@IsDateVisible", r["IsDateVisible"]);
+                                cmdInsField.Parameters.AddWithValue("@IsListVisible", r["IsListVisible"]);
+                                cmdInsField.Parameters.AddWithValue("@IsTextVisible", r["IsTextVisible"]);
+                                cmdInsField.Parameters.AddWithValue("@NameOfFieldLookup", r["NameOfFieldLookup"] ?? (object)DBNull.Value);
+                                cmdInsField.Parameters.AddWithValue("@NameOfTableLookup", r["NameOfTableLookup"] ?? (object)DBNull.Value);
+                                cmdInsField.Parameters.AddWithValue("@NotEmpty", r["NotEmpty"]);
+                                cmdInsField.Parameters.AddWithValue("@ScanFieldOrder", r["ScanFieldOrder"]);
+                                cmdInsField.Parameters.AddWithValue("@SearchFieldOrder", r["SearchFieldOrder"]);
+                                cmdInsField.Parameters.AddWithValue("@SSLLookup", r["SSLLookup"] ?? (object)DBNull.Value);
+                                cmdInsField.Parameters.AddWithValue("@SSLLookupIndex", r["SSLLookupIndex"] ?? (object)DBNull.Value);
+                                cmdInsField.Parameters.AddWithValue("@VisibleInScan", r["VisibleInScan"]);
+                                cmdInsField.Parameters.AddWithValue("@VisibleInSearch", r["VisibleInSearch"]);
+                                cmdInsField.Parameters.AddWithValue("@ColorFieldValue", r["ColorFieldValue"] ?? (object)DBNull.Value);
+                                cmdInsField.Parameters.AddWithValue("@ColorValue", r["ColorValue"] ?? (object)DBNull.Value);
+                                cmdInsField.Parameters.AddWithValue("@CurrentFieldSchema", r["CurrentFieldSchema"] ?? (object)DBNull.Value);
+                                cmdInsField.Parameters.AddWithValue("@CurrentFieldConStr", r["CurrentFieldConStr"] ?? (object)DBNull.Value);
+                                cmdInsField.Parameters.AddWithValue("@FieldFilter", r["FieldFilter"] ?? (object)DBNull.Value);
+                                cmdInsField.Parameters.AddWithValue("@LockedCombo", r["LockedCombo"] ?? (object)DBNull.Value);
+
+                                cmdInsField.ExecuteNonQuery();
+                            }
+                        }
+
+                        tran.Commit();
+                        return newIndexId;
+                    }
+                    catch
+                    {
+                        tran.Rollback();
+                        throw;
+                    }
+                }
+            }
+        }
+     
     }
 }
