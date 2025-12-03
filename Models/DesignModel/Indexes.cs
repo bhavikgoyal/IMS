@@ -160,14 +160,14 @@ namespace IMS.Models.DesignModel
             set { ctr = value; OnPropertyChanged(nameof(Ctr)); }
         }
 
-        private bool vs;
+        private bool vs = true;
         public bool VS
         {
             get => vs;
             set { vs = value; OnPropertyChanged(nameof(VS)); }
         }
 
-        private bool vr;
+        private bool vr = true;
         public bool VR
         {
             get => vr;
@@ -176,7 +176,7 @@ namespace IMS.Models.DesignModel
         public string NameOfFieldLookup { get; set; }
         public string NameOfTableLookup { get; set; }
         public string ColorFieldValue { get; set; }
-
+        public bool IsNew { get; set; } = true;
         public string CurrentFieldSchema { get; set; }
         protected void OnPropertyChanged(string prop) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(prop));

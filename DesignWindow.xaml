@@ -11,7 +11,8 @@
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
-        FontFamily="Segoe UI">
+        FontFamily="Segoe UI"
+        PreviewKeyDown="Window_PreviewKeyDown">
   <Window.Resources>
     <!-- Custom Title Bar Buttons Style -->
     <Style x:Key="TitleBarButtonStyle" TargetType="{x:Type Button}">
@@ -854,7 +855,7 @@
           />
 
           <MenuItem Header="Export To Another Cabinet"/>
-          <MenuItem Header="Import From Text File"/>
+          <MenuItem x:Name="mnuI" Header="Import From Text File" Click="mnuImpFromText_Click"/>
           <MenuItem Header="Edit External Cabinet"/>
           <MenuItem Header="Counter Settings"/>
           <MenuItem Header="Enable WebForms"/>
@@ -862,31 +863,28 @@
           <MenuItem Header="Disable WebForms"/>
         </MenuItem>
         <MenuItem Header="Fields">
-          <MenuItem Header="Add Email Fields"/>
+          <MenuItem Header="Add Email Fields" Click="mnuAddEmailF_Click"/>
           <MenuItem Header="Reset Counter On Cabinets"/>
           <MenuItem Header="Reset Counter On Dialogs"/>          
           <MenuItem Header="Make Forced Counter"/>
           <MenuItem Header="Make Optional Counter"/>
-          <MenuItem Header="Make Search Dialog Like Scan Dialog" InputGestureText="Ctrl+A"/>
+          <MenuItem Header="Make Search Dialog Like Scan Dialog" InputGestureText="Ctrl+A" Click="mnuSearchLikeScan_Click"/>
           <MenuItem Header="Refresh Field Order" />
           <MenuItem x:Name="mnuOnClick" Header="On Click Refresh Field Order" />
           <MenuItem Header="Add To All Dialogs"/>
           <MenuItem Header="Apply Filter to All Selected Fields"/>
           <MenuItem Header="Make Selected Read Only List"/>
           <MenuItem Header="Point Selected Combo to Same Cabinet"/>
-          <!-- New items added below -->
-          <MenuItem Header="Manage Batches"/>
-          <MenuItem Header="Archive Batches"/>
         </MenuItem>
         <MenuItem Header="Structure ">
-          <MenuItem Header="Create Document"/>
-          <MenuItem Header="Merge Documents"/>
-          <MenuItem Header="Split Document"/>
+          <MenuItem Header="Export Structure As Script Command"/>
+          <MenuItem Header="Delete Structure"/>
+          <MenuItem Header="Delete Data When Deleting Structure"/>
         </MenuItem>
         <MenuItem Header="&lt;&lt;"/>
         <MenuItem Header="&gt;&gt;"/>
 
-        <MenuItem Header="Help"/>
+        <MenuItem Header="Help" Click="mnuHelp_Click"/>
         <MenuItem Header="Exit" Click="ExitMenuItem_Click"/>
       </Menu>
 
@@ -1145,7 +1143,19 @@ AcceptsReturn="True" VerticalScrollBarVisibility="Disabled" Padding="0,4,0,0" He
             </Border>
           </Grid>
         </Border>
-
+        <Border x:Name="HelpPanel"
+        Grid.Column="2"
+        Grid.ColumnSpan="10"
+        Background="#FFFFFFC0"
+        BorderBrush="Gray"
+        BorderThickness="1"
+        Padding="10"
+        Visibility="Collapsed">
+          <TextBlock x:Name="txtHelp"
+           FontSize="16"
+           TextWrapping="Wrap"
+           Margin="10"/>
+        </Border>
         <Border Grid.Column="2" Grid.ColumnSpan="10" BorderBrush="Gray" BorderThickness="1" Padding="5" Name="FieldsPanel" Visibility="Collapsed">
     <StackPanel>
 
