@@ -542,7 +542,7 @@ namespace IMS.Data.Design
                                 module.DirIndexingEnabled = 0;
                                 module.FormsEnabled = 0;
 
-                               //MessageBox.Show("No Such Index! Please Contact System Administrator");
+                                //MessageBox.Show("No Such Index! Please Contact System Administrator");
                             }
                         }
                     }
@@ -673,7 +673,7 @@ namespace IMS.Data.Design
                 cmd.Parameters.AddWithValue("@VisibleInSearch", fvm.VR ? 1 : 0);
 
                 cmd.Parameters.AddWithValue("@ColorFieldValue", "");
-                cmd.Parameters.AddWithValue("@ColorValue", fvm.ColorVal);
+                cmd.Parameters.AddWithValue("@ColorValue", fvm.ColorVal ?? "");
 
                 cmd.Parameters.AddWithValue("@CurrentFieldSchema", "IMS..");
                 cmd.Parameters.AddWithValue("@CurrentFieldConStr", conn.ConnectionString);
@@ -808,8 +808,6 @@ namespace IMS.Data.Design
                 }
             }
         }
-
-
         public int CreateNewDialogFromCabinet(int sourceIndexId, string newDialogName, bool sameLookups)
         {
             using (SqlConnection conn = DatabaseHelper.GetConnection())
@@ -1001,7 +999,7 @@ namespace IMS.Data.Design
 
                         if (col.ColumnName.Equals("IndexID", StringComparison.OrdinalIgnoreCase))
                         {
-                            value = newIndexId;     
+                            value = newIndexId;
                         }
                         else
                         {
@@ -1015,7 +1013,6 @@ namespace IMS.Data.Design
                 }
             }
         }
-
         public int CopyCabinetWithNewName(int sourceIndexId, string newShortName, string newLongName)
         {
             using (SqlConnection conn = DatabaseHelper.GetConnection())
