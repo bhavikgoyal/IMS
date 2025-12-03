@@ -45,7 +45,7 @@ namespace IMS
 
             if (e.Key == Key.A && Keyboard.Modifiers == ModifierKeys.Control)
             {
-                mnuSearchScan_Click(sender, e);
+                mnuSearchLikeScan_Click(sender, e);
                 e.Handled = true;
             }
         }
