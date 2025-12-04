@@ -1,8 +1,12 @@
 ﻿using IMS.Data.Authority;
 using IMS.Data.Capture;
 using IMS.Data.Design;
+using IMS.Models.CaptureModel;
 using IMS.Models.DesignModel;
+using Microsoft.Win32;
 using System.Collections.ObjectModel;
+using System.IO;
+using System.Text;
 using System.Windows;
 using System.Windows.Input;
 
@@ -14,14 +18,12 @@ namespace IMS
     public partial class CaptureWindow : Window
     {
         private readonly CaptureRepository capturerepository = new CaptureRepository();
-        public ObservableCollection<string> ScannedDocuments { get; set; }
 
         public CaptureWindow()
         {
             InitializeComponent();
             DataContext = capturerepository;    
             capturerepository.LoadTreeView();
-            ScannedDocuments = new ObservableCollection<string>();
         }
 
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -75,5 +77,72 @@ namespace IMS
                 capturerepository.OnNodeSelected(node);
             }
         }
+
+        private void ImportFileButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (capturerepository.SelectedIndexId <= 0)
+            {
+                MessageBox.Show(
+                    "SELECT a Data Cabinet from the lower right tree view to be able to scan documents into this cabinet",
+                    "IMS",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+
+                return;
+            }
+            var dialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Title = "Import document",
+                Multiselect = false,
+                Filter =
+                    "Text files|*.txt;*.log;*.sql;*.cs;*.vb;*.html;*.xml|" +
+                    "All files|*.*"
+            };
+
+            var result = dialog.ShowDialog(this);
+
+            if (result == true)
+            {
+                capturerepository.ImportFiles(dialog.FileNames);
+
+                LoadDocumentToViewer(dialog.FileName);
+            }
+        }
+
+        private void LoadDocumentToViewer(string path)
+        {
+            DocumentTextViewer.Clear();
+
+            if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+            {
+                DocumentTextViewer.Text = "File not found.";
+                return;
+            }
+
+            var ext = Path.GetExtension(path)?.ToLowerInvariant();
+
+            if (ext == ".txt" || ext == ".log" || ext == ".sql" ||
+                ext == ".cs" || ext == ".vb" || ext == ".html" ||
+                ext == ".xml")
+            {
+                string text = File.ReadAllText(path, Encoding.Default);
+                DocumentTextViewer.Text = text;
+            }
+            else
+            {
+                DocumentTextViewer.Text =
+                    $"Preview for '{ext}' files is not implemented yet.";
+            }
+        }
+
+        private void ScannedDocumentsListBox_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            if (ScannedDocumentsListBox.SelectedItem is ScannedDocument doc &&
+            !string.IsNullOrEmpty(doc.FullPath))
+            {
+                LoadDocumentToViewer(doc.FullPath);
+            }
+        }
     }
+
 }

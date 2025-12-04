@@ -1,10 +1,12 @@
 ﻿using IMS.Data.Authority;
 using IMS.Data.Design;
+using IMS.Models.CaptureModel;
 using IMS.Models.DesignModel;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data.SqlClient;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,6 +17,8 @@ namespace IMS.Data.Capture
     {
         public ObservableCollection<TreeNode> PartnerTree { get; set; } = new ObservableCollection<TreeNode>();
         public ObservableCollection<FieldViewModel> Fields { get; set; } = new ObservableCollection<FieldViewModel>();
+
+        public ObservableCollection<ScannedDocument> ScannedDocuments { get; } = new ObservableCollection<ScannedDocument>();
 
         private Cabinet cabinet = new Cabinet();
 
@@ -98,5 +102,21 @@ namespace IMS.Data.Capture
             }
         }
 
+        public void ImportFiles(IEnumerable<string> filePaths)
+        {
+            foreach (var path in filePaths)
+            {
+                if (string.IsNullOrWhiteSpace(path))
+                    continue;
+
+                var fileName = System.IO.Path.GetFileName(path);
+
+                ScannedDocuments.Add(new ScannedDocument
+                {
+                    FileName = fileName,
+                    FullPath = path
+                });
+            }
+        }
     }
 }
