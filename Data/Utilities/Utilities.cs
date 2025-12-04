@@ -35,7 +35,8 @@ namespace IMS.Data.Utilities
 		}
 		public static class CurrentUser
 		{
-			public static string LoginType { get; set; }
+            public static string UserName { get; set; }
+            public static string LoginType { get; set; }
 
 			public static string CurrentClientName;
 			public static string LOUEmail { get; set; }

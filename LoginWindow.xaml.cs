@@ -1,4 +1,5 @@
 ﻿using IMS.Data;
+using IMS.Data.Utilities;
 using IMS.Models;
 using System.Windows;
 using System.Windows.Input;
@@ -48,6 +49,7 @@ namespace IMS
 
                 if (user != null)
                 {
+                    SessionManager.CurrentUser.UserName = username;
                     DashboardWindow dashboard = new DashboardWindow();
                     dashboard.Show();
                     this.Close();

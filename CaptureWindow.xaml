@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:IMS"
+        xmlns:model="clr-namespace:IMS.Models.CaptureModel"
         mc:Ignorable="d"
         Height="700" Width="1000"
         WindowStartupLocation="CenterScreen"
@@ -84,137 +84,9 @@
     </Style>
 
     <DropShadowEffect x:Key="MaterialDesignShadowDepth1"
-                            BlurRadius="8" Direction="270" ShadowDepth="2" Opacity="0.12" Color="#000000"/>
-
-    <ControlTemplate x:Key="CustomTreeViewItemTemplate" TargetType="{x:Type TreeViewItem}">
-      <Grid>
-        <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="Auto"/>
-          <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-          <RowDefinition Height="Auto"/>
-          <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
-
-        <ToggleButton x:Name="Expander"
-                          IsChecked="{Binding Path=IsExpanded, RelativeSource={RelativeSource TemplatedParent}}"
-                          ClickMode="Press"
-                          Grid.Column="0" Grid.Row="0"
-                          VerticalAlignment="Center" HorizontalAlignment="Left"
-                          Focusable="False"
-                          Width="18" Height="18" Margin="0,0,5,0">
-          <ToggleButton.Template>
-            <ControlTemplate TargetType="{x:Type ToggleButton}">
-              <Border Width="18" Height="18" CornerRadius="2" Background="Transparent" SnapsToDevicePixels="True">
-                <Path x:Name="ExpandPath"
-                                  Data="M 0 0 L 4 4 L 0 8 Z"
-                                  Stroke="#333333" StrokeThickness="1" Fill="Transparent"
-                                  HorizontalAlignment="Center" VerticalAlignment="Center">
-                  <Path.LayoutTransform>
-                    <RotateTransform Angle="0"/>
-                  </Path.LayoutTransform>
-                </Path>
-              </Border>
-              <ControlTemplate.Triggers>
-                <Trigger Property="IsChecked" Value="True">
-                  <Setter TargetName="ExpandPath" Property="LayoutTransform">
-                    <Setter.Value>
-                      <RotateTransform Angle="90"/>
-                    </Setter.Value>
-                  </Setter>
-                  <Setter TargetName="ExpandPath" Property="Data" Value="M 0 0 L 8 0 L 4 4 Z"/>
-                </Trigger>
-              </ControlTemplate.Triggers>
-            </ControlTemplate>
-          </ToggleButton.Template>
-        </ToggleButton>
-
-        <Border x:Name="HeaderBorder"
-                    Grid.Column="1" Grid.Row="0"
-                    Padding="5,7" Margin="0,1,0,1"
-                    CornerRadius="3"
-                    BorderThickness="1" BorderBrush="Transparent"
-                    Background="Transparent"
-                    SnapsToDevicePixels="True">
-          <ContentPresenter x:Name="PART_Header"
-                                  ContentSource="Header"
-                                  HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
-        </Border>
-
-        <ItemsPresenter x:Name="ItemsHost"
-                            Grid.Column="1" Grid.Row="1"
-                            Margin="15,0,0,0" Visibility="Collapsed"/>
-      </Grid>
-
-      <ControlTemplate.Triggers>
-        <Trigger Property="IsExpanded" Value="True">
-          <Setter TargetName="ItemsHost" Property="Visibility" Value="Visible"/>
-        </Trigger>
-
-        <Trigger Property="HasItems" Value="False">
-          <Setter TargetName="Expander" Property="Visibility" Value="Hidden"/>
-        </Trigger>
-
-        <Trigger Property="IsMouseOver" Value="True">
-          <Setter TargetName="HeaderBorder" Property="Background" Value="#F0F0F0"/>
-          <Setter TargetName="HeaderBorder" Property="BorderBrush" Value="Transparent"/>
-        </Trigger>
-
-        <Trigger Property="IsSelected" Value="True">
-          <Setter TargetName="HeaderBorder" Property="Background" Value="#E6F2F7"/>
-          <Setter TargetName="HeaderBorder" Property="BorderBrush" Value="#007ACC"/>
-        </Trigger>
-      </ControlTemplate.Triggers>
-    </ControlTemplate>
-
-    <Style x:Key="CabinetTreeViewItemStyle" TargetType="TreeViewItem">
-      <Setter Property="Template" Value="{StaticResource CustomTreeViewItemTemplate}"/>
-
-      <Setter Property="HeaderTemplate">
-        <Setter.Value>
-          <DataTemplate>
-            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-              <TextBlock Text="&#xF12B;"
-                         FontFamily="Segoe MDL2 Assets"
-                         FontSize="22"
-                         Margin="0,0,8,0"
-                         VerticalAlignment="Center">
-                <TextBlock.Style>
-                  <Style TargetType="TextBlock">
-                    <Setter Property="Foreground" Value="#3498DB"/>
-                    <Style.Triggers>
-                      <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type TreeViewItem}}, Path=IsSelected}" Value="True">
-                        <Setter Property="Foreground" Value="#3498DB"/>
-                      </DataTrigger>
-                    </Style.Triggers>
-                  </Style>
-                </TextBlock.Style>
-              </TextBlock>
-
-              <TextBlock Text="{Binding}"
-                         VerticalAlignment="Center"
-                         FontSize="16">
-                <TextBlock.Style>
-                  <Style TargetType="TextBlock">
-                    <Setter Property="Foreground" Value="#333333"/>
-                    <Style.Triggers>
-                      <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type TreeViewItem}}, Path=IsSelected}" Value="True">
-                        <Setter Property="Foreground" Value="#333333"/>
-                      </DataTrigger>
-                    </Style.Triggers>
-                  </Style>
-                </TextBlock.Style>
-              </TextBlock>
-            </StackPanel>
-          </DataTemplate>
-        </Setter.Value>
-      </Setter>
-      <Setter Property="Padding" Value="0"/>
-      <Setter Property="Margin" Value="0"/>
-      <Setter Property="Background" Value="Transparent"/>
-    </Style>
+                          BlurRadius="8" Direction="270"
+                          ShadowDepth="2" Opacity="0.12"
+                          Color="#000000"/>
 
     <Style x:Key="ScannedDocumentListBoxItemStyle" TargetType="{x:Type ListBoxItem}">
       <Setter Property="Background" Value="Transparent"/>
@@ -225,17 +97,17 @@
         <Setter.Value>
           <ControlTemplate TargetType="{x:Type ListBoxItem}">
             <Border x:Name="Bd"
-                    Background="{TemplateBinding Background}"
-                    BorderBrush="{TemplateBinding BorderBrush}"
-                    BorderThickness="{TemplateBinding BorderThickness}"
-                    Padding="{TemplateBinding Padding}"
-                    SnapsToDevicePixels="true">
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                Padding="{TemplateBinding Padding}"
+                                SnapsToDevicePixels="true">
               <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                 <TextBlock Text="&#xE8F1;"
-                           FontFamily="Segoe MDL2 Assets"
-                           FontSize="22"
-                           Margin="0,0,8,0"
-                           VerticalAlignment="Center">
+                                           FontFamily="Segoe MDL2 Assets"
+                                           FontSize="22"
+                                           Margin="0,0,8,0"
+                                           VerticalAlignment="Center">
                   <TextBlock.Style>
                     <Style TargetType="TextBlock">
                       <Setter Property="Foreground" Value="#3498DB"/>
@@ -248,8 +120,8 @@
                   </TextBlock.Style>
                 </TextBlock>
                 <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                  SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
-                                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                                                  SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
+                                                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
               </StackPanel>
             </Border>
             <ControlTemplate.Triggers>
@@ -487,75 +359,73 @@
         <ToolBarTray Background="Transparent">
           <ToolBar Band="1" BandIndex="1" Background="Transparent" BorderThickness="0">
             <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE294;" ToolTip="Scan" Foreground="#00AA00"/>
-            <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE8E5;" ToolTip="Import File"/>
-            <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xED25;" ToolTip="Import Folder"/>
-            <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE8F4;" ToolTip="Print Document"/>
-            <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE74E;" ToolTip="Cut"/>
-            <Button Style="{StaticResource ToolBarIconButtonStyle}"
-                                FontFamily="Segoe MDL2 Assets"
-                                Content="&#xEA35;"
-                                ToolTip="Save All"/>
-            <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE8AB;" ToolTip="Paste"/>
-            <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE7B8;" ToolTip="Redo" Foreground="#00AA00"/>
-            <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xEC59;" ToolTip="Paste"/>
-            <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE74D;" ToolTip="Paste"/>
-
-
-            <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Split">
+            <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE8E5;" ToolTip="Import File" Click="ImportFileButton_Click"/>
+            <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xED25;" ToolTip="Import Folder" Click="ImportFolderButton_Click" />
+            <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE8F4;" ToolTip="Record Without Document" Click="RecordWithoutDocument_Click"/>
+            <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE74E;" ToolTip="Save Fields" Click="SaveFieldsButton_Click" />
+            <Button Style="{StaticResource ToolBarIconButtonStyle}" FontFamily="Segoe MDL2 Assets" Content="&#xEA35;" ToolTip="Save Selected Field to All Document in Basket" Click="SaveSelectedFieldsToAllButton_Click"/>
+            <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE8AB;" ToolTip="Integrate"/>
+            <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE7B8;" ToolTip="Send to Archive" Foreground="#00AA00" Click="SendToArchiveButton_Click" />
+            <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xEC59;" ToolTip="Send to All Archive"  Click="SendAllToArchiveButton_Click"/>
+            <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE74D;" ToolTip="Delete All From Basket" Click="DeleteAllFromBasketButton_Click"/>
+            <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Delete Current Document" Click="DeleteCurrentDocumentButton_Click">
               <Image Source="/Images/remove-file.png" Width="38" Height="38"/>
             </Button>
-            <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Split All">
+            <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Delete Current Page" Click="DeleteCurrentPageButton_Click">
               <Image Source="/Images/delete-folder.png" Width="38" Height="38"/>
             </Button>
 
             <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Split">
               <Image Source="/Images/direction.png" Width="38" Height="38"/>
             </Button>
-            <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Split All">
+            <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Multi Split">
               <Image Source="/Images/split.png" Width="38" Height="38"/>
             </Button>
             <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Merge">
               <Image Source="/Images/merge.png" Width="38" Height="38"/>
             </Button>
-            <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Merge All">
+            <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Merge All Document">
               <Image Source="/Images/mergeallicon.png" Width="38" Height="38"/>
             </Button>
             <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE8A3;" ToolTip="Zoom In" Foreground="#007ACC"/>
             <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE71F;" ToolTip="Zoom Out" Foreground="#007ACC"/>
             <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE7A7;" ToolTip="Undo" Foreground="#00AA00"/>
             <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE7A6;" ToolTip="Redo" Foreground="#00AA00"/>
-            <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Fit Width">
+            <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Fit To Width">
               <Image Source="/Images/arrows.png" Width="38" Height="38"/>
             </Button>
             <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Fit Height">
               <Image Source="/Images/height.png" Width="38" Height="38"/>
             </Button>
+            <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Sign In">
+              <Image Source="/Images/stamp.png" Width="40" Height="40"/>
+            </Button>
             <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Stamp">
               <Image Source="/Images/stamp.png" Width="40" Height="40"/>
             </Button>
-            <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Scan">
+            <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Save Selected Field To Word File">
               <Image Source="/Images/wfile.png" Width="40" Height="40"/>
             </Button>
           </ToolBar>
         </ToolBarTray>
       </Border>
 
-      <Grid Grid.Row="3" Margin="10">
+      <Grid Grid.Row="3" Margin="8">
         <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="300"/>
+          <ColumnDefinition Width="270"/>
           <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <Grid Grid.Column="0" Margin="0,0,10,0">
+        <Grid Grid.Column="0" Margin="0,0,8,0">
           <Grid.RowDefinitions>
-            <RowDefinition Height="100"/>
-            <RowDefinition Height="300"/>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="220"/>
           </Grid.RowDefinitions>
-          <Border Grid.Row="0" Grid.RowSpan="2"
-        Background="#FFFFFF" CornerRadius="5" 
-        Effect="{StaticResource MaterialDesignShadowDepth1}" Margin="0,0,0,10">
+
+          <Border Grid.Row="0"
+                            Background="#FFFFFF" CornerRadius="3"
+                            Effect="{StaticResource MaterialDesignShadowDepth1}"
+                            Margin="0,0,0,6">
             <Grid>
               <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -563,28 +433,30 @@
               </Grid.RowDefinitions>
 
               <TextBlock Text="Data Cabinet"
-                   Foreground="#333333" FontSize="16" FontWeight="SemiBold"
-                   Padding="10" Background="#F0F0F0" />
+                                       Foreground="#333333" FontSize="14" FontWeight="SemiBold"
+                                       Padding="8" Background="#F0F0F0"/>
 
-              <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="5">
+              <ScrollViewer Grid.Row="1"
+                                          VerticalScrollBarVisibility="Auto"
+                                          Margin="4">
                 <TreeView x:Name="myTreeView"
-                    BorderThickness="0"
-                    BorderBrush="Transparent"
-                    SelectedItemChanged="CabinetTree_SelectedItemChanged"
-                    ItemsSource="{Binding PartnerTree}">
+                                          BorderThickness="0"
+                                          BorderBrush="Transparent"
+                                          SelectedItemChanged="CabinetTree_SelectedItemChanged"
+                                          ItemsSource="{Binding PartnerTree}">
                   <TreeView.ItemTemplate>
                     <HierarchicalDataTemplate ItemsSource="{Binding Children}">
                       <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                         <TextBlock Text="&#xF12B;"
-                     FontFamily="Segoe MDL2 Assets"
-                     FontSize="18"
-                     Margin="0,0,6,0"
-                     VerticalAlignment="Center"
-                     Foreground="#3498DB" />
+                                                           FontFamily="Segoe MDL2 Assets"
+                                                           FontSize="18"
+                                                           Margin="0,0,6,0"
+                                                           VerticalAlignment="Center"
+                                                           Foreground="#3498DB" />
                         <TextBlock Text="{Binding LongIndexName}"
-                     VerticalAlignment="Center"
-                     FontSize="14"
-                     Foreground="#333333" />
+                                                           VerticalAlignment="Center"
+                                                           FontSize="13"
+                                                           Foreground="#333333" />
                       </StackPanel>
                     </HierarchicalDataTemplate>
                   </TreeView.ItemTemplate>
@@ -593,78 +465,143 @@
             </Grid>
           </Border>
 
-          <Border Grid.Row="2" Grid.RowSpan="2"
-        Background="#FFFFFF" CornerRadius="5" Effect="{StaticResource MaterialDesignShadowDepth1}"
-        Margin="0,10,0,0">
+          <Border Grid.Row="1"
+        Background="#FFFFFF" CornerRadius="3"
+        Effect="{StaticResource MaterialDesignShadowDepth1}">
             <Grid>
               <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
               </Grid.RowDefinitions>
+              
+              <TextBlock Padding="8"
+                   Background="#F0F0F0"
+                   Foreground="#333333"
+                   FontSize="14"
+                   FontWeight="SemiBold">
+            <Run Text="{Binding ScannedBatches.Count, Mode=OneWay}" />
+            <Run Text="-Scanned Documents" />
+              </TextBlock>
 
-              <TextBlock Text="Scanned Documents"
-                   Foreground="#333333" FontSize="16" FontWeight="SemiBold"
-                   Padding="10" Background="#F0F0F0" />
+              <ScrollViewer Grid.Row="1"
+                      VerticalScrollBarVisibility="Auto"
+                      Margin="4">
+                <TreeView x:Name="ScannedTreeView"
+                      BorderThickness="0"
+                      ItemsSource="{Binding ScannedBatches}"
+                      SelectedItemChanged="ScannedTreeView_SelectedItemChanged">
 
-              <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="5">
-                <ListBox BorderThickness="0" BorderBrush="Transparent"
-                     ItemContainerStyle="{StaticResource ScannedDocumentListBoxItemStyle}">
-                  <ListBoxItem Content="Document_2023_001.pdf"/>
-                  <ListBoxItem Content="Invoice_ABC_123.tiff"/>
-                  <ListBoxItem Content="Contract_XYZ.jpg"/>
-                  <ListBoxItem Content="Report_Q4_2023.pdf"/>
-                  <ListBoxItem Content="Form_P-500.tiff"/>
-                  <ListBoxItem Content="Additional_Doc_1.pdf"/>
-                  <ListBoxItem Content="Another_Scan_2.tiff"/>
-                  <ListBoxItem Content="Project_Brief.docx"/>
-                  <ListBoxItem Content="Meeting_Notes.txt"/>
-                  <ListBoxItem Content="Old_Agreement.pdf"/>
-                  <ListBoxItem Content="Scan_Batch_005.pdf"/>
-                  <ListBoxItem Content="Final_Report.pdf"/>
-                </ListBox>
+                  <TreeView.Resources>
+                    <HierarchicalDataTemplate DataType="{x:Type model:ScanBatch}"
+                                              ItemsSource="{Binding Pages}">
+                      <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE8B7;"
+                                       FontFamily="Segoe MDL2 Assets"
+                                       Margin="0,0,4,0"/>
+                        <TextBlock Text="{Binding FileNo}" />
+                      </StackPanel>
+                    </HierarchicalDataTemplate>
+
+                    <DataTemplate DataType="{x:Type model:ScannedDocument}">
+                      <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE8F1;"
+                                       FontFamily="Segoe MDL2 Assets"
+                                       Margin="0,0,4,0"/>
+                        <TextBlock Text="{Binding PageNo}" />
+                      </StackPanel>
+                    </DataTemplate>
+                  </TreeView.Resources>
+
+                </TreeView>
               </ScrollViewer>
             </Grid>
           </Border>
 
+
         </Grid>
         <Border Grid.Column="1"
-        Background="#FFFFFF" CornerRadius="5"
-        Effect="{StaticResource MaterialDesignShadowDepth1}"
-        Margin="0,0,0,0">
-          <ScrollViewer VerticalScrollBarVisibility="Auto">
-            <ItemsControl ItemsSource="{Binding Fields}">
-              <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                  <Grid Margin="0,1">
-                    <Grid.ColumnDefinitions>
-                      <ColumnDefinition Width="Auto"/>
-                      <ColumnDefinition Width="220"/>
-                      <ColumnDefinition Width="250"/>
-                    </Grid.ColumnDefinitions>
+                        Background="#FFFFFF" CornerRadius="3"
+                        Effect="{StaticResource MaterialDesignShadowDepth1}">
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="420"/>
+              <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
 
-                    <CheckBox Grid.Column="0"
-                      IsChecked="{Binding IsChecked}"
-                      VerticalAlignment="Center"
-                      Margin="2,0,2,0"/>
+            <ScrollViewer Grid.Column="0"
+                                      VerticalScrollBarVisibility="Auto"
+                                      Margin="6">
+              <ItemsControl ItemsSource="{Binding Fields}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Grid Margin="0,2">
+                      <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                      </Grid.ColumnDefinitions>
 
-                    <TextBlock Grid.Column="1"
-                       Text="{Binding Caption}"
-                       Foreground="Red"
-                       FontSize="13"
-                       VerticalAlignment="Center"
-                       Margin="2,0"/>
+                      <CheckBox Grid.Column="0"
+                  IsChecked="{Binding IsChecked}"
+                  VerticalAlignment="Center"
+                  Margin="2,0,6,0"/>
 
-                    <TextBox Grid.Column="2"
-                     Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}"
+                      <TextBlock Grid.Column="1"
+                   Text="{Binding Caption}"
+                   Foreground="Red"
+                   FontSize="13"
+                   VerticalAlignment="Center"
+                   TextWrapping="Wrap"
+                   MinWidth="120"/>
+
+                      <TextBox Grid.Column="2"
+                 Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}"
+                 FontSize="13"
+                 Height="22"
+                 Margin="4,0,4,0"
+                 VerticalContentAlignment="Center"
+                 HorizontalAlignment="Stretch"
+                 MinWidth="180"/>
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </ScrollViewer>
+
+            <Border Grid.Column="1"
+                  Margin="0,6,6,6"
+                  Background="#F4F4F4"
+                  BorderBrush="#D0D0D0"
+                  BorderThickness="1">    
+              <Grid>
+
+                <ScrollViewer x:Name="TextScrollViewer"
+                      VerticalScrollBarVisibility="Auto">
+                  <TextBox x:Name="DocumentTextViewer"
+                     Margin="4"
+                     IsReadOnly="True"
+                     AcceptsReturn="True"
+                     AcceptsTab="True"
+                     TextWrapping="Wrap"
+                     BorderThickness="0"
+                     FontFamily="Consolas"
                      FontSize="13"
-                     Height="22"
-                     Margin="2,0,2,0"
-                     VerticalContentAlignment="Center"/>
-                  </Grid>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
-          </ScrollViewer>
+                     VerticalScrollBarVisibility="Auto"/>
+                </ScrollViewer>
+
+                <ScrollViewer x:Name="ImageScrollViewer"
+                      Visibility="Collapsed"
+                      HorizontalScrollBarVisibility="Auto"
+                      VerticalScrollBarVisibility="Auto">
+                  <Image x:Name="DocumentImageViewer"
+                   Stretch="Uniform"
+                   Margin="4"/>
+                </ScrollViewer>
+
+              </Grid>
+            </Border>
+
+          </Grid>
         </Border>
       </Grid>
     </Grid>

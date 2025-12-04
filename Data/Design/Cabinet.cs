@@ -1207,5 +1207,32 @@ namespace IMS.Data.Design
                 cmd.ExecuteNonQuery();
             }
         }
+
+        public string GetTableNameForIndex(int indexId)
+        {
+            if (indexId <= 0)
+                return null;
+
+            using (SqlConnection conn = DatabaseHelper.GetConnection())
+            using (SqlCommand cmd = new SqlCommand(@"
+                SELECT 
+                    CASE 
+                        WHEN TableName IS NULL OR LTRIM(RTRIM(TableName)) = '' 
+                             THEN ShortIndexName        
+                        ELSE TableName
+                    END
+                FROM Indexes
+                WHERE IndexID = @IndexID", conn))
+            {
+                cmd.Parameters.AddWithValue("@IndexID", indexId);
+                conn.Open();
+
+                var result = cmd.ExecuteScalar();
+                return (result == null || result == DBNull.Value)
+                    ? null
+                    : result.ToString();
+            }
+        }
+
     }
 }
