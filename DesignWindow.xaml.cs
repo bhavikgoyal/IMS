@@ -863,15 +863,14 @@ namespace IMS
                     await Exec($"DELETE FROM Comments WHERE IndexID={CurrentSInd.SIndID}");
                     await Exec($"DELETE FROM AllCounters WHERE IndexID={CurrentSInd.SIndID}");
 
-                    await Exec($"DROP TABLE {safeIndexName}");
-                    await Exec($"DROP TABLE {safeIndexName}_Blob");
-                    if (CurrentSInd.FormsEnabled == 1)
-                        await Exec($"DROP TABLE {safeIndexName}_FormName_L_U");
-                    if (CurrentSInd.FullTextEnabled == 1)
-                        await Exec($"DROP TABLE {safeIndexName}_FullText");
+                      await Exec($"DROP TABLE {safeIndexName}");
+                      await Exec($"DROP TABLE {safeIndexName}_Blob");
+    
                 }
 
                 MessageBox.Show("Archive deleted successfully.");
+                FieldsPanel.Visibility = Visibility.Collapsed;
+                frameButtons.Visibility = Visibility.Collapsed;
                 var vm = (DesignWindowViewModel)this.DataContext;
                 vm.LoadTreeView();
             }

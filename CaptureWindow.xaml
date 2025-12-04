@@ -183,56 +183,177 @@
       </Border>
 
       <Menu Grid.Row="1">
+
+        <!-- Scanning -->
         <MenuItem Header="Scanning">
-          <MenuItem Header="New Scan"/>
-          <MenuItem Header="Batch Scan"/>
-          <MenuItem Header="Import File"/>
-          <MenuItem Header="Import Folder"/>
+          <MenuItem Header="Enable Easylmport"/>
+          <MenuItem Header="Manage Easylmport Folders" Click="ManageEasyImportFolders_Click"/>
+          <MenuItem Header="From Excel"/>
+          <MenuItem Header="Short Field Name Same as Excel"/>
+          <MenuItem Header="From Clip Board"/>
+          <MenuItem Header="From Web"/>
+          <MenuItem Header="Import Tiff"/>
+          <MenuItem Header="Record Only" InputGestureText="F5"/>
+          <MenuItem Header="Scan Into"/>
+          <MenuItem Header="Show Scanner Dialog"/>
+          <MenuItem Header="Change Scanner"/>
+          <MenuItem Header="Scanner Settings"/>
         </MenuItem>
+
+        <!-- Batches -->
         <MenuItem Header="Batches">
-          <MenuItem Header="Manage Batches"/>
-          <MenuItem Header="Archive Batches"/>
+          <MenuItem Header="New Batches" InputGestureText="Ctrl+F5"/>
+          <MenuItem Header="Select Current Batch"/>
+          <MenuItem Header="Export Current Basket To Batch"/>
+          <MenuItem Header="Import Document From Batch" InputGestureText="F11"/>
+          <MenuItem Header="Import N Document From Batch"/>
+          <MenuItem Header="Import All From Batch" InputGestureText="Ctrl+F11"/>
         </MenuItem>
+
+        <!-- Documents -->
         <MenuItem Header="Documents">
-          <MenuItem Header="Create Document"/>
-          <MenuItem Header="Merge Documents"/>
-          <MenuItem Header="Split Document"/>
+          <MenuItem Header="Print" InputGestureText="Ctrl+P"/>
+          <MenuItem Header="Replicate Document"/>
+          <MenuItem Header="Delete Document" InputGestureText="Shift+Del"/>
+          <MenuItem Header="Delete Page" InputGestureText="Alt+Bksp"/>
+          <MenuItem Header="Delete All"/>
+          <MenuItem Header="Merge" InputGestureText="Ctrl+M"/>
+          <MenuItem Header="Split" InputGestureText="Ctrl+T"/>
+          <MenuItem Header="Split Into"/>
+          <MenuItem Header="Multi Split"/>
+          <MenuItem Header="Merge All"/>
+          <MenuItem Header="Enable Intelligent Split" InputGestureText="Ctrl+F6"/>
+          <MenuItem Header="Intelligent Split" InputGestureText="F6"/>
+          <MenuItem Header="Enable On Click Merge"/>
+          <MenuItem Header="Enable Page Reorder By Mouse"/>
+          <MenuItem Header="Approve Document" InputGestureText="Ctrl+D"/>
+          <MenuItem Header="Approve All" InputGestureText="Ctrl+A"/>
+          <MenuItem Header="Ignore Approve Errors" IsCheckable="True"/>
+          <MenuItem Header="Enable Drag Drop Merge" IsCheckable="True"/>
+          <MenuItem Header="Approve Immediate" IsCheckable="True" IsChecked="True"/>
+          <MenuItem Header="Import Each Folder As 1 Document" IsCheckable="True"/>
+          <MenuItem Header="Delete After Import" IsCheckable="True" IsChecked="True"/>
         </MenuItem>
+
+        <!-- Fields -->
         <MenuItem Header="Fields">
-          <MenuItem Header="Define Fields"/>
-          <MenuItem Header="Populate Fields"/>
+          <MenuItem Header="Show All Dialogs" InputGestureText="Ctrl+F8"/>
+          <MenuItem Header="Keep Entries"/>
+          <MenuItem Header="Save Fields" InputGestureText="Ctrl+S"/>
+          <MenuItem Header="Apply To All" InputGestureText="Ctrl+U"/>
+          <MenuItem Header="Select All Fields" InputGestureText="Ctrl+F"/>
+          <MenuItem Header="Save To MS Word" InputGestureText="Ctrl+W"/>
+          <MenuItem Header="Undo Save To Word" InputGestureText="Ctrl+Z"/>
+          <MenuItem Header="Integrate" InputGestureText="F12"/>
+          <MenuItem Header="Partial Integration"/>
+          <MenuItem Header="Bring First Value"/>
+          <MenuItem Header="Set Focus On Current Selected Field"/>
+          <MenuItem Header="Clear" InputGestureText="Ctrl+L"/>
         </MenuItem>
+
+        <!-- Stamps/Signatures -->
         <MenuItem Header="Stamps/Signatures">
-          <MenuItem Header="Apply Stamp"/>
-          <MenuItem Header="Add Signature"/>
+          <MenuItem Header="No Password for Signatures"/>
+          <MenuItem Header="Sign Document" InputGestureText="Ctrl+N"/>
+          <MenuItem Header="Stamp Document"/>
+          <MenuItem Header="Burn Immediate"/>
+          <MenuItem Header="Approve Immediately After Sign"/>
+          <MenuItem Header="Approve Immediately After Stamp"/>
         </MenuItem>
+
+        <!-- Image -->
         <MenuItem Header="Image">
-          <MenuItem Header="Rotate"/>
-          <MenuItem Header="Crop"/>
-          <MenuItem Header="Brightness/Contrast"/>
-          <MenuItem Header="Grayscale"/>
+          <MenuItem Header="Zoom In" InputGestureText="F4"/>
+          <MenuItem Header="Zoom Out" InputGestureText="F3"/>
+          <MenuItem Header="Fit To Width"/>
+          <MenuItem Header="Fit To Height"/>
+          <MenuItem Header="Rotate Left" InputGestureText="F1"/>
+          <MenuItem Header="Rotate Right" InputGestureText="F2"/>
+          <MenuItem Header="Enable Image Compression"/>
+          <MenuItem Header="Enable Text-Image Compression"/>
+          <MenuItem Header="Auto Compression"/>
+          <MenuItem Header="Enable Image Clipping"/>
+          <MenuItem Header="Clip and Keep Focus On Original"/>
+          <MenuItem Header="Secure For Me Only"/>
+          <MenuItem Header="Enable Content Security"/>
+          <MenuItem Header="Clear Content Security"/>
         </MenuItem>
+
+        <!-- Annotations -->
         <MenuItem Header="Annotations">
-          <MenuItem Header="Add Text"/>
-          <MenuItem Header="Highlight"/>
-          <MenuItem Header="Redact"/>
+          <MenuItem Header="Show Edit Dialog" InputGestureText="Shift+F1"/>
+          <MenuItem Header="Save Annotations Without Burn In" InputGestureText="Shift+F2"/>
+          <MenuItem Header="Burn In Annotations" InputGestureText="Shift+F3"/>
+          <MenuItem Header="Edit Annotations" InputGestureText="Shift+F4"/>
+          <MenuItem Header="Insert Predefined Text Annotations" InputGestureText="Shift+F5"/>
+          <MenuItem Header="Show/Hide Annotations" InputGestureText="Shift+F6" IsCheckable="True" IsChecked="True"/>
+          <MenuItem Header="Show All Layers" InputGestureText="Shift+F12"/>
+          <MenuItem Header="Next Layer" InputGestureText="Shift+F8"/>
+          <MenuItem Header="Previous Layer" InputGestureText="Shift+F7"/>
+          <MenuItem Header="Add Annotation Layer" InputGestureText="Shift+F9"/>
+          <MenuItem Header="Delete Layer" InputGestureText="Shift+F10"/>
+          <MenuItem Header="Delete All Layers" InputGestureText="Shift+F11"/>
         </MenuItem>
+
+        <!-- General -->
         <MenuItem Header="General">
-          <MenuItem Header="Settings"/>
-          <MenuItem Header="Help"/>
+          <MenuItem Header="Tool Bars" IsCheckable="True" IsChecked="True"/>
+          <MenuItem Header="Edit Image" InputGestureText="Ctrl+E"/>
+          <MenuItem Header="Email Alert"/>
+          <MenuItem Header="Export Basket" InputGestureText="F7"/>
+          <MenuItem Header="Import Basket" InputGestureText="F8"/>
+          <MenuItem Header="Search Screen" InputGestureText="F9"/>
+          <MenuItem Header="Change Language" InputGestureText="Ctrl+G"/>
+          <MenuItem Header="Disable Messages" IsCheckable="True" IsChecked="True"/>
         </MenuItem>
+
+        <!-- OCR -->
         <MenuItem Header="OCR">
-          <MenuItem Header="Perform OCR"/>
-          <MenuItem Header="OCR Settings"/>
+
+          <MenuItem Header="Enable Manual Zonal OCR"/>
+          <MenuItem Header="Split On OCR"/>
+
+          <MenuItem Header="Barcode">
+            <MenuItem Header="Split Basket On Barcode"/>
+            <MenuItem Header="Delete Original Document"/>
+          </MenuItem>
+
+          <MenuItem Header="Templates">
+            <MenuItem Header="Choose OCR Template"/>
+            <MenuItem Header="Create/Modify OCR Templates"/>
+            <MenuItem Header="Save Template"/>
+          </MenuItem>
+
+          <MenuItem Header="Unattended Mode">
+            <MenuItem Header="Auto OCR and Index"/>
+            <MenuItem Header="Auto Integreat"/>
+          </MenuItem>
+
+          <MenuItem Header="OCR Whole Page">
+            <MenuItem Header="OCR Current Image"/>
+            <MenuItem Header="OCR Current Document"/>
+            <MenuItem Header="OCR Whole Basket"/>
+          </MenuItem>
+          <MenuItem Header= "Remove Blank Lines"/>
+          <MenuItem Header=" Remove Spaces"/>
+          <MenuItem Header="Only Numbers"/>
+          <MenuItem Header="Character Length"/>
         </MenuItem>
+
+        <!-- Next/Prev -->
         <MenuItem Header="&lt;&lt;">
           <MenuItem Header="Previous"/>
         </MenuItem>
+
         <MenuItem Header="&gt;&gt;">
           <MenuItem Header="Next"/>
         </MenuItem>
+
+        <!-- Exit -->
         <MenuItem Header="Exit" Click="ExitMenuItem_Click"/>
+
       </Menu>
+
 
       <Border Grid.Row="2" Background="White" BorderBrush="Transparent" BorderThickness="0,0,0,1" Padding="5,3">
         <ToolBarTray Background="Transparent">
