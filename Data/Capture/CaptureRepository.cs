@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data.SqlClient;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -101,5 +102,21 @@ namespace IMS.Data.Capture
             }
         }
 
+        public void ImportFiles(IEnumerable<string> filePaths)
+        {
+            foreach (var path in filePaths)
+            {
+                if (string.IsNullOrWhiteSpace(path))
+                    continue;
+
+                var fileName = System.IO.Path.GetFileName(path);
+
+                ScannedDocuments.Add(new ScannedDocument
+                {
+                    FileName = fileName,
+                    FullPath = path
+                });
+            }
+        }
     }
 }
