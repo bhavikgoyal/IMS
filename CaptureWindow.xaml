@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:model="clr-namespace:IMS.Models.CaptureModel"
         mc:Ignorable="d"
         Height="700" Width="1000"
         WindowStartupLocation="CenterScreen"
@@ -149,7 +150,6 @@
     </Style>
   </Window.Resources>
 
-  <!-- ========== MAIN LAYOUT ========== -->
   <Border Background="#F5F7FA" CornerRadius="0"
             BorderBrush="#FFE0E0E0" BorderThickness="1">
     <Border.Effect>
@@ -238,76 +238,69 @@
         <ToolBarTray Background="Transparent">
           <ToolBar Band="1" BandIndex="1" Background="Transparent" BorderThickness="0">
             <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE294;" ToolTip="Scan" Foreground="#00AA00"/>
-            <Button Style="{StaticResource ToolBarIconButtonStyle}"
-                                Content="&#xE8E5;" ToolTip="Import File"
-                                Click="ImportFileButton_Click"/>
-            <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xED25;" ToolTip="Import Folder"/>
-            <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE8F4;" ToolTip="Print Document"/>
-            <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE74E;" ToolTip="Cut"/>
-            <Button Style="{StaticResource ToolBarIconButtonStyle}"
-                                FontFamily="Segoe MDL2 Assets"
-                                Content="&#xEA35;"
-                                ToolTip="Save All"/>
-            <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE8AB;" ToolTip="Paste"/>
-            <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE7B8;" ToolTip="Redo" Foreground="#00AA00"/>
-            <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xEC59;" ToolTip="Paste"/>
-            <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE74D;" ToolTip="Paste"/>
-
-
-            <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Split">
+            <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE8E5;" ToolTip="Import File" Click="ImportFileButton_Click"/>
+            <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xED25;" ToolTip="Import Folder" Click="ImportFolderButton_Click" />
+            <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE8F4;" ToolTip="Record Without Document" Click="RecordWithoutDocument_Click"/>
+            <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE74E;" ToolTip="Save Fields" Click="SaveFieldsButton_Click" />
+            <Button Style="{StaticResource ToolBarIconButtonStyle}" FontFamily="Segoe MDL2 Assets" Content="&#xEA35;" ToolTip="Save Selected Field to All Document in Basket" Click="SaveSelectedFieldsToAllButton_Click"/>
+            <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE8AB;" ToolTip="Integrate"/>
+            <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE7B8;" ToolTip="Send to Archive" Foreground="#00AA00" Click="SendToArchiveButton_Click" />
+            <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xEC59;" ToolTip="Send to All Archive"  Click="SendAllToArchiveButton_Click"/>
+            <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE74D;" ToolTip="Delete All From Basket" Click="DeleteAllFromBasketButton_Click"/>
+            <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Delete Current Document" Click="DeleteCurrentDocumentButton_Click">
               <Image Source="/Images/remove-file.png" Width="38" Height="38"/>
             </Button>
-            <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Split All">
+            <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Delete Current Page" Click="DeleteCurrentPageButton_Click">
               <Image Source="/Images/delete-folder.png" Width="38" Height="38"/>
             </Button>
 
             <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Split">
               <Image Source="/Images/direction.png" Width="38" Height="38"/>
             </Button>
-            <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Split All">
+            <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Multi Split">
               <Image Source="/Images/split.png" Width="38" Height="38"/>
             </Button>
             <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Merge">
               <Image Source="/Images/merge.png" Width="38" Height="38"/>
             </Button>
-            <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Merge All">
+            <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Merge All Document">
               <Image Source="/Images/mergeallicon.png" Width="38" Height="38"/>
             </Button>
             <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE8A3;" ToolTip="Zoom In" Foreground="#007ACC"/>
             <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE71F;" ToolTip="Zoom Out" Foreground="#007ACC"/>
             <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE7A7;" ToolTip="Undo" Foreground="#00AA00"/>
             <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE7A6;" ToolTip="Redo" Foreground="#00AA00"/>
-            <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Fit Width">
+            <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Fit To Width">
               <Image Source="/Images/arrows.png" Width="38" Height="38"/>
             </Button>
             <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Fit Height">
               <Image Source="/Images/height.png" Width="38" Height="38"/>
             </Button>
+            <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Sign In">
+              <Image Source="/Images/stamp.png" Width="40" Height="40"/>
+            </Button>
             <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Stamp">
               <Image Source="/Images/stamp.png" Width="40" Height="40"/>
             </Button>
-            <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Scan">
+            <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Save Selected Field To Word File">
               <Image Source="/Images/wfile.png" Width="40" Height="40"/>
             </Button>
           </ToolBar>
         </ToolBarTray>
       </Border>
 
-      <!-- ===== MAIN CONTENT ===== -->
       <Grid Grid.Row="3" Margin="8">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="270"/>
           <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <!-- LEFT: Data Cabinet + Scanned Documents -->
         <Grid Grid.Column="0" Margin="0,0,8,0">
           <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
             <RowDefinition Height="220"/>
           </Grid.RowDefinitions>
 
-          <!-- Data Cabinet -->
           <Border Grid.Row="0"
                             Background="#FFFFFF" CornerRadius="3"
                             Effect="{StaticResource MaterialDesignShadowDepth1}"
@@ -351,38 +344,59 @@
             </Grid>
           </Border>
 
-          <!-- Scanned Documents -->
           <Border Grid.Row="1"
-                            Background="#FFFFFF" CornerRadius="3"
-                            Effect="{StaticResource MaterialDesignShadowDepth1}">
+        Background="#FFFFFF" CornerRadius="3"
+        Effect="{StaticResource MaterialDesignShadowDepth1}">
             <Grid>
               <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
               </Grid.RowDefinitions>
-
+              
               <TextBlock Padding="8"
-                                       Background="#F0F0F0"
-                                       Foreground="#333333"
-                                       FontSize="14"
-                                       FontWeight="SemiBold">
-                                <Run Text="{Binding ScannedDocuments.Count, Mode=OneWay}" />
-                                <Run Text="-Scanned Documents" />
+                   Background="#F0F0F0"
+                   Foreground="#333333"
+                   FontSize="14"
+                   FontWeight="SemiBold">
+            <Run Text="{Binding ScannedBatches.Count, Mode=OneWay}" />
+            <Run Text="-Scanned Documents" />
               </TextBlock>
 
               <ScrollViewer Grid.Row="1"
-                                          VerticalScrollBarVisibility="Auto"
-                                          Margin="4">
-                <ListBox x:Name="ScannedDocumentsListBox"
-                                         BorderThickness="0"
-                                         BorderBrush="Transparent"
-                                         ItemContainerStyle="{StaticResource ScannedDocumentListBoxItemStyle}"
-                                         ItemsSource="{Binding ScannedDocuments}"
-                                         DisplayMemberPath="FileName"
-                                         SelectionChanged="ScannedDocumentsListBox_SelectionChanged"/>
+                      VerticalScrollBarVisibility="Auto"
+                      Margin="4">
+                <TreeView x:Name="ScannedTreeView"
+                      BorderThickness="0"
+                      ItemsSource="{Binding ScannedBatches}"
+                      SelectedItemChanged="ScannedTreeView_SelectedItemChanged">
+
+                  <TreeView.Resources>
+                    <HierarchicalDataTemplate DataType="{x:Type model:ScanBatch}"
+                                              ItemsSource="{Binding Pages}">
+                      <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE8B7;"
+                                       FontFamily="Segoe MDL2 Assets"
+                                       Margin="0,0,4,0"/>
+                        <TextBlock Text="{Binding FileNo}" />
+                      </StackPanel>
+                    </HierarchicalDataTemplate>
+
+                    <DataTemplate DataType="{x:Type model:ScannedDocument}">
+                      <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE8F1;"
+                                       FontFamily="Segoe MDL2 Assets"
+                                       Margin="0,0,4,0"/>
+                        <TextBlock Text="{Binding PageNo}" />
+                      </StackPanel>
+                    </DataTemplate>
+                  </TreeView.Resources>
+
+                </TreeView>
               </ScrollViewer>
             </Grid>
           </Border>
+
+
         </Grid>
         <Border Grid.Column="1"
                         Background="#FFFFFF" CornerRadius="3"
@@ -433,25 +447,39 @@
               </ItemsControl>
             </ScrollViewer>
 
-            <!-- Viewer full height -->
             <Border Grid.Column="1"
-                                Margin="0,6,6,6"
-                                Background="#F4F4F4"
-                                BorderBrush="#D0D0D0"
-                                BorderThickness="1">
-              <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <TextBox x:Name="DocumentTextViewer"
-                                         Margin="4"
-                                         IsReadOnly="True"
-                                         AcceptsReturn="True"
-                                         AcceptsTab="True"
-                                         TextWrapping="Wrap"
-                                         BorderThickness="0"
-                                         FontFamily="Consolas"
-                                         FontSize="13"
-                                         VerticalScrollBarVisibility="Auto"/>
-              </ScrollViewer>
+                  Margin="0,6,6,6"
+                  Background="#F4F4F4"
+                  BorderBrush="#D0D0D0"
+                  BorderThickness="1">    
+              <Grid>
+
+                <ScrollViewer x:Name="TextScrollViewer"
+                      VerticalScrollBarVisibility="Auto">
+                  <TextBox x:Name="DocumentTextViewer"
+                     Margin="4"
+                     IsReadOnly="True"
+                     AcceptsReturn="True"
+                     AcceptsTab="True"
+                     TextWrapping="Wrap"
+                     BorderThickness="0"
+                     FontFamily="Consolas"
+                     FontSize="13"
+                     VerticalScrollBarVisibility="Auto"/>
+                </ScrollViewer>
+
+                <ScrollViewer x:Name="ImageScrollViewer"
+                      Visibility="Collapsed"
+                      HorizontalScrollBarVisibility="Auto"
+                      VerticalScrollBarVisibility="Auto">
+                  <Image x:Name="DocumentImageViewer"
+                   Stretch="Uniform"
+                   Margin="4"/>
+                </ScrollViewer>
+
+              </Grid>
             </Border>
+
           </Grid>
         </Border>
       </Grid>
