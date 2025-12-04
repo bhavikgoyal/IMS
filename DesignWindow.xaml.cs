@@ -1360,36 +1360,36 @@ namespace IMS
                 frameButtons.Visibility = Visibility.Collapsed;
 
                 txtHelp.Text = @"
-Ctr : Means Counter/Incremental Field
-SL  : Means Single Select List (Combo Box)
-MS : Means Multi Select List
-L    : Means Locked Field, Cannot Be Edited By Users
-M   : Means Mandatory, User Must Fill It
-VS  : Means Visible In Scanning Screen
-VR  : Means Visible In Retrieve(Search) Screen
+                            Ctr : Means Counter/Incremental Field
+                            SL  : Means Single Select List (Combo Box)
+                            MS : Means Multi Select List
+                            L    : Means Locked Field, Cannot Be Edited By Users
+                            M   : Means Mandatory, User Must Fill It
+                            VS  : Means Visible In Scanning Screen
+                            VR  : Means Visible In Retrieve(Search) Screen
 
-Fixed Value : Default Value For Each New Document, it can be Fixed, Dynamic, or combination
-Color VAL : Type Value, and Double Click text box to Change Color
-Ctr : Counter Filed, if fixed value is selected, counter will be added to fixed value
-SL : Single Select List Field, Or Combo Box, Or Drop Down Menu
-ML : Multi Select List Field, more than 1 value can be selected from list
-L : Locked field, users cannot edit it
-M : Mandatory field
-VS : field visible in Scan Screen
-VR : Field Visible In Search & Inbox Screens
-Rule : Field Rule Like Numeric, certain length, Email, Greater or smaller than a value
-For Rule Field : Type L=5 meaning that field is 5 characters long, L=?? means ?? length
-For Rule Field : Type L>5 meaning that field is more than 5 characters long, L>?? means > ?? character long
-For Rule Field : Type L<5 meaning that field is less than 5 characters long, L<?? means < ?? character long
-For Rule Field : Type > 245 meaning that field value must be larger than 245
-For Rule Field : Type > %FieldName% meaning that this field must be greater than the typed field
-For Rule Field : Type >= 245 meaning that field value must be larger or equal to 245
-For Rule Field : Type >= %FieldName% meaning that this field must be greater than or equal to the typed field
-For Rule Field : Type < 2000 meaning that field must be less than 2000
-For Rule Field : Type < %FieldName% meaning that this field must be less than the typed field
-For Rule Field : Type <= 2000 meaning that field must be less than or equal to 2000
-For Rule Field : Type <= %FieldName% meaning that this field must be less than or equal to the typed field
-For Rule Field : Type R(email) to force email format";
+                            Fixed Value : Default Value For Each New Document, it can be Fixed, Dynamic, or combination
+                            Color VAL : Type Value, and Double Click text box to Change Color
+                            Ctr : Counter Filed, if fixed value is selected, counter will be added to fixed value
+                            SL : Single Select List Field, Or Combo Box, Or Drop Down Menu
+                            ML : Multi Select List Field, more than 1 value can be selected from list
+                            L : Locked field, users cannot edit it
+                            M : Mandatory field
+                            VS : field visible in Scan Screen
+                            VR : Field Visible In Search & Inbox Screens
+                            Rule : Field Rule Like Numeric, certain length, Email, Greater or smaller than a value
+                            For Rule Field : Type L=5 meaning that field is 5 characters long, L=?? means ?? length
+                            For Rule Field : Type L>5 meaning that field is more than 5 characters long, L>?? means > ?? character long
+                            For Rule Field : Type L<5 meaning that field is less than 5 characters long, L<?? means < ?? character long
+                            For Rule Field : Type > 245 meaning that field value must be larger than 245
+                            For Rule Field : Type > %FieldName% meaning that this field must be greater than the typed field
+                            For Rule Field : Type >= 245 meaning that field value must be larger or equal to 245
+                            For Rule Field : Type >= %FieldName% meaning that this field must be greater than or equal to the typed field
+                            For Rule Field : Type < 2000 meaning that field must be less than 2000
+                            For Rule Field : Type < %FieldName% meaning that this field must be less than the typed field
+                            For Rule Field : Type <= 2000 meaning that field must be less than or equal to 2000
+                            For Rule Field : Type <= %FieldName% meaning that this field must be less than or equal to the typed field
+                            For Rule Field : Type R(email) to force email format";
             }
         }
 
