@@ -13,6 +13,8 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using static IMS.Data.Utilities.SessionManager;
+using static System.Net.WebRequestMethods;
+
 
 namespace IMS
 {
@@ -118,7 +120,7 @@ namespace IMS
             DocumentTextViewer.Clear();
             DocumentImageViewer.Source = null;
 
-            if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+            if (string.IsNullOrWhiteSpace(path) || !System.IO.File.Exists(path))
             {
                 TextScrollViewer.Visibility = Visibility.Visible;
                 ImageScrollViewer.Visibility = Visibility.Collapsed;
@@ -136,7 +138,7 @@ namespace IMS
                 TextScrollViewer.Visibility = Visibility.Visible;
                 ImageScrollViewer.Visibility = Visibility.Collapsed;
 
-                string text = File.ReadAllText(path, Encoding.Default);
+                string text = System.IO.File.ReadAllText(path, Encoding.Default);
                 DocumentTextViewer.Text = text;
             }
             else if (ext == ".jpg" || ext == ".jpeg" ||
@@ -428,7 +430,79 @@ namespace IMS
 
             capturerepository.DeleteSinglePage(doc);
         }
-        
+        private void SplitCurrentDocument_Click(object sender, RoutedEventArgs e)
+        {
+            var doc = GetCurrentSelectedDocument();
+
+            if (capturerepository.SelectedIndexId <= 0)
+            {
+                MessageBox.Show("Please select a cabinet first.", "IMS",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            if (doc == null)
+            {
+                return;
+            }
+           
+            var res = MessageBox.Show(
+              "Are You Sure You Want To Split Documents?",
+              "IMS", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No);
+
+            if (res != MessageBoxResult.Yes)
+            {
+                return;
+            }
+
+            var selectedFile = ScannedTreeView.SelectedItem as ScannedDocument;
+            if (selectedFile != null)
+            {
+                // Move only selected page
+                var selectedFiles = new List<string> { selectedFile.OriginalFileName };
+                capturerepository.SplitSingleDocument(doc, selectedFiles);
+            }
+            else
+            {
+                // Move entire document folder
+                capturerepository.SplitSingleDocument(doc);
+            }
+        }
+        private void SplitAllDocument_Click(object sender, RoutedEventArgs e)
+        {
+            var doc = GetCurrentSelectedDocument();
+
+            if (capturerepository.SelectedIndexId <= 0)
+            {
+                MessageBox.Show("Please select a cabinet first.", "IMS",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            if (doc == null)
+                return;
+
+            // Ask user for pages per split
+            string input = Microsoft.VisualBasic.Interaction.InputBox(
+         "Multi Split Selected Document Every How Many Page:",
+         "Multi Split",
+         ""); // Default value empty
+
+            // If user pressed Cancel, InputBox returns empty string
+            if (string.IsNullOrWhiteSpace(input))
+                return; // Cancel pressed, stop processing
+
+            // Validate input
+            if (!int.TryParse(input, out int pagesPerSplit) || pagesPerSplit <= 0)
+            {
+                MessageBox.Show("Please enter a valid number of pages.", "IMS",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            capturerepository.MultiSplitDocument(doc, pagesPerSplit);
+        }
+
         private void MergeCurrentDocument_Click(object sender, RoutedEventArgs e)
         {
             var doc = GetCurrentSelectedDocument();

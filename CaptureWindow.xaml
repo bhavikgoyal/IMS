@@ -375,10 +375,10 @@
               <Image Source="/Images/delete-folder.png" Width="38" Height="38"/>
             </Button>
 
-            <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Split">
+            <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Split" Click="SplitCurrentDocument_Click" >
               <Image Source="/Images/direction.png" Width="38" Height="38"/>
             </Button>
-            <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Multi Split">
+            <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Multi Split" Click="SplitAllDocument_Click" >
               <Image Source="/Images/split.png" Width="38" Height="38"/>
             </Button>
             <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Merge" Click="MergeCurrentDocument_Click">
