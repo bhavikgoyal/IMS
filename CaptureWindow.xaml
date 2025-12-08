@@ -187,7 +187,7 @@
         <!-- Scanning -->
         <MenuItem Header="Scanning">
           <MenuItem Header="Enable Easylmport"/>
-          <MenuItem Header="Manage Easylmport Folders" Click="ManageEasyImportFolders_Click"/>
+          <MenuItem Header="Manage Easylmport Folders"/>
           <MenuItem Header="From Excel"/>
           <MenuItem Header="Short Field Name Same as Excel"/>
           <MenuItem Header="From Clip Board"/>
@@ -381,13 +381,13 @@
             <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Multi Split">
               <Image Source="/Images/split.png" Width="38" Height="38"/>
             </Button>
-            <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Merge">
+            <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Merge" Click="MergeCurrentDocument_Click">
               <Image Source="/Images/merge.png" Width="38" Height="38"/>
             </Button>
-            <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Merge All Document">
+            <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Merge All Document" Click="MergeAllDocument_Click">
               <Image Source="/Images/mergeallicon.png" Width="38" Height="38"/>
             </Button>
-            <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE8A3;" ToolTip="Zoom In" Foreground="#007ACC"/>
+            <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE8A3;" ToolTip="Zoom In" Foreground="#007ACC" />
             <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE71F;" ToolTip="Zoom Out" Foreground="#007ACC"/>
             <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE7A7;" ToolTip="Undo" Foreground="#00AA00"/>
             <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE7A6;" ToolTip="Redo" Foreground="#00AA00"/>
@@ -595,6 +595,8 @@
                       VerticalScrollBarVisibility="Auto">
                   <Image x:Name="DocumentImageViewer"
                    Stretch="Uniform"
+                          Width="300"
+                           Height="200"  
                    Margin="4"/>
                 </ScrollViewer>
 

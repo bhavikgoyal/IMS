@@ -1,16 +1,18 @@
 ﻿using IMS.Data.Authority;
 using IMS.Data.Capture;
-using IMS.Data.Design;
 using IMS.Data.Utilities;
 using IMS.Models.CaptureModel;
 using IMS.Models.DesignModel;
 using Microsoft.Win32;
+using System;
 using System.Collections.ObjectModel;
+using System.Windows.Media;
 using System.IO;
 using System.Text;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
+using static IMS.Data.Utilities.SessionManager;
 
 namespace IMS
 {
@@ -20,7 +22,7 @@ namespace IMS
     public partial class CaptureWindow : Window
     {
         private readonly CaptureRepository capturerepository = new CaptureRepository();
-
+   
         public CaptureWindow()
         {
             InitializeComponent();
@@ -110,7 +112,6 @@ namespace IMS
                 LoadDocumentToViewer(dialog.FileName);
             }
         }
-
 
         private void LoadDocumentToViewer(string path)
         {
@@ -222,7 +223,7 @@ namespace IMS
                 return;
             }
 
-            var currentUser = IMS.Data.Utilities.SessionManager.CurrentUser.LoginType;
+            var currentUser = IMS.Data.Utilities.SessionManager.CurrentUser.UserName;
 
             var batch = capturerepository.CreateRecordWithoutDocument(currentUser);
 
@@ -236,9 +237,36 @@ namespace IMS
             }
         }
 
-        private void SaveFieldsButton_Click(object sender, RoutedEventArgs e)
+        private async void SaveFieldsButton_Click(object sender, RoutedEventArgs e)
         {
+            var doc = GetCurrentSelectedDocument();
 
+            if (doc == null)
+                return;
+
+            var result = MessageBox.Show(
+                "Are you sure you want to Save Changhes?",
+                "IMS",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (result != MessageBoxResult.Yes)
+                return;
+
+            string currentUser = SessionManager.CurrentUser.UserName;
+            capturerepository.SaveField(doc, currentUser);
+
+            string originalText = DocumentTextViewer.Text;
+
+            DocumentTextViewer.Foreground = Brushes.Green;
+            DocumentTextViewer.Text = "Saved";
+
+
+             await Task.Delay(2000);
+
+            // 👉 Restore original text (background remains same)
+            DocumentTextViewer.Foreground = Brushes.Black;
+            DocumentTextViewer.Text = originalText;
         }
 
         private void SaveSelectedFieldsToAllButton_Click(object sender, RoutedEventArgs e)
@@ -275,8 +303,9 @@ namespace IMS
             if (result != MessageBoxResult.Yes)
                 return;
 
-            string currentUser = SessionManager.CurrentUser.LoginType;
+            string currentUser = SessionManager.CurrentUser.UserName;
             capturerepository.ArchiveSingleDocument(doc, currentUser);
+
         }
 
         private void SendAllToArchiveButton_Click(object sender, RoutedEventArgs e)
@@ -294,7 +323,7 @@ namespace IMS
             if (result != MessageBoxResult.Yes)
                 return;
 
-            string currentUser = SessionManager.CurrentUser.LoginType;
+            string currentUser = SessionManager.CurrentUser.UserName;
             capturerepository.ArchiveAllDocumentsInBasket(currentUser);
         }
 
@@ -320,6 +349,7 @@ namespace IMS
 
             if (res != MessageBoxResult.Yes)
                 return;
+
 
             capturerepository.DeleteAllFromBasket();
         }
@@ -370,7 +400,7 @@ namespace IMS
             if (res != MessageBoxResult.Yes)
                 return;
 
-            capturerepository.DeleteDocumentByFileId(doc.FileId, doc.FileNo);
+            capturerepository.DeleteDocumentByFileId( doc.FileNo);
         }
 
         private void DeleteCurrentPageButton_Click(object sender, RoutedEventArgs e)
@@ -398,5 +428,49 @@ namespace IMS
 
             capturerepository.DeleteSinglePage(doc);
         }
+        
+        private void MergeCurrentDocument_Click(object sender, RoutedEventArgs e)
+        {
+            var doc = GetCurrentSelectedDocument();
+            if (capturerepository.SelectedIndexId <= 0)
+            {
+                MessageBox.Show("Please select a cabinet first.", "IMS",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+            if (doc == null)
+                return;
+
+            var res = MessageBox.Show(
+              $"Are You Sure You Want To Merge Documents?",
+              "IMS", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No);
+
+            if (res != MessageBoxResult.Yes)
+                return;
+
+            string currentUser = SessionManager.CurrentUser.UserName;
+            capturerepository.MergeSingleDocument(doc, currentUser);
+        }
+
+        public void MergeAllDocument_Click(object sender, RoutedEventArgs e)
+        {
+            if (capturerepository.ScannedBatches == null ||
+       capturerepository.ScannedBatches.Count == 0)
+                return;
+
+            var result = MessageBox.Show(
+                "Are You Sure You Want To Merge Documents?",
+                "IMS",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (result != MessageBoxResult.Yes)
+                return;
+
+            string currentUser = SessionManager.CurrentUser.UserName;
+            capturerepository.MergeDocumnetAll(currentUser);
+        }
+
+       
     }
 }
