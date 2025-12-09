@@ -187,7 +187,7 @@
         <!-- Scanning -->
         <MenuItem Header="Scanning">
           <MenuItem Header="Enable Easylmport"/>
-          <MenuItem Header="Manage Easylmport Folders"/>
+          <MenuItem Header="Manage Easylmport Folders" Click="ManageEasyImportFolders_Click"/>
           <MenuItem Header="From Excel"/>
           <MenuItem Header="Short Field Name Same as Excel"/>
           <MenuItem Header="From Clip Board"/>
