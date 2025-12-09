@@ -387,14 +387,14 @@
             <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Merge All Document" Click="MergeAllDocument_Click">
               <Image Source="/Images/mergeallicon.png" Width="38" Height="38"/>
             </Button>
-            <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE8A3;" ToolTip="Zoom In" Foreground="#007ACC" />
-            <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE71F;" ToolTip="Zoom Out" Foreground="#007ACC"/>
-            <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE7A7;" ToolTip="Undo" Foreground="#00AA00"/>
-            <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE7A6;" ToolTip="Redo" Foreground="#00AA00"/>
-            <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Fit To Width">
+            <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE8A3;" ToolTip="Zoom In" Foreground="#007ACC"  Click=" ZoomInButton_Click"/>
+            <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE71F;" ToolTip="Zoom Out" Foreground="#007ACC"  Click=" ZoomOutButton_Click"/>
+            <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE7A7;" ToolTip="RotateLeft" Foreground="#00AA00" Click="RotateLeftButton_Click"/>
+            <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE7A6;" ToolTip="RotateRight" Foreground="#00AA00" Click="RotateRightButton_Click"/>
+            <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Fit To Width" Click="FitToWidthButton_Click">
               <Image Source="/Images/arrows.png" Width="38" Height="38"/>
             </Button>
-            <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Fit Height">
+            <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Fit Height" Click="FitToHeightButton_Click">
               <Image Source="/Images/height.png" Width="38" Height="38"/>
             </Button>
             <Button Style="{StaticResource ToolBarIconButtonStyle}" ToolTip="Sign In">
@@ -590,14 +590,21 @@
                 </ScrollViewer>
 
                 <ScrollViewer x:Name="ImageScrollViewer"
-                      Visibility="Collapsed"
-                      HorizontalScrollBarVisibility="Auto"
-                      VerticalScrollBarVisibility="Auto">
+              Visibility="Collapsed"
+              HorizontalScrollBarVisibility="Auto"
+              VerticalScrollBarVisibility="Auto"
+              HorizontalContentAlignment="Left"
+              VerticalContentAlignment="Top">
                   <Image x:Name="DocumentImageViewer"
-                   Stretch="Uniform"
-                          Width="300"
-                           Height="200"  
-                   Margin="4"/>
+       HorizontalAlignment="Left"
+       VerticalAlignment="Top"
+       Stretch="Uniform"
+       Margin="4">
+                    <Image.LayoutTransform>
+                      <ScaleTransform x:Name="ImageScaleTransform" />
+                    </Image.LayoutTransform>
+                  </Image>
+
                 </ScrollViewer>
 
               </Grid>
@@ -605,6 +612,7 @@
 
           </Grid>
         </Border>
+    
       </Grid>
     </Grid>
   </Border>
