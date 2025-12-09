@@ -76,7 +76,7 @@ namespace IMS.Data.Capture
             }
 
             // Get table name for this index
-            string rootFolder = @"C:\IMS_Shared\Documnet_Import\";
+            string rootFolder = @"D:\IMS_Shared\Documnet_Import\";
             string tableName = GetCurrentTableName(); // existing method
             if (string.IsNullOrWhiteSpace(tableName)) return;
 
@@ -175,7 +175,7 @@ namespace IMS.Data.Capture
                 return;
 
 
-            string ImportFolder = @"c:\\IMS_Shared\Documnet_Import\";
+            string ImportFolder = @"D:\\IMS_Shared\Documnet_Import\";
             Directory.CreateDirectory(ImportFolder);
 
             var nodes = cabinet.GetAllNodes();
@@ -426,8 +426,8 @@ namespace IMS.Data.Capture
             if (string.IsNullOrWhiteSpace(tableName))
                 throw new Exception($"Table name not found for IndexID = {SelectedIndexId}");
 
-            string importRootPath = @"C:\IMS_Shared\Documnet_Import";
-            string archiveRootPath = @"C:\IMS_Shared\Documnet_Archive";
+            string importRootPath = @"D:\IMS_Shared\Documnet_Import";
+            string archiveRootPath = @"D:\IMS_Shared\Documnet_Archive";
 
             string archiveTableFolderName = string.Join("_", tableName.Split(Path.GetInvalidFileNameChars()));
             string archiveTablePath = Path.Combine(archiveRootPath, archiveTableFolderName);
@@ -509,8 +509,8 @@ namespace IMS.Data.Capture
             if (allIds.Count == 0)
                 return;
 
-            string importRootPath = @"C:\IMS_Shared\Documnet_Import";
-            string archiveRootPath = @"C:\IMS_Shared\Documnet_Archive";
+            string importRootPath = @"D:\IMS_Shared\Documnet_Import";
+            string archiveRootPath = @"D:\IMS_Shared\Documnet_Archive";
             string sourceFolder = Path.Combine(importRootPath, tableName);
             string destFolder = Path.Combine(archiveRootPath, tableName);
 
@@ -623,8 +623,8 @@ namespace IMS.Data.Capture
             string tableName = GetCurrentTableName();
             if (string.IsNullOrWhiteSpace(tableName)) return;
 
-            string importRootPath = @"C:\IMS_Shared\Documnet_Import";
-            string DeleteRootPath = @"C:\IMS_Shared\Documnet_Delete";
+            string importRootPath = @"D:\IMS_Shared\Documnet_Import";
+            string DeleteRootPath = @"D:\IMS_Shared\Documnet_Delete";
 
             string DeleteTableFolderName = string.Join("_", tableName.Split(Path.GetInvalidFileNameChars()));
             string DeleteTablePath = Path.Combine(DeleteRootPath, DeleteTableFolderName);
@@ -711,8 +711,8 @@ namespace IMS.Data.Capture
             string tableName = GetCurrentTableName();
             if (string.IsNullOrWhiteSpace(tableName)) return;
 
-            string importRootPath = @"C:\IMS_Shared\Documnet_Import";
-            string DeleteRootPath = @"C:\IMS_Shared\Documnet_Delete";
+            string importRootPath = @"D:\IMS_Shared\Documnet_Import";
+            string DeleteRootPath = @"D:\IMS_Shared\Documnet_Delete";
             string sourceFolder = Path.Combine(importRootPath, tableName);
             string destFolder = Path.Combine(DeleteRootPath, tableName);
 
@@ -816,7 +816,7 @@ namespace IMS.Data.Capture
             if (string.IsNullOrWhiteSpace(tableName))
                 throw new Exception($"Table name not found for IndexID = {SelectedIndexId}");
 
-            string tableFolder = Path.Combine(@"C:\IMS_Shared\Documnet_Import", tableName);
+            string tableFolder = Path.Combine(@"D:\IMS_Shared\Documnet_Import", tableName);
             if (!Directory.Exists(tableFolder))
                 throw new Exception("Table folder not found : " + tableFolder);
 
@@ -892,7 +892,7 @@ namespace IMS.Data.Capture
             if (string.IsNullOrWhiteSpace(tableName))
                 throw new Exception($"Table name not found for IndexID = {SelectedIndexId}");
 
-            string tableFolder = Path.Combine(@"C:\IMS_Shared\Documnet_Import", tableName);
+            string tableFolder = Path.Combine(@"D:\IMS_Shared\Documnet_Import", tableName);
             string currentDocFolder = Path.Combine(tableFolder, doc.FileNo);
 
             if (!Directory.Exists(currentDocFolder))
@@ -962,7 +962,7 @@ namespace IMS.Data.Capture
             if (string.IsNullOrWhiteSpace(tableName))
                 throw new Exception($"Table name not found for IndexID = {SelectedIndexId}");
 
-            string tableFolder = Path.Combine(@"C:\IMS_Shared\Documnet_Import", tableName);
+            string tableFolder = Path.Combine(@"D:\IMS_Shared\Documnet_Import", tableName);
 
             if (!Directory.Exists(tableFolder))
                 return;
@@ -1043,7 +1043,7 @@ namespace IMS.Data.Capture
             if (string.IsNullOrWhiteSpace(tableName))
                 return;
 
-            string tableFolder = Path.Combine(@"C:\IMS_Shared\Documnet_Import", tableName);
+            string tableFolder = Path.Combine(@"D:\IMS_Shared\Documnet_Import", tableName);
             if (!Directory.Exists(tableFolder))
                 return;
 
@@ -1133,5 +1133,43 @@ namespace IMS.Data.Capture
 
         }
 
-    }
+        public void NewBatchCreate()
+        {
+            string baseBatchDir = @"D:\IMS_Shared\Batchs";
+
+            if (!Directory.Exists(baseBatchDir))
+                Directory.CreateDirectory(baseBatchDir);
+
+            string tableName = cabinet.GetTableName(SelectedIndexId);
+            if (string.IsNullOrWhiteSpace(tableName))
+                throw new Exception($"Table name not found for IndexID = {SelectedIndexId}");
+
+            string tableFolder = Path.Combine(baseBatchDir, tableName);
+
+            if (!Directory.Exists(tableFolder))
+                Directory.CreateDirectory(tableFolder);
+
+            string prompt = "Enter New Batch Name";
+            string title = "New Batch";
+
+            string newBatchName = Microsoft.VisualBasic.Interaction.InputBox(prompt, title).Trim();
+
+            if (string.IsNullOrWhiteSpace(newBatchName))
+                return;
+
+            string newBatchPath = Path.Combine(tableFolder, newBatchName);
+
+            if (Directory.Exists(newBatchPath))
+            {
+                MessageBox.Show("Batch Already Exists, Select Another Name", "IMS", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            Directory.CreateDirectory(newBatchPath);
+            MessageBox.Show("Batch Created Successfully", "IMS", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+
+	}
 }
+
