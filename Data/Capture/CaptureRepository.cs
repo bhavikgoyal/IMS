@@ -27,8 +27,7 @@ namespace IMS.Data.Capture
         private readonly Dictionary<int, ObservableCollection<ScanBatch>> _batchesPerIndex = new Dictionary<int, ObservableCollection<ScanBatch>>();
 
         private Cabinet cabinet = new Cabinet();
-
-        public int SelectedIndexId { get; private set; }
+       public int SelectedIndexId { get; private set; }
         public ScannedDocument CurrentDocument { get; set; }
 
         public CaptureRepository()
@@ -824,7 +823,7 @@ namespace IMS.Data.Capture
             string currentDocFolder = Path.Combine(tableFolder, doc.FileNo);
             if (!Directory.Exists(currentDocFolder))
                 return;
-           
+
             var (newFileId, newFileNo) = InsertDocumentRow(
                 SelectedIndexId,
                 originalFileName: doc.FileNo,  // store old document folder name
@@ -936,7 +935,7 @@ namespace IMS.Data.Capture
 
             if (!Directory.EnumerateFileSystemEntries(currentDocFolder).Any())
             {
-     
+
                 Directory.Delete(currentDocFolder, true);
 
                 using (SqlConnection conn = DatabaseHelper.GetConnection())
@@ -968,19 +967,19 @@ namespace IMS.Data.Capture
             if (!Directory.Exists(tableFolder))
                 return;
 
-           
+
             var fileNoFolders = Directory.GetDirectories(tableFolder)
                 .Select(f => Path.GetFileName(f))
-                .Where(f => string.Compare(f, doc.FileNo) < 0) 
-                .OrderByDescending(f => f)                    
+                .Where(f => string.Compare(f, doc.FileNo) < 0)
+                .OrderByDescending(f => f)
                 .ToList();
 
             if (!fileNoFolders.Any())
-                return; 
+                return;
 
             string previousDocFolder = Path.Combine(tableFolder, fileNoFolders.First());
 
-         
+
             string documentImportPath = Path.Combine(tableFolder, doc.FileNo);
             if (!Directory.Exists(documentImportPath))
                 return;
@@ -1015,7 +1014,7 @@ namespace IMS.Data.Capture
                         }
                     }
                 }
-                    
+
             }
             catch
             {
@@ -1133,6 +1132,6 @@ namespace IMS.Data.Capture
             LoadScannedBatchesFromFile(SelectedIndexId);
 
         }
-       
+
     }
 }

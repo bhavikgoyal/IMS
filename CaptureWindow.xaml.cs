@@ -24,7 +24,8 @@ namespace IMS
     public partial class CaptureWindow : Window
     {
         private readonly CaptureRepository capturerepository = new CaptureRepository();
-   
+        private double zoomFactor = 1.0;
+
         public CaptureWindow()
         {
             InitializeComponent();
@@ -544,7 +545,104 @@ namespace IMS
             string currentUser = SessionManager.CurrentUser.UserName;
             capturerepository.MergeDocumnetAll(currentUser);
         }
+        private void ZoomInButton_Click(object sender, RoutedEventArgs e)
+        {
+            zoomFactor += 0.03;
 
-       
+            if (zoomFactor > 6.536)
+                zoomFactor = 6.536;
+
+            var scale = DocumentImageViewer.RenderTransform as ScaleTransform;
+
+            if (scale == null)
+            {
+                scale = new ScaleTransform(1, 1);
+                DocumentImageViewer.RenderTransform = scale;
+            }
+
+            scale.ScaleX = zoomFactor;
+            scale.ScaleY = zoomFactor;
+
+            DocumentImageViewer.UpdateLayout();
+        }
+        private void ZoomOutButton_Click(object sender, RoutedEventArgs e)
+        {
+            zoomFactor -= 0.03;
+            if (zoomFactor < 0.10)   // you can set 1.0 if you want normal limit
+                zoomFactor = 0.10;
+
+            var scale = DocumentImageViewer.RenderTransform as ScaleTransform;
+
+            if (scale == null)
+            {
+                scale = new ScaleTransform(1, 1);
+                DocumentImageViewer.RenderTransform = scale;
+            }
+
+            scale.ScaleX = zoomFactor;
+            scale.ScaleY = zoomFactor;
+
+            DocumentImageViewer.UpdateLayout();
+        }
+        private void RotateLeftButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (DocumentImageViewer.Source == null)
+                return;
+
+            RotateTransform rotate = DocumentImageViewer.RenderTransform as RotateTransform;
+
+            if (rotate == null)
+            {
+                rotate = new RotateTransform(0);
+                DocumentImageViewer.RenderTransform = rotate;
+            }
+
+            rotate.Angle -= 90;
+
+            if (rotate.Angle <= -360)
+                rotate.Angle = 0;
+        }
+        private void RotateRightButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (DocumentImageViewer.Source == null)
+                return;
+
+            RotateTransform rotate = DocumentImageViewer.RenderTransform as RotateTransform;
+
+            if (rotate == null)
+            {
+                rotate = new RotateTransform(0);
+                DocumentImageViewer.RenderTransform = rotate;
+            }
+            rotate.Angle += 90;
+
+            if (rotate.Angle >= 360)
+                rotate.Angle = 0;
+        }
+        private void FitToWidthButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (DocumentImageViewer.Source == null)
+                return;
+
+            var bitmap = DocumentImageViewer.Source as BitmapSource;
+            if (bitmap == null)
+                return;
+
+            double imageWidth = bitmap.PixelWidth;
+
+            double containerWidth = ImageScrollViewer.ActualWidth - 20;
+
+            if (containerWidth <= 0 || imageWidth <= 0)
+                return;
+
+            double zoom = containerWidth / imageWidth;
+
+            ImageScaleTransform.ScaleX = zoom;
+            ImageScaleTransform.ScaleY = zoom;
+        }
+        private void FitToHeightButton_Click(object sender, RoutedEventArgs e)
+        {
+            FitToWidthButton_Click(sender, e);
+        }
     }
 }
