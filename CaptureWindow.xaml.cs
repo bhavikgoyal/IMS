@@ -14,6 +14,7 @@ using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using static IMS.Data.Utilities.SessionManager;
 using static System.Net.WebRequestMethods;
+using System.Windows.Controls;
 
 
 namespace IMS
@@ -643,6 +644,41 @@ namespace IMS
         private void FitToHeightButton_Click(object sender, RoutedEventArgs e)
         {
             FitToWidthButton_Click(sender, e);
+        }
+
+        private void ManageEasyImportFolders_Click(object sender, RoutedEventArgs e)
+        {
+            if (capturerepository.SelectedIndexId <= 0)
+            {
+                MessageBox.Show(
+                    "SELECT a Data Cabinet from the lower right tree view to be able to scan documents into this cabinet",
+                    "IMS",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                return;
+            }
+
+            var dlg = new ManageEasyImportsWindow
+            {
+                Owner = this
+            };
+
+            if (dlg.ShowDialog() == true)
+            {
+                foreach (var folder in dlg.SelectedFolders)
+                {
+                    var searchOption = dlg.IncludeSubDirectories ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
+                    try
+                    {
+                        var files = Directory.EnumerateFiles(folder, "*.*", searchOption);
+                        capturerepository.ImportFiles(files);
+                    }
+                    catch
+                    {
+                        MessageBox.Show($"Unable to access folder: {folder}", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    }
+                }
+            }
         }
     }
 }
