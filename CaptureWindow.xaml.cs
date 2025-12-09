@@ -25,6 +25,7 @@ namespace IMS
     public partial class CaptureWindow : Window
     {
         private readonly CaptureRepository capturerepository = new CaptureRepository();
+
         private double zoomFactor = 1.0;
 
         public CaptureWindow()
@@ -645,6 +646,40 @@ namespace IMS
         {
             FitToWidthButton_Click(sender, e);
         }
+        private void mnuNewBatch_Click(object sender, RoutedEventArgs e)
+        {
+            if (capturerepository.SelectedIndexId <= 0)
+            {
+                MessageBox.Show(
+                    "SELECT a Data Cabinet from the lower right tree view to be able to scan documents into this cabinet",
+                    "IMS",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                return;
+            }
+
+            capturerepository.NewBatchCreate();
+        }
+		private void mnuSelectBatch_Click(object sender, RoutedEventArgs e)
+		{
+			if (capturerepository.SelectedIndexId <= 0)
+			{
+				MessageBox.Show(
+					"SELECT a Data Cabinet from the lower right tree view to be able to scan documents into this cabinet",
+					"IMS",
+					MessageBoxButton.OK,
+					MessageBoxImage.Information);
+				return;
+            }
+            var dlg = new Batches(capturerepository.SelectedIndexId)
+            {
+                Owner = this
+            };
+			var result = dlg.ShowDialog();
+			//capturerepository.SelectCurrentBatch();
+		}
+		
+	}
 
         private void ManageEasyImportFolders_Click(object sender, RoutedEventArgs e)
         {

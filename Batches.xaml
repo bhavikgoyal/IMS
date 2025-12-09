@@ -1,0 +1,47 @@
+﻿<Window x:Class="IMS.Batches"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Batches" Height="250" Width="260"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="NoResize">
+    <Grid Background="#F0F0F0">
+
+        <!-- Main group box -->
+        <GroupBox Header="Batches"
+                  Width="200"
+                  Height="150"
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Center"
+                  Margin="0">
+            <Grid Background="#F0F0F0" Margin="4">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="10"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="5"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- ComboBox -->
+        <ComboBox x:Name="cmbBatches" Grid.Row="0"
+                          Height="22"
+                          Margin="5,5,5,0"
+                          IsEditable="False"
+                          HorizontalContentAlignment="Left" />
+
+                <!-- Start button -->
+                <Button Grid.Row="2"
+                        Margin="5,0,5,0"
+                        Height="30"
+                        Content="Start Exp/Imp Batch" Click="ExpImpButton_click" />
+
+                <!-- Cancel button -->
+                <Button Grid.Row="4"
+                        Margin="5,0,5,5"
+                        Height="30"
+                        Content="Cancel" Click="Cancel_Click"/>
+            </Grid>
+        </GroupBox>
+
+    </Grid>
+</Window>
