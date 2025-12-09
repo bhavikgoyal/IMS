@@ -202,8 +202,8 @@
 
         <!-- Batches -->
         <MenuItem Header="Batches">
-          <MenuItem Header="New Batches" InputGestureText="Ctrl+F5"/>
-          <MenuItem Header="Select Current Batch"/>
+          <MenuItem Header="New Batches" InputGestureText="Ctrl+F5" Click="mnuNewBatch_Click"/>
+          <MenuItem Header="Select Current Batch" Click="mnuSelectBatch_Click"/>
           <MenuItem Header="Export Current Basket To Batch"/>
           <MenuItem Header="Import Document From Batch" InputGestureText="F11"/>
           <MenuItem Header="Import N Document From Batch"/>
