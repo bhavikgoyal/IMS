@@ -678,8 +678,6 @@ namespace IMS
 			var result = dlg.ShowDialog();
 			//capturerepository.SelectCurrentBatch();
 		}
-		
-	}
 
         private void ManageEasyImportFolders_Click(object sender, RoutedEventArgs e)
         {
