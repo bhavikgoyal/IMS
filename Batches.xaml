@@ -33,7 +33,7 @@
                 <Button Grid.Row="2"
                         Margin="5,0,5,0"
                         Height="30"
-                        Content="Start Exp/Imp Batch" Click="ExpImpButton_click" />
+                        Content="Start Exp/Imp Batch" Click="btnStartExpImp_Click" />
 
                 <!-- Cancel button -->
                 <Button Grid.Row="4"

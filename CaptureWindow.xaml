@@ -204,10 +204,10 @@
         <MenuItem Header="Batches">
           <MenuItem Header="New Batches" InputGestureText="Ctrl+F5" Click="mnuNewBatch_Click"/>
           <MenuItem Header="Select Current Batch" Click="mnuSelectBatch_Click"/>
-          <MenuItem Header="Export Current Basket To Batch"/>
-          <MenuItem Header="Import Document From Batch" InputGestureText="F11"/>
-          <MenuItem Header="Import N Document From Batch"/>
-          <MenuItem Header="Import All From Batch" InputGestureText="Ctrl+F11"/>
+          <MenuItem Header="Export Current Basket To Batch" Click="mnuBasketToBatch_Click"/>
+          <MenuItem Header="Import Document From Batch" InputGestureText="F11" Click="mnuDocumentFromBatch_Click"/>
+          <MenuItem Header="Import N Document From Batch" Click="mnuImportNFromBatch_Click"/>
+          <MenuItem Header="Import All From Batch" InputGestureText="Ctrl+F11" Click="mnuAllDocumentFromBatch_Click"/>
         </MenuItem>
 
         <!-- Documents -->

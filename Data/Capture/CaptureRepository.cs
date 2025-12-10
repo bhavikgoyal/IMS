@@ -76,7 +76,7 @@ namespace IMS.Data.Capture
             }
 
             // Get table name for this index
-            string rootFolder = @"D:\IMS_Shared\Documnet_Import\";
+            string rootFolder = @"C:\IMS_Shared\Documnet_Import\";
             string tableName = GetCurrentTableName(); // existing method
             if (string.IsNullOrWhiteSpace(tableName)) return;
 
@@ -175,7 +175,7 @@ namespace IMS.Data.Capture
                 return;
 
 
-            string ImportFolder = @"D:\\IMS_Shared\Documnet_Import\";
+            string ImportFolder = @"C:\\IMS_Shared\Documnet_Import\";
             Directory.CreateDirectory(ImportFolder);
 
             var nodes = cabinet.GetAllNodes();
@@ -426,8 +426,8 @@ namespace IMS.Data.Capture
             if (string.IsNullOrWhiteSpace(tableName))
                 throw new Exception($"Table name not found for IndexID = {SelectedIndexId}");
 
-            string importRootPath = @"D:\IMS_Shared\Documnet_Import";
-            string archiveRootPath = @"D:\IMS_Shared\Documnet_Archive";
+            string importRootPath = @"C:\IMS_Shared\Documnet_Import";
+            string archiveRootPath = @"C:\IMS_Shared\Documnet_Archive";
 
             string archiveTableFolderName = string.Join("_", tableName.Split(Path.GetInvalidFileNameChars()));
             string archiveTablePath = Path.Combine(archiveRootPath, archiveTableFolderName);
@@ -509,8 +509,8 @@ namespace IMS.Data.Capture
             if (allIds.Count == 0)
                 return;
 
-            string importRootPath = @"D:\IMS_Shared\Documnet_Import";
-            string archiveRootPath = @"D:\IMS_Shared\Documnet_Archive";
+            string importRootPath = @"C:\IMS_Shared\Documnet_Import";
+            string archiveRootPath = @"C:\IMS_Shared\Documnet_Archive";
             string sourceFolder = Path.Combine(importRootPath, tableName);
             string destFolder = Path.Combine(archiveRootPath, tableName);
 
@@ -623,8 +623,8 @@ namespace IMS.Data.Capture
             string tableName = GetCurrentTableName();
             if (string.IsNullOrWhiteSpace(tableName)) return;
 
-            string importRootPath = @"D:\IMS_Shared\Documnet_Import";
-            string DeleteRootPath = @"D:\IMS_Shared\Documnet_Delete";
+            string importRootPath = @"C:\IMS_Shared\Documnet_Import";
+            string DeleteRootPath = @"C:\IMS_Shared\Documnet_Delete";
 
             string DeleteTableFolderName = string.Join("_", tableName.Split(Path.GetInvalidFileNameChars()));
             string DeleteTablePath = Path.Combine(DeleteRootPath, DeleteTableFolderName);
@@ -654,7 +654,6 @@ namespace IMS.Data.Capture
             {
                 conn.Open();
 
-                // soft delete
                 string sql = $@"
                         UPDATE [{tableName}]
                         SET ES_DeleteMe    = 1,
@@ -711,8 +710,8 @@ namespace IMS.Data.Capture
             string tableName = GetCurrentTableName();
             if (string.IsNullOrWhiteSpace(tableName)) return;
 
-            string importRootPath = @"D:\IMS_Shared\Documnet_Import";
-            string DeleteRootPath = @"D:\IMS_Shared\Documnet_Delete";
+            string importRootPath = @"C:\IMS_Shared\Documnet_Import";
+            string DeleteRootPath = @"C:\IMS_Shared\Documnet_Delete";
             string sourceFolder = Path.Combine(importRootPath, tableName);
             string destFolder = Path.Combine(DeleteRootPath, tableName);
 
@@ -757,7 +756,6 @@ namespace IMS.Data.Capture
                             File.Move(file, destFile);
                         }
 
-                        // Remove source folder if empty
                         if (!Directory.EnumerateFileSystemEntries(sourceFolder).Any())
                             Directory.Delete(sourceFolder);
                     }
@@ -816,7 +814,7 @@ namespace IMS.Data.Capture
             if (string.IsNullOrWhiteSpace(tableName))
                 throw new Exception($"Table name not found for IndexID = {SelectedIndexId}");
 
-            string tableFolder = Path.Combine(@"D:\IMS_Shared\Documnet_Import", tableName);
+            string tableFolder = Path.Combine(@"C:\IMS_Shared\Documnet_Import", tableName);
             if (!Directory.Exists(tableFolder))
                 throw new Exception("Table folder not found : " + tableFolder);
 
@@ -826,7 +824,7 @@ namespace IMS.Data.Capture
 
             var (newFileId, newFileNo) = InsertDocumentRow(
                 SelectedIndexId,
-                originalFileName: doc.FileNo,  // store old document folder name
+                originalFileName: doc.FileNo, 
                 fullPath: Path.Combine(tableFolder, doc.FileNo)
             );
 
@@ -882,7 +880,6 @@ namespace IMS.Data.Capture
 
             LoadScannedBatchesFromFile(SelectedIndexId);
         }
-
         public void MultiSplitDocument(ScannedDocument doc, int pagesPerSplit)
         {
             if (doc == null || pagesPerSplit <= 0)
@@ -892,7 +889,7 @@ namespace IMS.Data.Capture
             if (string.IsNullOrWhiteSpace(tableName))
                 throw new Exception($"Table name not found for IndexID = {SelectedIndexId}");
 
-            string tableFolder = Path.Combine(@"D:\IMS_Shared\Documnet_Import", tableName);
+            string tableFolder = Path.Combine(@"C:\IMS_Shared\Documnet_Import", tableName);
             string currentDocFolder = Path.Combine(tableFolder, doc.FileNo);
 
             if (!Directory.Exists(currentDocFolder))
@@ -952,7 +949,6 @@ namespace IMS.Data.Capture
 
             LoadScannedBatchesFromFile(SelectedIndexId);
         }
-
         public void MergeSingleDocument(ScannedDocument doc, string currentUser)
         {
             if (doc == null || SelectedIndexId <= 0)
@@ -962,7 +958,7 @@ namespace IMS.Data.Capture
             if (string.IsNullOrWhiteSpace(tableName))
                 throw new Exception($"Table name not found for IndexID = {SelectedIndexId}");
 
-            string tableFolder = Path.Combine(@"D:\IMS_Shared\Documnet_Import", tableName);
+            string tableFolder = Path.Combine(@"C:\IMS_Shared\Documnet_Import", tableName);
 
             if (!Directory.Exists(tableFolder))
                 return;
@@ -1005,7 +1001,6 @@ namespace IMS.Data.Capture
                     {
                         conn.Open();
 
-                        // Delete current document's record
                         string sql = $@"DELETE FROM [{tableName}] WHERE ES_FileName = @FileNo;";
                         using (SqlCommand cmd = new SqlCommand(sql, conn))
                         {
@@ -1043,11 +1038,10 @@ namespace IMS.Data.Capture
             if (string.IsNullOrWhiteSpace(tableName))
                 return;
 
-            string tableFolder = Path.Combine(@"D:\IMS_Shared\Documnet_Import", tableName);
+            string tableFolder = Path.Combine(@"C:\IMS_Shared\Documnet_Import", tableName);
             if (!Directory.Exists(tableFolder))
                 return;
 
-            // Get all FileNo folders in ascending order
             var fileNoFolders = Directory.GetDirectories(tableFolder)
                 .Select(f => Path.GetFileName(f))
                 .OrderBy(f => f)
@@ -1059,16 +1053,13 @@ namespace IMS.Data.Capture
                 return;
             }
 
-            // First folder is the target folder (all others will merge into this)
             string targetFolder = Path.Combine(tableFolder, fileNoFolders.First());
 
-            // Get all documents from memory that are in these folders
             var pagesToMerge = ScannedBatches
                 .SelectMany(b => b.Pages)
                 .Where(p => fileNoFolders.Skip(1).Contains(p.FileNo))
                 .ToList();
 
-            // Move files from all other folders into the first folder
             foreach (var folderName in fileNoFolders.Skip(1))
             {
                 string sourceFolder = Path.Combine(tableFolder, folderName);
@@ -1086,13 +1077,10 @@ namespace IMS.Data.Capture
 
                     File.Move(file, destFile);
                 }
-
-                // Delete empty folder
                 if (!Directory.EnumerateFileSystemEntries(sourceFolder).Any())
                 {
                     Directory.Delete(sourceFolder, true);
 
-                    // Update database for target folder
                     using (SqlConnection conn = DatabaseHelper.GetConnection())
                     {
                         conn.Open();
@@ -1115,7 +1103,6 @@ namespace IMS.Data.Capture
 
             }
 
-            // Remove merged batches from memory
             foreach (var page in pagesToMerge)
             {
                 var batch = ScannedBatches.FirstOrDefault(b => b.Pages.Any(p => p.FileId == page.FileId));
@@ -1127,15 +1114,13 @@ namespace IMS.Data.Capture
                         list.Remove(batch);
                 }
             }
-
-            // Refresh UI
             LoadScannedBatchesFromFile(SelectedIndexId);
 
         }
 
         public void NewBatchCreate()
         {
-            string baseBatchDir = @"D:\IMS_Shared\Batchs";
+            string baseBatchDir = @"C:\IMS_Shared\Batches";
 
             if (!Directory.Exists(baseBatchDir))
                 Directory.CreateDirectory(baseBatchDir);
@@ -1169,7 +1154,253 @@ namespace IMS.Data.Capture
             MessageBox.Show("Batch Created Successfully", "IMS", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
+        public void MoveAllDocumentsInBasketToBatch(string batchName)
+        {
+            if (string.IsNullOrWhiteSpace(batchName))
+                throw new ArgumentException("Batch name is required.", nameof(batchName));
 
-	}
+            if (SelectedIndexId <= 0 || ScannedBatches.Count == 0)
+                return;
+
+            string tableName = cabinet.GetTableName(SelectedIndexId);
+            if (string.IsNullOrWhiteSpace(tableName))
+                throw new Exception($"Table name not found for IndexID = {SelectedIndexId}");
+
+            var allIds = ScannedBatches
+                .SelectMany(b => b.Pages)
+                .Select(p => p.FileId)
+                .Distinct()
+                .ToList();
+
+            if (allIds.Count == 0)
+                return;
+
+            string importRootPath = @"C:\IMS_Shared\Documnet_Import";
+            string batchRootPath = @"C:\IMS_Shared\Batches";
+
+            string sourceFolder = Path.Combine(importRootPath, tableName);
+            string cabinetFolder = Path.Combine(batchRootPath, tableName);
+            string destFolder = Path.Combine(cabinetFolder, batchName);
+
+            if (!Directory.Exists(sourceFolder))
+                return;
+          
+            string msg =
+                $"Are You Sure You Want To Export Current Basket To Batch {destFolder}";
+
+            var result = MessageBox.Show(
+                msg,
+                "IMS",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (result != MessageBoxResult.Yes)
+                return; 
+
+            try
+            {
+                Directory.CreateDirectory(destFolder);
+
+                foreach (var dirPath in Directory.GetDirectories(sourceFolder))
+                {
+                    string folderName = Path.GetFileName(dirPath);
+                    string destSubFolder = Path.Combine(destFolder, folderName);
+
+                    if (!Directory.Exists(destSubFolder))
+                    {
+                        Directory.Move(dirPath, destSubFolder);
+                    }
+                    else
+                    {
+                        foreach (var file in Directory.GetFiles(dirPath))
+                        {
+                            string destFile = Path.Combine(destSubFolder, Path.GetFileName(file));
+                            if (File.Exists(destFile))
+                                File.Delete(destFile);
+
+                            File.Move(file, destFile);
+                        }
+
+                        if (!Directory.EnumerateFileSystemEntries(dirPath).Any())
+                            Directory.Delete(dirPath);
+                    }
+                }
+
+                foreach (var file in Directory.GetFiles(sourceFolder))
+                {
+                    string destFile = Path.Combine(destFolder, Path.GetFileName(file));
+                    if (File.Exists(destFile))
+                        File.Delete(destFile);
+
+                    File.Move(file, destFile);
+                }
+
+                if (!Directory.EnumerateFileSystemEntries(sourceFolder).Any())
+                    Directory.Delete(sourceFolder);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error moving folder '{sourceFolder}' to '{destFolder}': {ex.Message}");
+            }
+
+            ScannedBatches.Clear();
+            if (_batchesPerIndex.TryGetValue(SelectedIndexId, out var list))
+                list.Clear();
+
+            MessageBox.Show(
+       "Basket Exported To Batch Successfully",
+       "IMS",
+       MessageBoxButton.OK,
+       MessageBoxImage.Information);
+        }
+
+        public void MoveSingleDocumentsFromBatch(string batchName)
+        {
+            if (string.IsNullOrWhiteSpace(batchName))
+                throw new ArgumentException("Batch name is required.", nameof(batchName));
+
+            if (SelectedIndexId <= 0)
+                return;
+
+            string tableName = cabinet.GetTableName(SelectedIndexId);
+            if (string.IsNullOrWhiteSpace(tableName))
+                throw new Exception($"Table name not found for IndexID = {SelectedIndexId}");
+
+            string importRootPath = @"C:\IMS_Shared\Documnet_Import";
+            string batchRootPath = @"C:\IMS_Shared\Batches";
+
+            string batchFolder = Path.Combine(batchRootPath, tableName, batchName);
+
+            string destRoot = Path.Combine(importRootPath, tableName);
+
+            if (!Directory.Exists(batchFolder))
+                return;
+
+            try
+            {
+                Directory.CreateDirectory(destRoot);
+
+                var subDirs = Directory.GetDirectories(batchFolder);
+                if (subDirs.Length == 0)
+                    return;
+
+                string sourceFolder = subDirs.OrderBy(d => d).First();
+                string documentFolderName = Path.GetFileName(sourceFolder);
+
+                string destFolder = Path.Combine(destRoot, documentFolderName);
+
+                if (!Directory.Exists(destFolder))
+                {
+                    Directory.Move(sourceFolder, destFolder);
+                }
+                else
+                {
+                    foreach (var file in Directory.GetFiles(sourceFolder))
+                    {
+                        string destFile = Path.Combine(destFolder, Path.GetFileName(file));
+                        if (File.Exists(destFile))
+                            File.Delete(destFile);
+
+                        File.Move(file, destFile);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error moving from batch '{batchFolder}' to '{destRoot}': {ex.Message}");
+            }
+
+            LoadScannedBatchesFromFile(SelectedIndexId);
+        }
+        public void MoveAllDocumentsFromBatch(string batchName)
+        {
+            if (string.IsNullOrWhiteSpace(batchName))
+                throw new ArgumentException("Batch name is required.", nameof(batchName));
+
+            if (SelectedIndexId <= 0)
+                return;
+
+            string tableName = cabinet.GetTableName(SelectedIndexId);
+            if (string.IsNullOrWhiteSpace(tableName))
+                throw new Exception($"Table name not found for IndexID = {SelectedIndexId}");
+
+            string importRootPath = @"C:\IMS_Shared\Documnet_Import";
+            string batchRootPath = @"C:\IMS_Shared\Batches";
+
+            string cabinetFolder = Path.Combine(batchRootPath, tableName);
+            string sourceFolder = Path.Combine(cabinetFolder, batchName); 
+
+            string destFolder = Path.Combine(importRootPath, tableName);
+
+            if (!Directory.Exists(sourceFolder))
+                return;
+
+            string msg =
+                $"Are You Sure You Want To Import To Current Basket The Batch {sourceFolder}";
+
+            var result = MessageBox.Show(
+                msg,
+                "IMS",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (result != MessageBoxResult.Yes)
+                return;  
+
+            try
+            {
+                Directory.CreateDirectory(destFolder);
+
+                foreach (var dirPath in Directory.GetDirectories(sourceFolder))
+                {
+                    string folderName = Path.GetFileName(dirPath);
+                    string destSubFolder = Path.Combine(destFolder, folderName);
+
+                    if (!Directory.Exists(destSubFolder))
+                    {
+                        Directory.Move(dirPath, destSubFolder);
+                    }
+                    else
+                    {
+                        foreach (var file in Directory.GetFiles(dirPath))
+                        {
+                            string destFile = Path.Combine(destSubFolder, Path.GetFileName(file));
+                            if (File.Exists(destFile))
+                                File.Delete(destFile);
+
+                            File.Move(file, destFile);
+                        }
+
+                        if (!Directory.EnumerateFileSystemEntries(dirPath).Any())
+                            Directory.Delete(dirPath);
+                    }
+                }
+
+                foreach (var file in Directory.GetFiles(sourceFolder))
+                {
+                    string destFile = Path.Combine(destFolder, Path.GetFileName(file));
+                    if (File.Exists(destFile))
+                        File.Delete(destFile);
+
+                    File.Move(file, destFile);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error moving folder '{sourceFolder}' to '{destFolder}': {ex.Message}");
+            }
+
+            MessageBox.Show(
+                "Batch Imported To Current Basket Successfully",
+                "IMS",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+
+            LoadScannedBatchesFromFile(SelectedIndexId);
+        }
+
+
+
+    }
 }
 

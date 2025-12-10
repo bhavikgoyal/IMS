@@ -18,15 +18,16 @@ using Path = System.IO.Path;
 
 namespace IMS
 {
-    /// <summary>
-    /// Interaction logic for Batches.xaml
-    /// </summary>
-    public partial class Batches : Window
+	/// <summary>
+	/// Interaction logic for Batches.xaml
+	/// </summary>
+	public partial class Batches : Window
 	{
+		public string SelectBatch { get; private set; }
 		private readonly Cabinet Cabinet = new Cabinet();
 
 		private readonly int _selectedIndexId;
-		private readonly string baseBatchDir = @"D:\IMS_Shared\Batchs";
+		private readonly string baseBatchDir = @"C:\IMS_Shared\Batches";
 		public Batches(int selectedIndexId)
 		{
 			InitializeComponent();
@@ -45,12 +46,12 @@ namespace IMS
 		private void LoadBatches()
 		{
 			string tableName = Cabinet.GetTableName(_selectedIndexId);
-			
+
 			string batchDir = System.IO.Path.Combine(baseBatchDir, tableName);
 
 			if (!Directory.Exists(batchDir))
 				return;
-			
+
 			var batchNames = Directory.GetDirectories(batchDir)
 									  .Select(Path.GetFileName)
 									  .ToList();
@@ -59,9 +60,19 @@ namespace IMS
 			if (batchNames.Count > 0)
 				cmbBatches.SelectedIndex = -1;
 		}
-		private void ExpImpButton_click()
-		{
 
-		}
-	}
+        private void btnStartExpImp_Click(object sender, RoutedEventArgs e)
+        {
+            if (cmbBatches.SelectedItem == null)
+            {
+                MessageBox.Show("Please select a batch.", "IMS",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+            SelectBatch = cmbBatches.SelectedItem.ToString();
+            DialogResult = true;
+            Close();
+        }
+
+    }
 }
