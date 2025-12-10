@@ -25,13 +25,13 @@ namespace IMS
     public partial class CaptureWindow : Window
     {
         private readonly CaptureRepository capturerepository = new CaptureRepository();
-
+        private string lastBatchNameForImport;
         private double zoomFactor = 1.0;
 
         public CaptureWindow()
         {
             InitializeComponent();
-            DataContext = capturerepository;    
+            DataContext = capturerepository;
             capturerepository.LoadTreeView();
         }
 
@@ -156,7 +156,7 @@ namespace IMS
                 bmp.UriSource = new Uri(path, UriKind.Absolute);
                 bmp.CacheOption = BitmapCacheOption.OnLoad;
                 bmp.EndInit();
-                bmp.Freeze();  
+                bmp.Freeze();
 
                 DocumentImageViewer.Source = bmp;
             }
@@ -267,7 +267,7 @@ namespace IMS
             DocumentTextViewer.Text = "Saved";
 
 
-             await Task.Delay(2000);
+            await Task.Delay(2000);
 
             // 👉 Restore original text (background remains same)
             DocumentTextViewer.Foreground = Brushes.Black;
@@ -287,7 +287,7 @@ namespace IMS
                 return doc;
 
             if (item is ScanBatch batch)
-                return batch.Pages.FirstOrDefault(); 
+                return batch.Pages.FirstOrDefault();
 
             return null;
         }
@@ -405,7 +405,7 @@ namespace IMS
             if (res != MessageBoxResult.Yes)
                 return;
 
-            capturerepository.DeleteDocumentByFileId( doc.FileNo);
+            capturerepository.DeleteDocumentByFileId(doc.FileNo);
         }
 
         private void DeleteCurrentPageButton_Click(object sender, RoutedEventArgs e)
@@ -448,7 +448,7 @@ namespace IMS
             {
                 return;
             }
-           
+
             var res = MessageBox.Show(
               "Are You Sure You Want To Split Documents?",
               "IMS", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No);
@@ -646,39 +646,6 @@ namespace IMS
         {
             FitToWidthButton_Click(sender, e);
         }
-        private void mnuNewBatch_Click(object sender, RoutedEventArgs e)
-        {
-            if (capturerepository.SelectedIndexId <= 0)
-            {
-                MessageBox.Show(
-                    "SELECT a Data Cabinet from the lower right tree view to be able to scan documents into this cabinet",
-                    "IMS",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
-                return;
-            }
-
-            capturerepository.NewBatchCreate();
-        }
-		private void mnuSelectBatch_Click(object sender, RoutedEventArgs e)
-		{
-			if (capturerepository.SelectedIndexId <= 0)
-			{
-				MessageBox.Show(
-					"SELECT a Data Cabinet from the lower right tree view to be able to scan documents into this cabinet",
-					"IMS",
-					MessageBoxButton.OK,
-					MessageBoxImage.Information);
-				return;
-            }
-            var dlg = new Batches(capturerepository.SelectedIndexId)
-            {
-                Owner = this
-            };
-			var result = dlg.ShowDialog();
-			//capturerepository.SelectCurrentBatch();
-		}
-
         private void ManageEasyImportFolders_Click(object sender, RoutedEventArgs e)
         {
             if (capturerepository.SelectedIndexId <= 0)
@@ -713,5 +680,168 @@ namespace IMS
                 }
             }
         }
+        private void mnuNewBatch_Click(object sender, RoutedEventArgs e)
+        {
+            if (capturerepository.SelectedIndexId <= 0)
+            {
+                MessageBox.Show(
+                    "SELECT a Data Cabinet from the lower right tree view to be able to scan documents into this cabinet",
+                    "IMS",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                return;
+            }
+
+            capturerepository.NewBatchCreate();
+        }
+        private void mnuSelectBatch_Click(object sender, RoutedEventArgs e)
+        {
+            if (capturerepository.SelectedIndexId <= 0)
+            {
+                MessageBox.Show(
+                    "SELECT a Data Cabinet from the lower right tree view to be able to scan documents into this cabinet",
+                    "IMS",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                return;
+            }
+                var dlg = new Batches(capturerepository.SelectedIndexId)
+                {
+                    Owner = this
+                };
+
+                if (dlg.ShowDialog() == true)
+                {
+                    lastBatchNameForImport = dlg.SelectBatch;   // remember batch name 
+                }
+                else
+                {
+                    return;
+                }
+        }
+        private void mnuBasketToBatch_Click(object sender, RoutedEventArgs e)
+        {
+            if (capturerepository.SelectedIndexId <= 0)
+            {
+                MessageBox.Show(
+                    "SELECT a Data Cabinet from the lower right tree view to be able to scan documents into this cabinet",
+                    "IMS",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                return;
+            }
+            var dlg = new Batches(capturerepository.SelectedIndexId)
+            {
+                Owner = this
+            };
+            if (dlg.ShowDialog() == true)
+            {
+                capturerepository.MoveAllDocumentsInBasketToBatch(dlg.SelectBatch);
+            }
+        }
+        private void mnuDocumentFromBatch_Click(object sender, RoutedEventArgs e)
+        {
+            if (capturerepository.SelectedIndexId <= 0)
+            {
+                MessageBox.Show(
+                    "SELECT a Data Cabinet from the lower right tree view to be able to scan documents into this cabinet",
+                    "IMS",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                return;
+            }
+            if (string.IsNullOrEmpty(lastBatchNameForImport))
+            {
+                var dlg = new Batches(capturerepository.SelectedIndexId)
+                {
+                    Owner = this
+                };
+
+                if (dlg.ShowDialog() == true)
+                {
+                    lastBatchNameForImport = dlg.SelectBatch;   // remember batch name 
+                }
+                else
+                {
+                    // user cancelled
+                    return;
+                }
+            }
+            capturerepository.MoveSingleDocumentsFromBatch(lastBatchNameForImport);
+        }
+        private void mnuImportNFromBatch_Click(object sender, RoutedEventArgs e)
+        {
+            if (capturerepository.SelectedIndexId <= 0)
+            {
+                MessageBox.Show(
+                    "SELECT a Data Cabinet from the lower right tree view to be able to scan documents into this cabinet",
+                    "IMS",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                return;
+            }
+            if (string.IsNullOrEmpty(lastBatchNameForImport))
+            {
+                var dlg = new Batches(capturerepository.SelectedIndexId)
+                {
+                    Owner = this
+                };
+
+                if (dlg.ShowDialog() == true)
+                {
+                    lastBatchNameForImport = dlg.SelectBatch;  
+                }
+                else
+                { return; }
+            }
+
+            string input = Microsoft.VisualBasic.Interaction.InputBox(
+                "Enter No. Of Documents To Import:",
+                "IMS",
+                "1");
+
+            if (string.IsNullOrWhiteSpace(input))
+                return;
+
+            if (!int.TryParse(input, out int count) || count <= 0)
+            {
+                MessageBox.Show("Please enter a valid number.", "IMS");
+                return;
+            }
+
+            for (int i = 0; i < count; i++)
+            {
+                capturerepository.MoveSingleDocumentsFromBatch(lastBatchNameForImport);
+            }
+
+            MessageBox.Show(
+                "Documents Imported From Batch Successfully",
+                "IMS",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+        }
+        private void mnuAllDocumentFromBatch_Click(object sender, RoutedEventArgs e)
+        {
+            if (capturerepository.SelectedIndexId <= 0)
+            {
+                MessageBox.Show(
+                    "SELECT a Data Cabinet from the lower right tree view to be able to scan documents into this cabinet",
+                    "IMS",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                return;
+            }
+
+            var dlg = new Batches(capturerepository.SelectedIndexId)
+            {
+                Owner = this
+            };
+
+            if (dlg.ShowDialog() == true)
+            {
+                capturerepository.MoveAllDocumentsFromBatch(dlg.SelectBatch);
+            }
+        }
+
     }
 }
