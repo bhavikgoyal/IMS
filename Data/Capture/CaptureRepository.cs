@@ -22,7 +22,7 @@ namespace IMS.Data.Capture
     {
         public ObservableCollection<TreeNode> PartnerTree { get; set; } = new ObservableCollection<TreeNode>();
         public ObservableCollection<FieldViewModel> Fields { get; set; } = new ObservableCollection<FieldViewModel>();
-
+        public bool DragDropMergeEnabled { get; private set; }
         public ObservableCollection<ScanBatch> ScannedBatches { get; } = new ObservableCollection<ScanBatch>();
         private readonly Dictionary<int, ObservableCollection<ScanBatch>> _batchesPerIndex = new Dictionary<int, ObservableCollection<ScanBatch>>();
 
@@ -37,12 +37,94 @@ namespace IMS.Data.Capture
 
         public void LoadTreeView()
         {
-            var nodes = cabinet.GetAllNodes();
-            var tree = cabinet.BuildTree(nodes);
+            var nodes = GetAllNodes();
+            var tree = BuildTree(nodes);
 
             PartnerTree.Clear();
             foreach (var node in tree)
                 PartnerTree.Add(node);
+        }
+        private List<TreeNode> GetAllNodes()
+        {
+            List<TreeNode> nodes = new List<TreeNode>();
+
+            using (SqlConnection con = DatabaseHelper.GetConnection())
+            {
+                con.Open();
+                string query = @"SELECT IndexID, LongIndexName, Parent1Name
+                                 FROM Indexes ";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+                SqlDataReader dr = cmd.ExecuteReader();
+
+                while (dr.Read())
+                {
+                    nodes.Add(new TreeNode
+                    {
+                        IndexID = dr["IndexID"] != DBNull.Value ? Convert.ToInt32(dr["IndexID"]) : 0,
+                        LongIndexName = dr["LongIndexName"].ToString(),
+                        Parent1Name = dr["Parent1Name"]?.ToString()
+                       
+                    });
+                }
+            }
+            return nodes;
+        }
+        private List<TreeNode> BuildTree(List<TreeNode> flatList)
+        {
+            var roots = new List<TreeNode>();
+            var sortedList = flatList.OrderBy(n => n.Parent1Name)
+                                     .ThenBy(n => n.LongIndexName)
+                                     .ToList();
+
+            var simplenode = new List<TreeNode>();
+
+            foreach (var node in sortedList)
+            {
+                List<TreeNode> currentLevel = roots;
+
+                var parents = new List<string> { node.Parent1Name, node.Parent2Name, node.Parent3Name };
+
+                bool hierarchyExists = false;
+
+                foreach (var parentName in parents)
+                {
+                    if (string.IsNullOrWhiteSpace(parentName))
+                        continue;
+
+                    hierarchyExists = true;
+
+                    var existingNode = currentLevel.FirstOrDefault(n => n.LongIndexName == parentName);
+                    if (existingNode == null)
+                    {
+                        existingNode = new TreeNode { LongIndexName = parentName };
+                        currentLevel.Add(existingNode);
+                        currentLevel.Sort((a, b) => string.Compare(a.LongIndexName, b.LongIndexName));
+                    }
+
+                    currentLevel = existingNode.Children;
+                }
+
+                // Leaf node
+                var leafNode = new TreeNode
+                {
+                    LongIndexName = node.LongIndexName,
+                    IndexID = node.IndexID
+                };
+
+                if (hierarchyExists)
+                {
+                    currentLevel.Add(leafNode);
+                    currentLevel.Sort((a, b) => string.Compare(a.LongIndexName, b.LongIndexName));
+                }
+                else
+                {
+                    simplenode.Add(leafNode);
+                }
+            }
+            roots.AddRange(simplenode.OrderBy(n => n.LongIndexName));
+
+            return roots;
         }
         public void OnNodeSelected(TreeNode node)
         {
@@ -118,7 +200,6 @@ namespace IMS.Data.Capture
                 ScannedBatches.Add(batch);
             }
         }
-
         private void LoadFieldsForIndex(int indexId)
         {
             Fields.Clear();
@@ -168,7 +249,6 @@ namespace IMS.Data.Capture
                 });
             }
         }
-
         public void ImportFiles(IEnumerable<string> filePaths)
         {
             if (SelectedIndexId <= 0)
@@ -463,12 +543,8 @@ namespace IMS.Data.Capture
                     SET 
                         ES_NewRecord   = 1,
                         ES_Approved    = 1,
-                        ES_ApprovedBy  = @User,
-                        ES_SavedBy = @User,
                         ES_SavedDate = GETDATE(),
-                        ES_SavedTime = CONVERT(varchar(8), GETDATE(), 108), 
-                        ES_ApprovedDate= GETDATE(),
-                        ES_ApprovedTime= CONVERT(varchar(8), GETDATE(), 108)
+                        ES_SavedTime = CONVERT(varchar(8), GETDATE(), 108)
                     WHERE ES_FileID    = @FileNo;";
 
                 using (SqlCommand cmd = new SqlCommand(sql, conn))
@@ -578,13 +654,9 @@ namespace IMS.Data.Capture
                     UPDATE [{tableName}]
                     SET 
                         ES_NewRecord   = 1,
-                        ES_Approved    = 1,
-                        ES_ApprovedBy  = @User,
                         ES_SavedBy = @User,
                         ES_SavedDate = GETDATE(),
-                        ES_SavedTime = CONVERT(varchar(8), GETDATE(), 108), 
-                        ES_ApprovedDate= GETDATE(),
-                        ES_ApprovedTime= CONVERT(varchar(8), GETDATE(), 108)
+                        ES_SavedTime = CONVERT(varchar(8), GETDATE(), 108)
                     WHERE ES_FileID IN ({string.Join(",", paramNames)});";
 
                 using (SqlCommand cmd = new SqlCommand(sql, conn))
@@ -1117,7 +1189,6 @@ namespace IMS.Data.Capture
             LoadScannedBatchesFromFile(SelectedIndexId);
 
         }
-
         public void NewBatchCreate()
         {
             string baseBatchDir = @"C:\IMS_Shared\Batches";
@@ -1153,7 +1224,6 @@ namespace IMS.Data.Capture
             Directory.CreateDirectory(newBatchPath);
             MessageBox.Show("Batch Created Successfully", "IMS", MessageBoxButton.OK, MessageBoxImage.Information);
         }
-
         public void MoveAllDocumentsInBasketToBatch(string batchName)
         {
             if (string.IsNullOrWhiteSpace(batchName))
@@ -1253,7 +1323,6 @@ namespace IMS.Data.Capture
        MessageBoxButton.OK,
        MessageBoxImage.Information);
         }
-
         public void MoveSingleDocumentsFromBatch(string batchName)
         {
             if (string.IsNullOrWhiteSpace(batchName))
@@ -1398,9 +1467,245 @@ namespace IMS.Data.Capture
 
             LoadScannedBatchesFromFile(SelectedIndexId);
         }
+        public ScannedDocument ReplicateDocument(ScannedDocument sourceDoc)
+        {
+            if (sourceDoc == null || SelectedIndexId <= 0)
+                return null;
 
+            string importFolder = @"C:\\IMS_Shared\Documnet_Import\";
+            Directory.CreateDirectory(importFolder);
 
+            var nodes = cabinet.GetAllNodes();
+            TreeNode selectedNode = nodes.FirstOrDefault(n => n.IndexID == SelectedIndexId);
+            string selectedTableName = selectedNode != null ? selectedNode.LongIndexName : "UnknownTable";
 
+            string tableFolder = Path.Combine(importFolder, selectedTableName);
+            Directory.CreateDirectory(tableFolder);
+
+            if (!_batchesPerIndex.TryGetValue(SelectedIndexId, out var list))
+            {
+                list = new ObservableCollection<ScanBatch>();
+                _batchesPerIndex[SelectedIndexId] = list;
+            }
+
+            string sourcePath = sourceDoc.FullPath;
+            string fileName = Path.GetFileName(sourcePath);
+
+            string originalFileNameForNewRow = sourceDoc.FileNo;
+
+            var (fileId, fileNo) = InsertDocumentRow(
+                SelectedIndexId,
+                originalFileNameForNewRow,
+                sourcePath
+            );
+
+            string fileFolder = Path.Combine(tableFolder, fileNo);
+            Directory.CreateDirectory(fileFolder);
+
+            string destFilePath = Path.Combine(fileFolder, fileName);
+            File.Copy(sourcePath, destFilePath, true);
+
+            var batch = new ScanBatch { FileNo = fileNo };
+
+            var newDoc = new ScannedDocument
+            {
+                FileId = fileId,
+                FileNo = fileNo,
+                PageNo = 1,
+                OriginalFileName = originalFileNameForNewRow,
+                FullPath = destFilePath
+            };
+
+            batch.Pages.Add(newDoc);
+            list.Add(batch);
+            ScannedBatches.Add(batch);
+
+            return newDoc;  
+        }
+        public void ApproveSingleDocument(ScannedDocument doc, string currentUser)
+        {
+            if (doc == null || SelectedIndexId <= 0)
+                return;
+
+            string tableName = cabinet.GetTableName(SelectedIndexId);
+            if (string.IsNullOrWhiteSpace(tableName))
+                throw new Exception($"Table name not found for IndexID = {SelectedIndexId}");
+
+            string importRootPath = @"C:\IMS_Shared\Documnet_Import";
+            string ApproveRootPath = @"C:\IMS_Shared\Documnet_Approve";
+
+            string ApproveTableFolderName = string.Join("_", tableName.Split(Path.GetInvalidFileNameChars()));
+            string ApproveTablePath = Path.Combine(ApproveRootPath, ApproveTableFolderName);
+            Directory.CreateDirectory(ApproveTablePath);
+
+            string documentImportPath = Directory
+                .GetDirectories(importRootPath)
+                .Select(importSubFolderPath => Path.Combine(importSubFolderPath, doc.FileNo))
+                .FirstOrDefault(path => Directory.Exists(path));
+
+            if (documentImportPath == null)
+                return;
+
+            string documentApprovePath = Path.Combine(ApproveTablePath, doc.FileNo);
+
+            try
+            {
+                if (Directory.Exists(documentApprovePath))
+                    Directory.Delete(documentApprovePath, true);
+                Directory.Move(documentImportPath, documentApprovePath);
+            }
+            catch
+            {
+                return;
+            }
+
+            using (SqlConnection conn = DatabaseHelper.GetConnection())
+            {
+                conn.Open();
+
+                string sql = $@"
+                    UPDATE [{tableName}]
+                    SET 
+                        ES_NewRecord   = 1,
+                        ES_Approved    = 1,
+                        ES_ApprovedBy  = @User,
+                        ES_ApprovedDate= GETDATE(),
+                        ES_ApprovedTime= CONVERT(varchar(8), GETDATE(), 108),
+                        ES_FilePath=@FilePath
+                    WHERE ES_FileID    = @FileNo;";
+
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
+                {   
+                    cmd.Parameters.AddWithValue("@FileNo", doc.FileNo);
+                    cmd.Parameters.AddWithValue("@User",
+                        string.IsNullOrEmpty(currentUser) ? (object)DBNull.Value : currentUser);
+                    cmd.Parameters.AddWithValue("@FilePath",
+                          string.IsNullOrEmpty(documentApprovePath) ? (object)DBNull.Value : (object)documentApprovePath);
+                    cmd.ExecuteNonQuery();
+                }
+            }
+
+            var batch = ScannedBatches.FirstOrDefault(b => b.Pages.Any(p => p.FileId == doc.FileId));
+            if (batch != null)
+            {
+                ScannedBatches.Remove(batch);
+
+                if (_batchesPerIndex.TryGetValue(SelectedIndexId, out var list))
+                    list.Remove(batch);
+            }
+            LoadScannedBatchesFromFile(SelectedIndexId);
+        }
+        public void ApproveAllDocument( string currentUser)
+        {
+            if (SelectedIndexId <= 0 || ScannedBatches.Count == 0)
+                return;
+
+            string tableName = cabinet.GetTableName(SelectedIndexId);
+            if (string.IsNullOrWhiteSpace(tableName))
+                throw new Exception($"Table name not found for IndexID = {SelectedIndexId}");
+
+            var allIds = ScannedBatches
+                .SelectMany(b => b.Pages)
+                .Select(p => p.FileId)
+                .Distinct()
+                .ToList();
+
+            if (allIds.Count == 0)
+                return;
+
+            string importRootPath = @"C:\IMS_Shared\Documnet_Import";
+            string ApproveRootPath = @"C:\IMS_Shared\Documnet_Approve";
+            string sourceFolder = Path.Combine(importRootPath, tableName);
+            string destFolder = Path.Combine(ApproveRootPath, tableName);
+            string destSubFolder = null;
+            string folderName = null;
+
+            if (Directory.Exists(sourceFolder))
+            {
+                try
+                {
+                    if (!Directory.Exists(destFolder))
+                    {
+                        // Destination does not exist → move whole folder
+                        Directory.Move(sourceFolder, destFolder);
+                    }
+                    else
+                    {
+                        // Destination exists → move subfolders
+                        foreach (var dirPath in Directory.GetDirectories(sourceFolder))
+                        {
+                            folderName = Path.GetFileName(dirPath);
+                             destSubFolder = Path.Combine(destFolder, folderName);
+
+                            if (!Directory.Exists(destSubFolder))
+                                Directory.Move(dirPath, destSubFolder); // move folder if not exist
+                            else
+                            {
+                                // Folder exists → move only files inside
+                                foreach (var file in Directory.GetFiles(dirPath))
+                                {
+                                    string destFile = Path.Combine(destSubFolder, Path.GetFileName(file));
+                                    if (File.Exists(destFile))
+                                        File.Delete(destFile); // overwrite
+                                    File.Move(file, destFile);
+                                }
+                              
+                            }
+                        }
+
+                        // Move files in the main folder
+                        foreach (var file in Directory.GetFiles(sourceFolder))
+                        {
+                            string destFile = Path.Combine(destFolder, Path.GetFileName(file));
+                            if (File.Exists(destFile))
+                                File.Delete(destFile);
+                            File.Move(file, destFile);
+                        }
+
+                        // Remove source folder if empty
+                        if (!Directory.EnumerateFileSystemEntries(sourceFolder).Any())
+                            Directory.Delete(sourceFolder);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error moving folder '{sourceFolder}' to '{destFolder}': {ex.Message}");
+                }
+            }
+
+            using (SqlConnection conn = DatabaseHelper.GetConnection())
+            {
+                conn.Open();
+
+                string sql = $@"
+                    UPDATE [{tableName}]
+                    SET 
+                        ES_NewRecord   = 1,
+                        ES_Approved    = 1,
+                        ES_ApprovedBy  = @User,
+                        ES_ApprovedDate= GETDATE(),
+                        ES_ApprovedTime= CONVERT(varchar(8), GETDATE(), 108),
+                        ES_FilePath=@FilePath
+                    WHERE ES_FileID    = @FileNo;";
+
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@FileNo", folderName);
+                    cmd.Parameters.AddWithValue("@User",
+                        string.IsNullOrEmpty(currentUser) ? (object)DBNull.Value : currentUser);
+                    cmd.Parameters.AddWithValue("@FilePath",
+                          string.IsNullOrEmpty(destSubFolder) ? (object)DBNull.Value : (object)destSubFolder);
+                    cmd.ExecuteNonQuery();
+                }
+            }
+
+            ScannedBatches.Clear();
+            if (_batchesPerIndex.TryGetValue(SelectedIndexId, out var list))
+                list.Clear();
+
+            LoadScannedBatchesFromFile(SelectedIndexId);
+        }
+       
     }
 }
 

@@ -25,6 +25,7 @@ namespace IMS
     public partial class CaptureWindow : Window
     {
         private readonly CaptureRepository capturerepository = new CaptureRepository();
+        public ObservableCollection<FieldViewModel> Fields { get; set; }
         private string lastBatchNameForImport;
         private double zoomFactor = 1.0;
 
@@ -47,7 +48,76 @@ namespace IMS
         {
             this.WindowState = WindowState.Minimized;
         }
+        private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
 
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.F5)
+            {
+                mnuNewBatch_Click(sender, e);
+                e.Handled = true;
+            }
+            if (Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.F11)
+            {
+                mnuDocumentFromBatch_Click(sender, e);
+                e.Handled = true;
+            }
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.F11)
+            {
+                mnuAllDocumentFromBatch_Click(sender, e);
+                e.Handled = true;
+            }
+            if (Keyboard.Modifiers == ModifierKeys.Shift && e.Key == Key.Delete)
+            {
+                mnuDeleteDocument_Click(sender, e);
+                e.Handled = true;
+            }
+            if ((Keyboard.Modifiers & ModifierKeys.Alt) == ModifierKeys.Alt &&
+             e.SystemKey == Key.Back)
+            {
+                mnuDeletePage_Click(sender, e);
+                e.Handled = true;
+            }
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.M)
+            {
+                mnuMerge_Click(sender, e);
+                e.Handled = true;
+            }
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.T)
+            {
+                mnuMultiSplit_Click(sender, e);
+                e.Handled = true;
+            }
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.D)
+            {
+                mnuApproveDocument_Click(sender, e);
+                e.Handled = true;
+            }
+            if (Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.F4)
+            {
+                mnuZoomIn_Click(sender, e);
+                e.Handled = true;
+            }
+            if (Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.F3)
+            {
+                mnuZoomOut_Click(sender, e);
+                e.Handled = true;
+            }
+            if (Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.F1)
+            {
+                mnuRotateLeft_Click(sender, e);
+                e.Handled = true;
+            }
+            if (Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.F2)
+            {
+                mnuRotateRight_Click(sender, e);
+                e.Handled = true;
+            }
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.S)
+            {
+                mnuSaveFields_Click(sender, e);
+                e.Handled = true;
+            }
+        }
         private void MaximizeRestoreButton_Click(object sender, RoutedEventArgs e)
         {
             if (this.WindowState == WindowState.Maximized)
@@ -59,32 +129,31 @@ namespace IMS
                 this.WindowState = WindowState.Maximized;
             }
         }
-
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
             DashboardWindow dashboard = new DashboardWindow();
             dashboard.Show();
             this.Close();
         }
-
         private void ExitMenuItem_Click(object sender, RoutedEventArgs e)
         {
             DashboardWindow dashboard = new DashboardWindow();
             dashboard.Show();
             this.Close();
         }
-
         private void Border_Scroll(object sender, System.Windows.Controls.Primitives.ScrollEventArgs e)
         {
 
         }
-
-        private void CabinetTree_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        private async void CabinetTree_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
-            if (e.NewValue is TreeNode node)
+            if (e.NewValue is not TreeNode node)
+                return;
+
+            await LoaderManager.RunAsync(async () =>
             {
                 capturerepository.OnNodeSelected(node);
-            }
+            });
         }
 
         private void ImportFileButton_Click(object sender, RoutedEventArgs e)
@@ -169,7 +238,6 @@ namespace IMS
                     $"Preview for '{ext}' files is not implemented yet.";
             }
         }
-
         private void ScannedTreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             if (e.NewValue is ScannedDocument doc && !string.IsNullOrEmpty(doc.FullPath))
@@ -184,7 +252,6 @@ namespace IMS
                 capturerepository.CurrentDocument = doc;
             }
         }
-
         private void ImportFolderButton_Click(object sender, RoutedEventArgs e)
         {
             if (capturerepository.SelectedIndexId <= 0)
@@ -214,7 +281,6 @@ namespace IMS
                 capturerepository.ImportFiles(files);
             }
         }
-
         private void RecordWithoutDocument_Click(object sender, RoutedEventArgs e)
         {
 
@@ -241,7 +307,6 @@ namespace IMS
                     MessageBoxImage.Information);
             }
         }
-
         private async void SaveFieldsButton_Click(object sender, RoutedEventArgs e)
         {
             var doc = GetCurrentSelectedDocument();
@@ -261,24 +326,20 @@ namespace IMS
             string currentUser = SessionManager.CurrentUser.UserName;
             capturerepository.SaveField(doc, currentUser);
 
-            string originalText = DocumentTextViewer.Text;
+            // show
+            StatusLabel.Content = "Saved!";
+            StatusLabel.Foreground = Brushes.Green;
+            StatusLabel.Visibility = Visibility.Visible;
 
-            DocumentTextViewer.Foreground = Brushes.Green;
-            DocumentTextViewer.Text = "Saved";
-
-
+            // hide after 2s
             await Task.Delay(2000);
+            StatusLabel.Visibility = Visibility.Collapsed;
 
-            // 👉 Restore original text (background remains same)
-            DocumentTextViewer.Foreground = Brushes.Black;
-            DocumentTextViewer.Text = originalText;
         }
-
         private void SaveSelectedFieldsToAllButton_Click(object sender, RoutedEventArgs e)
         {
 
         }
-
         private ScannedDocument GetCurrentSelectedDocument()
         {
             var item = ScannedTreeView.SelectedItem;
@@ -291,7 +352,6 @@ namespace IMS
 
             return null;
         }
-
         private void SendToArchiveButton_Click(object sender, RoutedEventArgs e)
         {
             var doc = GetCurrentSelectedDocument();
@@ -312,7 +372,6 @@ namespace IMS
             capturerepository.ArchiveSingleDocument(doc, currentUser);
 
         }
-
         private void SendAllToArchiveButton_Click(object sender, RoutedEventArgs e)
         {
             if (capturerepository.ScannedBatches == null ||
@@ -331,7 +390,28 @@ namespace IMS
             string currentUser = SessionManager.CurrentUser.UserName;
             capturerepository.ArchiveAllDocumentsInBasket(currentUser);
         }
+        private void ClearCurrentDocumentView()
+        {
+            if (capturerepository != null && capturerepository.Fields != null)
+            {
+                foreach (var field in capturerepository.Fields)
+                {
+                    field.Value = string.Empty;   // <- textbox clear
+                    field.IsChecked = false;      // optional
+                }
+            }
+            if (DocumentTextViewer != null)
+                DocumentTextViewer.Text = string.Empty;
 
+            if (DocumentImageViewer != null)
+                DocumentImageViewer.Source = null;
+
+            if (TextScrollViewer != null)
+                TextScrollViewer.Visibility = Visibility.Visible;
+
+            if (ImageScrollViewer != null)
+                ImageScrollViewer.Visibility = Visibility.Collapsed;
+        }
         private void DeleteAllFromBasketButton_Click(object sender, RoutedEventArgs e)
         {
             if (capturerepository.SelectedIndexId <= 0)
@@ -357,8 +437,8 @@ namespace IMS
 
 
             capturerepository.DeleteAllFromBasket();
+            ClearCurrentDocumentView();
         }
-
         private void DeleteCurrentDocumentButton_Click(object sender, RoutedEventArgs e)
         {
             if (capturerepository.SelectedIndexId <= 0)
@@ -406,8 +486,8 @@ namespace IMS
                 return;
 
             capturerepository.DeleteDocumentByFileId(doc.FileNo);
+            ClearCurrentDocumentView();
         }
-
         private void DeleteCurrentPageButton_Click(object sender, RoutedEventArgs e)
         {
             if (capturerepository.SelectedIndexId <= 0)
@@ -432,6 +512,7 @@ namespace IMS
                 return;
 
             capturerepository.DeleteSinglePage(doc);
+            ClearCurrentDocumentView();
         }
         private void SplitCurrentDocument_Click(object sender, RoutedEventArgs e)
         {
@@ -505,7 +586,6 @@ namespace IMS
 
             capturerepository.MultiSplitDocument(doc, pagesPerSplit);
         }
-
         private void MergeCurrentDocument_Click(object sender, RoutedEventArgs e)
         {
             var doc = GetCurrentSelectedDocument();
@@ -528,7 +608,6 @@ namespace IMS
             string currentUser = SessionManager.CurrentUser.UserName;
             capturerepository.MergeSingleDocument(doc, currentUser);
         }
-
         public void MergeAllDocument_Click(object sender, RoutedEventArgs e)
         {
             if (capturerepository.ScannedBatches == null ||
@@ -588,38 +667,27 @@ namespace IMS
         }
         private void RotateLeftButton_Click(object sender, RoutedEventArgs e)
         {
-            if (DocumentImageViewer.Source == null)
-                return;
+            if (DocumentImageViewer.Source == null) return;
 
-            RotateTransform rotate = DocumentImageViewer.RenderTransform as RotateTransform;
+            ImageLayoutRotateTransform.Angle -= 90;
 
-            if (rotate == null)
-            {
-                rotate = new RotateTransform(0);
-                DocumentImageViewer.RenderTransform = rotate;
-            }
+            if (ImageLayoutRotateTransform.Angle < 0)
+                ImageLayoutRotateTransform.Angle += 360;  
 
-            rotate.Angle -= 90;
-
-            if (rotate.Angle <= -360)
-                rotate.Angle = 0;
+            DocumentImageViewer.UpdateLayout();
+            ImageScrollViewer.UpdateLayout();
         }
         private void RotateRightButton_Click(object sender, RoutedEventArgs e)
         {
-            if (DocumentImageViewer.Source == null)
-                return;
+            if (DocumentImageViewer.Source == null) return;
 
-            RotateTransform rotate = DocumentImageViewer.RenderTransform as RotateTransform;
+            ImageLayoutRotateTransform.Angle += 90; 
 
-            if (rotate == null)
-            {
-                rotate = new RotateTransform(0);
-                DocumentImageViewer.RenderTransform = rotate;
-            }
-            rotate.Angle += 90;
+            if (ImageLayoutRotateTransform.Angle >= 360)
+                ImageLayoutRotateTransform.Angle -= 360; 
 
-            if (rotate.Angle >= 360)
-                rotate.Angle = 0;
+            DocumentImageViewer.UpdateLayout();
+            ImageScrollViewer.UpdateLayout();
         }
         private void FitToWidthButton_Click(object sender, RoutedEventArgs e)
         {
@@ -705,19 +773,19 @@ namespace IMS
                     MessageBoxImage.Information);
                 return;
             }
-                var dlg = new Batches(capturerepository.SelectedIndexId)
-                {
-                    Owner = this
-                };
+            var dlg = new Batches(capturerepository.SelectedIndexId)
+            {
+                Owner = this
+            };
 
-                if (dlg.ShowDialog() == true)
-                {
-                    lastBatchNameForImport = dlg.SelectBatch;   // remember batch name 
-                }
-                else
-                {
-                    return;
-                }
+            if (dlg.ShowDialog() == true)
+            {
+                lastBatchNameForImport = dlg.SelectBatch;   // remember batch name 
+            }
+            else
+            {
+                return;
+            }
         }
         private void mnuBasketToBatch_Click(object sender, RoutedEventArgs e)
         {
@@ -789,7 +857,7 @@ namespace IMS
 
                 if (dlg.ShowDialog() == true)
                 {
-                    lastBatchNameForImport = dlg.SelectBatch;  
+                    lastBatchNameForImport = dlg.SelectBatch;
                 }
                 else
                 { return; }
@@ -842,6 +910,142 @@ namespace IMS
                 capturerepository.MoveAllDocumentsFromBatch(dlg.SelectBatch);
             }
         }
+        private void mnuReplicateDocument_Click(object sender, RoutedEventArgs e)
+        {
+            var doc = GetCurrentSelectedDocument();
 
+            if (doc == null)
+            {
+                MessageBox.Show("Please select a document first.");
+                return;
+            }
+
+            string input = Microsoft.VisualBasic.Interaction.InputBox(
+                "How Many Copies?",
+                "Replicate Document",
+                "1");
+
+            if (!int.TryParse(input, out int copies) || copies <= 0)
+            {
+                MessageBox.Show("Invalid number of copies.");
+                return;
+            }
+            var currentDoc = doc;
+
+            for (int i = 0; i < copies; i++)
+            {
+                
+                currentDoc = capturerepository.ReplicateDocument(currentDoc);
+
+                if (currentDoc == null)
+                    break; 
+            }
+        }
+        private void mnuDeleteDocument_Click(object sender, RoutedEventArgs e)
+        {
+            DeleteCurrentDocumentButton_Click(sender, e);
+        }
+        private void mnuDeleteAll_Click(object sender, RoutedEventArgs e)
+        {
+            DeleteAllFromBasketButton_Click(sender, e);
+        }
+        private void mnuDeletePage_Click(object sender, RoutedEventArgs e)
+        {
+            DeleteCurrentPageButton_Click(sender, e);
+        }
+        private void mnuMerge_Click(object sender, RoutedEventArgs e)
+        {
+            MergeCurrentDocument_Click(sender, e);
+        }
+        private void mnuSplit_Click(object sender, RoutedEventArgs e)
+        {
+            SplitCurrentDocument_Click(sender, e);
+        }
+        private void mnuMultiSplit_Click(object sender, RoutedEventArgs e)
+        {
+            SplitAllDocument_Click(sender, e);
+        }
+        private void mnuMergeAll_Click(object sender, RoutedEventArgs e)
+        {
+            MergeAllDocument_Click(sender, e);
+        }
+        private async void mnuApproveDocument_Click(Object sender, RoutedEventArgs e)
+        {
+            var doc = GetCurrentSelectedDocument();
+            if (doc == null)
+                return;
+
+            var result = MessageBox.Show(
+                "Are you sure you want to approve selected document?",
+                "IMS",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+            if (result != MessageBoxResult.Yes)
+                return;
+
+            string currentUser = SessionManager.CurrentUser.UserName;
+            capturerepository.ApproveSingleDocument(doc, currentUser);
+
+            StatusLabel.Content = "Approved!";
+            StatusLabel.Foreground = Brushes.Red;
+            StatusLabel.Visibility = Visibility.Visible;
+            await Task.Delay(2000);
+            StatusLabel.Visibility = Visibility.Collapsed;
+
+        }
+        private async void mnuApproveAll_click(Object sender, RoutedEventArgs e)
+        {
+            if (capturerepository.ScannedBatches == null ||
+        capturerepository.ScannedBatches.Count == 0)
+                return;
+
+            var result = MessageBox.Show(
+                "Are you sure you want to approve All document?",
+                "IMS",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (result != MessageBoxResult.Yes)
+                return;
+
+            string currentUser = SessionManager.CurrentUser.UserName;
+            capturerepository.ApproveAllDocument(currentUser);
+
+            StatusLabel.Content = "Approved!";
+            StatusLabel.Foreground = Brushes.Red;
+            StatusLabel.Visibility = Visibility.Visible;
+            await Task.Delay(2000);
+            StatusLabel.Visibility = Visibility.Collapsed;
+
+        }
+        private void mnuZoomIn_Click(Object sender, RoutedEventArgs e)
+        {
+            ZoomInButton_Click(sender, e);
+        }
+        private void mnuZoomOut_Click(Object sender, RoutedEventArgs e)
+        {
+            ZoomOutButton_Click(sender, e);
+        }
+        private void mnuFitToWidth_Click(Object sender, RoutedEventArgs e)
+        {
+            FitToWidthButton_Click(sender, e);
+        }
+        private void mnuFitToHeight_Click(Object sender, RoutedEventArgs e)
+        {
+            FitToHeightButton_Click(sender, e);
+        }
+        private void mnuRotateLeft_Click(Object sender, RoutedEventArgs e)
+        {
+            RotateLeftButton_Click(sender, e);
+        }
+        private void mnuRotateRight_Click(Object sender, RoutedEventArgs e)
+        {
+            RotateRightButton_Click(sender, e);
+        }
+        private void mnuSaveFields_Click(Object sender, RoutedEventArgs e)
+        {
+            SaveFieldsButton_Click(sender, e);
+        }
     }
+
 }
