@@ -11,7 +11,8 @@
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
-        FontFamily="Segoe UI">
+        FontFamily="Segoe UI"
+        PreviewKeyDown="Window_PreviewKeyDown">
 
   <Window.Resources>
     <Style x:Key="TitleBarButtonStyle" TargetType="{x:Type Button}">
@@ -213,21 +214,21 @@
         <!-- Documents -->
         <MenuItem Header="Documents">
           <MenuItem Header="Print" InputGestureText="Ctrl+P"/>
-          <MenuItem Header="Replicate Document"/>
-          <MenuItem Header="Delete Document" InputGestureText="Shift+Del"/>
-          <MenuItem Header="Delete Page" InputGestureText="Alt+Bksp"/>
-          <MenuItem Header="Delete All"/>
-          <MenuItem Header="Merge" InputGestureText="Ctrl+M"/>
-          <MenuItem Header="Split" InputGestureText="Ctrl+T"/>
+          <MenuItem Header="Replicate Document" Click="mnuReplicateDocument_Click"/>
+          <MenuItem Header="Delete All" Click="mnuDeleteAll_Click"/>
+          <MenuItem Header="Delete Document" InputGestureText="Shift+Del" Click="mnuDeleteDocument_Click"/>
+          <MenuItem Header="Delete Page" InputGestureText="Alt+Bksp" Click="mnuDeletePage_Click"/>
+          <MenuItem Header="Merge" InputGestureText="Ctrl+M" Click="mnuMerge_Click"/>
+          <MenuItem Header="Split" InputGestureText="Ctrl+T" Click="mnuSplit_Click"/>
           <MenuItem Header="Split Into"/>
-          <MenuItem Header="Multi Split"/>
-          <MenuItem Header="Merge All"/>
+          <MenuItem Header="Multi Split" Click="mnuMultiSplit_Click"/>
+          <MenuItem Header="Merge All" Click="mnuMergeAll_Click"/>
           <MenuItem Header="Enable Intelligent Split" InputGestureText="Ctrl+F6"/>
           <MenuItem Header="Intelligent Split" InputGestureText="F6"/>
           <MenuItem Header="Enable On Click Merge"/>
           <MenuItem Header="Enable Page Reorder By Mouse"/>
-          <MenuItem Header="Approve Document" InputGestureText="Ctrl+D"/>
-          <MenuItem Header="Approve All" InputGestureText="Ctrl+A"/>
+          <MenuItem Header="Approve Document" InputGestureText="Ctrl+D" Click="mnuApproveDocument_Click"/>
+          <MenuItem Header="Approve All" InputGestureText="Ctrl+A" Click="mnuApproveAll_click"/>
           <MenuItem Header="Ignore Approve Errors" IsCheckable="True"/>
           <MenuItem Header="Enable Drag Drop Merge" IsCheckable="True"/>
           <MenuItem Header="Approve Immediate" IsCheckable="True" IsChecked="True"/>
@@ -239,7 +240,7 @@
         <MenuItem Header="Fields">
           <MenuItem Header="Show All Dialogs" InputGestureText="Ctrl+F8"/>
           <MenuItem Header="Keep Entries"/>
-          <MenuItem Header="Save Fields" InputGestureText="Ctrl+S"/>
+          <MenuItem Header="Save Fields" InputGestureText="Ctrl+S" Click="mnuSaveFields_Click"/>
           <MenuItem Header="Apply To All" InputGestureText="Ctrl+U"/>
           <MenuItem Header="Select All Fields" InputGestureText="Ctrl+F"/>
           <MenuItem Header="Save To MS Word" InputGestureText="Ctrl+W"/>
@@ -263,12 +264,12 @@
 
         <!-- Image -->
         <MenuItem Header="Image">
-          <MenuItem Header="Zoom In" InputGestureText="F4"/>
-          <MenuItem Header="Zoom Out" InputGestureText="F3"/>
-          <MenuItem Header="Fit To Width"/>
-          <MenuItem Header="Fit To Height"/>
-          <MenuItem Header="Rotate Left" InputGestureText="F1"/>
-          <MenuItem Header="Rotate Right" InputGestureText="F2"/>
+          <MenuItem Header="Zoom In" InputGestureText="F4" Click="mnuZoomIn_Click"/>
+          <MenuItem Header="Zoom Out" InputGestureText="F3" Click="mnuZoomOut_Click"/>
+          <MenuItem Header="Fit To Width" Click="mnuFitToWidth_Click"/>
+          <MenuItem Header="Fit To Height" Click="mnuFitToHeight_Click"/>
+          <MenuItem Header="Rotate Left" InputGestureText="F1" Click="mnuRotateLeft_Click"/>
+          <MenuItem Header="Rotate Right" InputGestureText="F2" Click="mnuRotateRight_Click"/>
           <MenuItem Header="Enable Image Compression"/>
           <MenuItem Header="Enable Text-Image Compression"/>
           <MenuItem Header="Auto Compression"/>
@@ -601,8 +602,12 @@
        Stretch="Uniform"
        Margin="4">
                     <Image.LayoutTransform>
-                      <ScaleTransform x:Name="ImageScaleTransform" />
+                      <TransformGroup>
+                        <ScaleTransform x:Name="ImageScaleTransform" ScaleX="1" ScaleY="1" />
+                        <RotateTransform x:Name="ImageLayoutRotateTransform" Angle="0" />
+                      </TransformGroup>
                     </Image.LayoutTransform>
+
                   </Image>
 
                 </ScrollViewer>
@@ -614,6 +619,20 @@
         </Border>
     
       </Grid>
+    
+      <Label x:Name="StatusLabel"
+       Grid.Row="3"                     
+       HorizontalAlignment="Center"
+       VerticalAlignment="Top"
+       Margin="0,40,0,0" 
+       FontSize="35"
+       FontWeight="Bold"
+       Padding="8,4"
+       Foreground="Green"
+       Background="#CCFFFFFF"
+        Visibility="Collapsed"
+       Panel.ZIndex="999"/>
+
     </Grid>
   </Border>
 </Window>
