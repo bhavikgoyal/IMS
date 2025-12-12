@@ -1,0 +1,173 @@
+﻿<Window x:Class="IMS.ScannerSettings"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
+        Title="Scanner Settings"
+        Width="520" Height="300"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        Background="Transparent"
+        AllowsTransparency="True"
+        Loaded="Window_Loaded">
+
+  <Window.Resources>
+    <!-- lists -->
+    <x:Array x:Key="ColorList" Type="{x:Type sys:String}">
+      <sys:String>BlackAndWhite1Bit</sys:String>
+      <sys:String>TrueColor24bitRGB</sys:String>
+      <sys:String>Gray8Bit</sys:String>
+      <sys:String>Gray4Bit</sys:String>
+      <sys:String>ColorPal8Bit</sys:String>
+      <sys:String>ColorPal4Bit</sys:String>
+    </x:Array>
+
+    <x:Array x:Key="DisplayList" Type="{x:Type sys:String}">
+      <sys:String>SmallestFile</sys:String>
+      <sys:String>GoodDisplay</sys:String>
+      <sys:String>CustomSettings</sys:String>
+      <sys:String>BestDisplay</sys:String>
+    </x:Array>
+
+    <x:Array x:Key="CompTypeList" Type="{x:Type sys:String}">
+      <sys:String>Uncompressed</sys:String>
+      <sys:String>TIFFPackbits</sys:String>
+      <sys:String>LZWCompression</sys:String>
+      <sys:String>JPEGCompression</sys:String>
+      <sys:String>CCITTGroup42D</sys:String>
+      <sys:String>CCITTGroup31D</sys:String>
+    </x:Array>
+
+    <x:Array x:Key="CompInfoList" Type="{x:Type sys:String}">
+      <sys:String>NoCompInfo</sys:String>
+      <sys:String>TIFFPackbitsInfo</sys:String>
+      <sys:String>LZWInfo</sys:String>
+      <sys:String>JPEGMedMed</sys:String>
+      <sys:String>JPEGMedLow</sys:String>
+      <sys:String>JPEGMedHigh</sys:String>
+      <sys:String>JPEGLowMed</sys:String>
+      <sys:String>JPEGLowLow</sys:String>
+      <sys:String>JPEGLowHigh</sys:String>
+      <sys:String>JPEGHighMed</sys:String>
+      <sys:String>JPEGHighLow</sys:String>
+      <sys:String>JPEGHighHigh</sys:String>
+      <sys:String>G42DFaxRBO</sys:String>
+      <sys:String>G42DFax</sys:String>
+      <sys:String>G31DModifiedHuffmanRBO</sys:String>
+      <sys:String>G31DModifiedHuffman</sys:String>
+      <sys:String>G31DFaxRBO</sys:String>
+      <sys:String>G31DFax</sys:String>
+    </x:Array>
+
+    <!-- shared Combo style -->
+    <Style x:Key="ComboSmall" TargetType="ComboBox">
+      <Setter Property="Width" Value="240"/>
+      <Setter Property="Height" Value="26"/>
+      <Setter Property="Margin" Value="0,6,0,6"/>
+      <Setter Property="Padding" Value="6,2"/>
+    </Style>
+  </Window.Resources>
+
+  <!-- outer card -->
+  <Border Background="White" CornerRadius="6" BorderBrush="#DDD" BorderThickness="1" Padding="0">
+    <Grid>
+      <Grid.RowDefinitions>
+        <RowDefinition Height="38"/>
+        <!-- title -->
+        <RowDefinition Height="*"/>
+        <!-- content -->
+        <RowDefinition Height="72"/>
+        <!-- footer -->
+      </Grid.RowDefinitions>
+
+      <!-- Title bar -->
+      <Border Grid.Row="0" Background="#333333" CornerRadius="6,6,0,0"
+            >
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+          </Grid.ColumnDefinitions>
+
+          <TextBlock Text="Scanner Settings"
+                     VerticalAlignment="Center"
+                     Margin="12,0,0,0"
+                     Foreground="White"
+                     FontSize="14"
+                     FontWeight="SemiBold"/>
+
+          <Button Grid.Column="2"
+                  Width="36" Height="28"
+                  Margin="0,5,8,5"
+                  Background="Transparent" BorderThickness="0"
+                  Cursor="Hand" ToolTip="Close">
+            <TextBlock Text="✕" FontSize="14" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+          </Button>
+        </Grid>
+      </Border>
+
+      <!-- Content: 3 columns: logo | labels | controls -->
+      <Grid Grid.Row="1" Margin="16,14,16,12">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="56"/>
+          <!-- logo -->
+          <ColumnDefinition Width="160"/>
+          <!-- labels -->
+          <ColumnDefinition Width="*"/>
+          <!-- controls -->
+        </Grid.ColumnDefinitions>
+
+        <!-- Logo EXACT as you requested -->
+        <Image Grid.Column="0"
+               Source="/Images/ImageiDocs.jpg"
+               HorizontalAlignment="Left"
+               VerticalAlignment="Top"
+               Width="45" Height="37"
+               Margin="-11,-12,0,0"/>
+
+        <!-- Labels (use Label Content so WPF is correct) -->
+        <StackPanel Grid.Column="1" VerticalAlignment="Top" Margin="6,6,6,0">
+          <Label Content="Scanning Color" FontSize="13" Margin="0,10,0,0" Padding="0"/>
+          <Label Content="Display Type" FontSize="13" Margin="0,20,0,0" Padding="0"/>
+          <Label Content="Compression Type" FontSize="13" Margin="0,23,0,0" Padding="0"/>
+          <Label Content="Compression Info" FontSize="13" Margin="0,25,0,0" Padding="0"/>
+        </StackPanel>
+
+        <!-- ComboBoxes aligned with labels -->
+        <StackPanel Grid.Column="2" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="6,6,0,0">
+          <ComboBox x:Name="combColor" Style="{StaticResource ComboSmall}" ItemsSource="{StaticResource ColorList}"/>
+          <ComboBox x:Name="combDisplayType" Style="{StaticResource ComboSmall}" ItemsSource="{StaticResource DisplayList}"/>
+          <ComboBox x:Name="combCompType" Style="{StaticResource ComboSmall}" ItemsSource="{StaticResource CompTypeList}"/>
+          <ComboBox x:Name="combCompInfo" Style="{StaticResource ComboSmall}" ItemsSource="{StaticResource CompInfoList}"/>
+        </StackPanel>
+      </Grid>
+
+      <!-- Footer with centered Save -->
+      <Grid Grid.Row="2">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <Button Grid.Column="1" x:Name="btnSave" Width="200" Height="44" Cursor="Hand"
+                BorderBrush="#5F9A2E" BorderThickness="1" IsDefault="True" Margin="0,6,0,6">
+          <Button.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+              <GradientStop Color="#9FCE58" Offset="0"/>
+              <GradientStop Color="#7DBE3B" Offset="1"/>
+            </LinearGradientBrush>
+          </Button.Background>
+
+          <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Border Width="34" Height="34" Background="#7DBE3B" CornerRadius="4" Margin="0,0,10,0">
+              <TextBlock Text="⤓" FontSize="18" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <TextBlock Text="Save" FontSize="22" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
+          </StackPanel>
+        </Button>
+      </Grid>
+    </Grid>
+  </Border>
+</Window>
