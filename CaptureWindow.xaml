@@ -198,7 +198,7 @@
           <MenuItem Header="Scan Into"/>
           <MenuItem Header="Show Scanner Dialog"/>
           <MenuItem Header="Change Scanner"/>
-          <MenuItem Header="Scanner Settings"/>
+          <MenuItem Header="Scanner Settings" Click="ScannerSettings_Click"/>
         </MenuItem>
 
         <!-- Batches -->
@@ -230,7 +230,7 @@
           <MenuItem Header="Approve Document" InputGestureText="Ctrl+D" Click="mnuApproveDocument_Click"/>
           <MenuItem Header="Approve All" InputGestureText="Ctrl+A" Click="mnuApproveAll_click"/>
           <MenuItem Header="Ignore Approve Errors" IsCheckable="True"/>
-          <MenuItem Header="Enable Drag Drop Merge" IsCheckable="True"/>
+          <MenuItem  x:Name="mnuDragDropMerge" Header="Enable Drag Drop Merge" IsCheckable="True" Click="mnuDragDropMerge_Click"/>
           <MenuItem Header="Approve Immediate" IsCheckable="True" IsChecked="True"/>
           <MenuItem Header="Import Each Folder As 1 Document" IsCheckable="True"/>
           <MenuItem Header="Delete After Import" IsCheckable="True" IsChecked="True"/>
@@ -490,7 +490,11 @@
                 <TreeView x:Name="ScannedTreeView"
                       BorderThickness="0"
                       ItemsSource="{Binding ScannedBatches}"
-                      SelectedItemChanged="ScannedTreeView_SelectedItemChanged">
+                      SelectedItemChanged="ScannedTreeView_SelectedItemChanged"
+                      PreviewMouseLeftButtonDown="ScannedTreeView_PreviewMouseLeftButtonDown"
+                      PreviewMouseMove="ScannedTreeView_PreviewMouseMove"
+                      PreviewDragOver="ScannedTreeView_PreviewDragOver"
+                      Drop="ScannedTreeView_Drop" AllowDrop="True">
 
                   <TreeView.Resources>
                     <HierarchicalDataTemplate DataType="{x:Type model:ScanBatch}"
@@ -597,21 +601,18 @@
               HorizontalContentAlignment="Left"
               VerticalContentAlignment="Top">
                   <Image x:Name="DocumentImageViewer"
-       HorizontalAlignment="Left"
-       VerticalAlignment="Top"
-       Stretch="Uniform"
-       Margin="4">
+               HorizontalAlignment="Left"
+               VerticalAlignment="Top"
+               Stretch="Uniform"
+               Margin="4">
                     <Image.LayoutTransform>
                       <TransformGroup>
                         <ScaleTransform x:Name="ImageScaleTransform" ScaleX="1" ScaleY="1" />
                         <RotateTransform x:Name="ImageLayoutRotateTransform" Angle="0" />
                       </TransformGroup>
                     </Image.LayoutTransform>
-
                   </Image>
-
                 </ScrollViewer>
-
               </Grid>
             </Border>
 

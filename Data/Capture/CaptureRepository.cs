@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using static IMS.Data.Utilities.SessionManager;
 
 namespace IMS.Data.Capture
@@ -27,7 +28,7 @@ namespace IMS.Data.Capture
         private readonly Dictionary<int, ObservableCollection<ScanBatch>> _batchesPerIndex = new Dictionary<int, ObservableCollection<ScanBatch>>();
 
         private Cabinet cabinet = new Cabinet();
-       public int SelectedIndexId { get; private set; }
+        public int SelectedIndexId { get; private set; }
         public ScannedDocument CurrentDocument { get; set; }
 
         public CaptureRepository()
@@ -64,7 +65,7 @@ namespace IMS.Data.Capture
                         IndexID = dr["IndexID"] != DBNull.Value ? Convert.ToInt32(dr["IndexID"]) : 0,
                         LongIndexName = dr["LongIndexName"].ToString(),
                         Parent1Name = dr["Parent1Name"]?.ToString()
-                       
+
                     });
                 }
             }
@@ -896,7 +897,7 @@ namespace IMS.Data.Capture
 
             var (newFileId, newFileNo) = InsertDocumentRow(
                 SelectedIndexId,
-                originalFileName: doc.FileNo, 
+                originalFileName: doc.FileNo,
                 fullPath: Path.Combine(tableFolder, doc.FileNo)
             );
 
@@ -1254,7 +1255,7 @@ namespace IMS.Data.Capture
 
             if (!Directory.Exists(sourceFolder))
                 return;
-          
+
             string msg =
                 $"Are You Sure You Want To Export Current Basket To Batch {destFolder}";
 
@@ -1265,7 +1266,7 @@ namespace IMS.Data.Capture
                 MessageBoxImage.Question);
 
             if (result != MessageBoxResult.Yes)
-                return; 
+                return;
 
             try
             {
@@ -1397,7 +1398,7 @@ namespace IMS.Data.Capture
             string batchRootPath = @"C:\IMS_Shared\Batches";
 
             string cabinetFolder = Path.Combine(batchRootPath, tableName);
-            string sourceFolder = Path.Combine(cabinetFolder, batchName); 
+            string sourceFolder = Path.Combine(cabinetFolder, batchName);
 
             string destFolder = Path.Combine(importRootPath, tableName);
 
@@ -1414,7 +1415,7 @@ namespace IMS.Data.Capture
                 MessageBoxImage.Question);
 
             if (result != MessageBoxResult.Yes)
-                return;  
+                return;
 
             try
             {
@@ -1520,7 +1521,7 @@ namespace IMS.Data.Capture
             list.Add(batch);
             ScannedBatches.Add(batch);
 
-            return newDoc;  
+            return newDoc;
         }
         public void ApproveSingleDocument(ScannedDocument doc, string currentUser)
         {
@@ -1575,7 +1576,7 @@ namespace IMS.Data.Capture
                     WHERE ES_FileID    = @FileNo;";
 
                 using (SqlCommand cmd = new SqlCommand(sql, conn))
-                {   
+                {
                     cmd.Parameters.AddWithValue("@FileNo", doc.FileNo);
                     cmd.Parameters.AddWithValue("@User",
                         string.IsNullOrEmpty(currentUser) ? (object)DBNull.Value : currentUser);
@@ -1595,7 +1596,7 @@ namespace IMS.Data.Capture
             }
             LoadScannedBatchesFromFile(SelectedIndexId);
         }
-        public void ApproveAllDocument( string currentUser)
+        public void ApproveAllDocument(string currentUser)
         {
             if (SelectedIndexId <= 0 || ScannedBatches.Count == 0)
                 return;
@@ -1635,7 +1636,7 @@ namespace IMS.Data.Capture
                         foreach (var dirPath in Directory.GetDirectories(sourceFolder))
                         {
                             folderName = Path.GetFileName(dirPath);
-                             destSubFolder = Path.Combine(destFolder, folderName);
+                            destSubFolder = Path.Combine(destFolder, folderName);
 
                             if (!Directory.Exists(destSubFolder))
                                 Directory.Move(dirPath, destSubFolder); // move folder if not exist
@@ -1649,7 +1650,7 @@ namespace IMS.Data.Capture
                                         File.Delete(destFile); // overwrite
                                     File.Move(file, destFile);
                                 }
-                              
+
                             }
                         }
 
@@ -1705,7 +1706,62 @@ namespace IMS.Data.Capture
 
             LoadScannedBatchesFromFile(SelectedIndexId);
         }
-       
+        public void DragDropDocumnet(ScannedDocument source, ScannedDocument target, string currentUser)
+        {
+            if (source == null || target == null || SelectedIndexId <= 0)
+                return;
+
+
+            string tableName = cabinet.GetTableName(SelectedIndexId);
+            if (string.IsNullOrWhiteSpace(tableName))
+                throw new Exception($"Table name not found for IndexID = {SelectedIndexId}");
+
+            string tableFolder = Path.Combine(@"C:\IMS_Shared\Documnet_Import", tableName);
+
+            if (!Directory.Exists(tableFolder))
+                return;
+
+            string sourceFolder = Path.Combine(tableFolder, source.FileNo);
+            string targetFolder = Path.Combine(tableFolder, target.FileNo);
+
+            if (!Directory.Exists(sourceFolder) || !Directory.Exists(targetFolder))
+                return;
+
+            try
+            {
+                foreach (var file in Directory.GetFiles(sourceFolder))
+                {
+                    string fileName = Path.GetFileName(file);
+                    string destFile = Path.Combine(targetFolder, fileName);
+
+                    if (File.Exists(destFile))
+                        File.Delete(destFile);
+
+                    File.Move(file, destFile);
+                }
+
+                if (!Directory.EnumerateFileSystemEntries(sourceFolder).Any())
+                {
+                    Directory.Delete(sourceFolder, true);
+                }
+            }
+            catch
+            {
+
+                return;
+            }
+
+
+            var batch = ScannedBatches.FirstOrDefault(b => b.Pages.Any(p => p.FileId == source.FileId));
+            if (batch != null)
+            {
+                ScannedBatches.Remove(batch);
+
+                if (_batchesPerIndex.TryGetValue(SelectedIndexId, out var list))
+                    list.Remove(batch);
+            }
+            LoadScannedBatchesFromFile(SelectedIndexId);
+        }
     }
 }
 

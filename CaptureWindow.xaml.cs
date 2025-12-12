@@ -28,7 +28,9 @@ namespace IMS
         public ObservableCollection<FieldViewModel> Fields { get; set; }
         private string lastBatchNameForImport;
         private double zoomFactor = 1.0;
-
+        private string storedFileNo;
+        private Point dragStartPoint;
+        private object dragItem;
         public CaptureWindow()
         {
             InitializeComponent();
@@ -672,7 +674,7 @@ namespace IMS
             ImageLayoutRotateTransform.Angle -= 90;
 
             if (ImageLayoutRotateTransform.Angle < 0)
-                ImageLayoutRotateTransform.Angle += 360;  
+                ImageLayoutRotateTransform.Angle += 360;
 
             DocumentImageViewer.UpdateLayout();
             ImageScrollViewer.UpdateLayout();
@@ -681,10 +683,10 @@ namespace IMS
         {
             if (DocumentImageViewer.Source == null) return;
 
-            ImageLayoutRotateTransform.Angle += 90; 
+            ImageLayoutRotateTransform.Angle += 90;
 
             if (ImageLayoutRotateTransform.Angle >= 360)
-                ImageLayoutRotateTransform.Angle -= 360; 
+                ImageLayoutRotateTransform.Angle -= 360;
 
             DocumentImageViewer.UpdateLayout();
             ImageScrollViewer.UpdateLayout();
@@ -934,11 +936,11 @@ namespace IMS
 
             for (int i = 0; i < copies; i++)
             {
-                
+
                 currentDoc = capturerepository.ReplicateDocument(currentDoc);
 
                 if (currentDoc == null)
-                    break; 
+                    break;
             }
         }
         private void mnuDeleteDocument_Click(object sender, RoutedEventArgs e)
@@ -1046,6 +1048,180 @@ namespace IMS
         {
             SaveFieldsButton_Click(sender, e);
         }
-    }
+        private void mnuDragDropMerge_Click(object sender, RoutedEventArgs e)
+        {
+            if (mnuDragDropMerge.IsChecked)
+            {
+                dragItem = null;
+                storedFileNo = null;
+            }
+            else
+            {
+                dragItem = null;
+                storedFileNo = null;
+            }
+        }
+        private void ScannedTreeView_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (!mnuDragDropMerge.IsChecked)
+                return;
 
+            dragStartPoint = e.GetPosition(null);
+
+            TreeViewItem TreeViewItems = GetTreeViewItemUnderMouse(e.OriginalSource);
+            if (TreeViewItems == null)
+                return;
+
+            TreeViewItems.IsSelected = true;
+            TreeViewItems.Focus();
+
+            var selectedNode = TreeViewItems.DataContext;
+            dragItem = selectedNode;
+
+            if (selectedNode is ScannedDocument doc)
+                storedFileNo = doc.FileNo;
+            else if (selectedNode is ScanBatch batch)
+                storedFileNo = batch.FileNo;
+            else
+                storedFileNo = null;
+        }
+
+        private TreeViewItem GetTreeViewItemUnderMouse(object source)
+        {
+            DependencyObject obj = source as DependencyObject;
+            while (obj != null && !(obj is TreeViewItem))
+                obj = VisualTreeHelper.GetParent(obj);
+            return obj as TreeViewItem;
+        }
+
+        private void ScannedTreeView_PreviewMouseMove(object sender, MouseEventArgs e)
+        {
+            if (!mnuDragDropMerge.IsChecked)
+                return;
+
+            if (e.LeftButton != MouseButtonState.Pressed || dragItem == null)
+                return;
+
+            Point currentPos = e.GetPosition(null);
+            if (Math.Abs(currentPos.X - dragStartPoint.X) < SystemParameters.MinimumHorizontalDragDistance &&
+                Math.Abs(currentPos.Y - dragStartPoint.Y) < SystemParameters.MinimumVerticalDragDistance)
+                return;
+
+            DataObject data;
+            if (dragItem is ScannedDocument doc)
+            {
+                data = new DataObject(typeof(ScannedDocument), doc);
+                data.SetData("FileNo", doc.FileNo);
+            }
+            else if (dragItem is ScanBatch batch)
+            {
+                data = new DataObject(typeof(ScanBatch), batch);
+                data.SetData("FileNo", batch.FileNo);
+            }
+            else
+            {
+                data = new DataObject();
+                data.SetData("FileNo", storedFileNo ?? string.Empty);
+            }
+
+            DragDrop.DoDragDrop(ScannedTreeView, data, DragDropEffects.Move);
+
+            dragItem = null;
+            storedFileNo = null;
+        }
+
+        private void ScannedTreeView_PreviewDragOver(object sender, DragEventArgs e)
+        {
+            if (!mnuDragDropMerge.IsChecked)
+            {
+                e.Effects = DragDropEffects.None;
+                e.Handled = true;
+                return;
+            }
+            if (e.Data.GetDataPresent(typeof(ScannedDocument)) || e.Data.GetDataPresent("FileNo"))
+                e.Effects = DragDropEffects.Move;
+            else
+                e.Effects = DragDropEffects.None;
+
+            e.Handled = true;
+        }
+
+        private void ScannedTreeView_Drop(object sender, DragEventArgs e)
+        {
+            ScannedDocument draggedDoc = null;
+
+            if (e.Data.GetDataPresent(typeof(ScannedDocument)))
+                draggedDoc = e.Data.GetData(typeof(ScannedDocument)) as ScannedDocument;
+            else if (e.Data.GetDataPresent("FileNo"))
+            {
+                var fileNo = e.Data.GetData("FileNo") as string;
+                if (!string.IsNullOrEmpty(fileNo))
+                {
+                    draggedDoc = capturerepository.ScannedBatches
+                        .SelectMany(b => b.Pages ?? Enumerable.Empty<ScannedDocument>())
+                        .FirstOrDefault(p => p.FileNo == fileNo);
+                }
+            }
+
+            if (draggedDoc == null)
+            {
+                e.Handled = true;
+                return;
+            }
+
+            Point dropPos = e.GetPosition(ScannedTreeView);
+            var hit = VisualTreeHelper.HitTest(ScannedTreeView, dropPos);
+            DependencyObject obj = hit?.VisualHit;
+
+            while (obj != null && !(obj is TreeViewItem))
+                obj = VisualTreeHelper.GetParent(obj);
+
+            TreeViewItem targetItem = obj as TreeViewItem;
+            ScannedDocument targetDoc = null;
+            ScanBatch targetBatch = null;
+
+            if (targetItem != null)
+            {
+                if (targetItem.DataContext is ScannedDocument sd)
+                    targetDoc = sd;
+                else if (targetItem.DataContext is ScanBatch sb)
+                    targetBatch = sb;
+            }
+
+            if (targetDoc == null && targetBatch != null)
+                targetDoc = targetBatch.Pages?.FirstOrDefault();
+
+            if (targetDoc == null)
+            {
+                e.Handled = true;
+                return;
+            }
+
+            if (draggedDoc.FileNo == targetDoc.FileNo)
+            {
+                e.Handled = true;
+                return;
+            }
+
+            string currentUser = SessionManager.CurrentUser.UserName;
+
+            try
+            {
+                capturerepository.DragDropDocumnet(draggedDoc, targetDoc, currentUser);
+
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Merge failed: " + ex.Message);
+            }
+
+            e.Handled = true;
+        }
+        private void ScannerSettings_Click(object sender, RoutedEventArgs e)
+        {
+            ScannerSettings win = new ScannerSettings();
+            win.Owner = this;           // optional → keeps window centered on parent
+            win.ShowDialog();           // modal dialog (same as VB6 "Show")
+        }
+    }
 }
