@@ -13,6 +13,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using static IMS.Data.Utilities.SessionManager;
@@ -30,6 +31,7 @@ namespace IMS.Data.Capture
         private Cabinet cabinet = new Cabinet();
         public int SelectedIndexId { get; private set; }
         public ScannedDocument CurrentDocument { get; set; }
+        private bool deleteAfterImport = false;
 
         public CaptureRepository()
         {
@@ -159,7 +161,7 @@ namespace IMS.Data.Capture
             }
 
             // Get table name for this index
-            string rootFolder = @"C:\IMS_Shared\Documnet_Import\";
+            string rootFolder = IMSPathHelper.ImportRoot;
             string tableName = GetCurrentTableName(); // existing method
             if (string.IsNullOrWhiteSpace(tableName)) return;
 
@@ -250,14 +252,13 @@ namespace IMS.Data.Capture
                 });
             }
         }
-        public void ImportFiles(IEnumerable<string> filePaths)
+        public string ImportFiles(IEnumerable<string> filePaths)
         {
             if (SelectedIndexId <= 0)
-                return;
+                return null;
 
 
-            string ImportFolder = @"C:\\IMS_Shared\Documnet_Import\";
-            Directory.CreateDirectory(ImportFolder);
+            string ImportFolder = IMSPathHelper.ImportRoot;
 
             var nodes = cabinet.GetAllNodes();
             TreeNode selectedNode = nodes.FirstOrDefault(n => n.IndexID == SelectedIndexId);
@@ -271,7 +272,7 @@ namespace IMS.Data.Capture
                 list = new ObservableCollection<ScanBatch>();
                 _batchesPerIndex[SelectedIndexId] = list;
             }
-
+            string lastImportedPath = null;
             foreach (var path in filePaths)
             {
                 if (string.IsNullOrWhiteSpace(path))
@@ -286,6 +287,12 @@ namespace IMS.Data.Capture
                 // Copy file into that folder
                 string destFilePath = Path.Combine(fileFolder, fileName);
                 File.Copy(path, destFilePath, true);
+
+                if (deleteAfterImport)
+                {
+                        File.Delete(path); 
+                }
+
                 var originalField = Fields.FirstOrDefault(f =>
                     f.ColName.Equals("OriginalFileName", StringComparison.OrdinalIgnoreCase));
                 if (originalField != null)
@@ -300,15 +307,16 @@ namespace IMS.Data.Capture
                     FileNo = fileNo,
                     PageNo = 1,
                     OriginalFileName = fileName,
-                    FullPath = path
+                    FullPath = destFilePath
                 };
                 batch.Pages.Add(page);
 
                 list.Add(batch);
                 ScannedBatches.Add(batch);
+                lastImportedPath = destFilePath;
             }
+            return lastImportedPath;
         }
-
         private (int fileId, string fileNo) InsertDocumentRow(int indexId, string originalFileName, string fullPath)
         {
             string tableName = cabinet.GetTableNameForIndex(indexId);
@@ -495,9 +503,7 @@ namespace IMS.Data.Capture
                 }
             }
         }
-
         //Archive 
-
         public void ArchiveSingleDocument(ScannedDocument doc, string currentUser)
         {
             if (doc == null || SelectedIndexId <= 0)
@@ -507,8 +513,8 @@ namespace IMS.Data.Capture
             if (string.IsNullOrWhiteSpace(tableName))
                 throw new Exception($"Table name not found for IndexID = {SelectedIndexId}");
 
-            string importRootPath = @"C:\IMS_Shared\Documnet_Import";
-            string archiveRootPath = @"C:\IMS_Shared\Documnet_Archive";
+            string importRootPath = IMSPathHelper.ImportRoot;
+            string archiveRootPath = IMSPathHelper.ArchiveRoot;
 
             string archiveTableFolderName = string.Join("_", tableName.Split(Path.GetInvalidFileNameChars()));
             string archiveTablePath = Path.Combine(archiveRootPath, archiveTableFolderName);
@@ -567,7 +573,6 @@ namespace IMS.Data.Capture
                     list.Remove(batch);
             }
         }
-
         public void ArchiveAllDocumentsInBasket(string currentUser)
         {
             if (SelectedIndexId <= 0 || ScannedBatches.Count == 0)
@@ -584,10 +589,10 @@ namespace IMS.Data.Capture
                 .ToList();
 
             if (allIds.Count == 0)
-                return;
+             return;
 
-            string importRootPath = @"C:\IMS_Shared\Documnet_Import";
-            string archiveRootPath = @"C:\IMS_Shared\Documnet_Archive";
+            string importRootPath = IMSPathHelper.ImportRoot;
+            string archiveRootPath = IMSPathHelper.ArchiveRoot;
             string sourceFolder = Path.Combine(importRootPath, tableName);
             string destFolder = Path.Combine(archiveRootPath, tableName);
 
@@ -676,7 +681,6 @@ namespace IMS.Data.Capture
             if (_batchesPerIndex.TryGetValue(SelectedIndexId, out var list))
                 list.Clear();
         }
-
         //Delete
         public bool HasDocumentsInBasket()
         {
@@ -696,8 +700,8 @@ namespace IMS.Data.Capture
             string tableName = GetCurrentTableName();
             if (string.IsNullOrWhiteSpace(tableName)) return;
 
-            string importRootPath = @"C:\IMS_Shared\Documnet_Import";
-            string DeleteRootPath = @"C:\IMS_Shared\Documnet_Delete";
+            string importRootPath = IMSPathHelper.ImportRoot;
+            string DeleteRootPath = IMSPathHelper.DeleteRoot;
 
             string DeleteTableFolderName = string.Join("_", tableName.Split(Path.GetInvalidFileNameChars()));
             string DeleteTablePath = Path.Combine(DeleteRootPath, DeleteTableFolderName);
@@ -783,8 +787,8 @@ namespace IMS.Data.Capture
             string tableName = GetCurrentTableName();
             if (string.IsNullOrWhiteSpace(tableName)) return;
 
-            string importRootPath = @"C:\IMS_Shared\Documnet_Import";
-            string DeleteRootPath = @"C:\IMS_Shared\Documnet_Delete";
+            string importRootPath = IMSPathHelper.ImportRoot;
+            string DeleteRootPath = IMSPathHelper.DeleteRoot;
             string sourceFolder = Path.Combine(importRootPath, tableName);
             string destFolder = Path.Combine(DeleteRootPath, tableName);
 
@@ -887,7 +891,7 @@ namespace IMS.Data.Capture
             if (string.IsNullOrWhiteSpace(tableName))
                 throw new Exception($"Table name not found for IndexID = {SelectedIndexId}");
 
-            string tableFolder = Path.Combine(@"C:\IMS_Shared\Documnet_Import", tableName);
+            string tableFolder = Path.Combine(IMSPathHelper.ImportRoot, tableName);
             if (!Directory.Exists(tableFolder))
                 throw new Exception("Table folder not found : " + tableFolder);
 
@@ -962,7 +966,7 @@ namespace IMS.Data.Capture
             if (string.IsNullOrWhiteSpace(tableName))
                 throw new Exception($"Table name not found for IndexID = {SelectedIndexId}");
 
-            string tableFolder = Path.Combine(@"C:\IMS_Shared\Documnet_Import", tableName);
+            string tableFolder = Path.Combine(IMSPathHelper.ImportRoot, tableName);
             string currentDocFolder = Path.Combine(tableFolder, doc.FileNo);
 
             if (!Directory.Exists(currentDocFolder))
@@ -1031,7 +1035,7 @@ namespace IMS.Data.Capture
             if (string.IsNullOrWhiteSpace(tableName))
                 throw new Exception($"Table name not found for IndexID = {SelectedIndexId}");
 
-            string tableFolder = Path.Combine(@"C:\IMS_Shared\Documnet_Import", tableName);
+            string tableFolder = Path.Combine(IMSPathHelper.ImportRoot, tableName);
 
             if (!Directory.Exists(tableFolder))
                 return;
@@ -1111,7 +1115,7 @@ namespace IMS.Data.Capture
             if (string.IsNullOrWhiteSpace(tableName))
                 return;
 
-            string tableFolder = Path.Combine(@"C:\IMS_Shared\Documnet_Import", tableName);
+            string tableFolder = Path.Combine(IMSPathHelper.ImportRoot, tableName);
             if (!Directory.Exists(tableFolder))
                 return;
 
@@ -1192,7 +1196,7 @@ namespace IMS.Data.Capture
         }
         public void NewBatchCreate()
         {
-            string baseBatchDir = @"C:\IMS_Shared\Batches";
+            string baseBatchDir = IMSPathHelper.BatchRoot;
 
             if (!Directory.Exists(baseBatchDir))
                 Directory.CreateDirectory(baseBatchDir);
@@ -1246,8 +1250,8 @@ namespace IMS.Data.Capture
             if (allIds.Count == 0)
                 return;
 
-            string importRootPath = @"C:\IMS_Shared\Documnet_Import";
-            string batchRootPath = @"C:\IMS_Shared\Batches";
+            string importRootPath = IMSPathHelper.ImportRoot;
+            string batchRootPath = IMSPathHelper.BatchRoot;
 
             string sourceFolder = Path.Combine(importRootPath, tableName);
             string cabinetFolder = Path.Combine(batchRootPath, tableName);
@@ -1336,8 +1340,8 @@ namespace IMS.Data.Capture
             if (string.IsNullOrWhiteSpace(tableName))
                 throw new Exception($"Table name not found for IndexID = {SelectedIndexId}");
 
-            string importRootPath = @"C:\IMS_Shared\Documnet_Import";
-            string batchRootPath = @"C:\IMS_Shared\Batches";
+            string importRootPath = IMSPathHelper.ImportRoot;
+            string batchRootPath = IMSPathHelper.BatchRoot;
 
             string batchFolder = Path.Combine(batchRootPath, tableName, batchName);
 
@@ -1394,8 +1398,8 @@ namespace IMS.Data.Capture
             if (string.IsNullOrWhiteSpace(tableName))
                 throw new Exception($"Table name not found for IndexID = {SelectedIndexId}");
 
-            string importRootPath = @"C:\IMS_Shared\Documnet_Import";
-            string batchRootPath = @"C:\IMS_Shared\Batches";
+            string importRootPath = IMSPathHelper.ImportRoot;
+            string batchRootPath = IMSPathHelper.BatchRoot;
 
             string cabinetFolder = Path.Combine(batchRootPath, tableName);
             string sourceFolder = Path.Combine(cabinetFolder, batchName);
@@ -1473,8 +1477,7 @@ namespace IMS.Data.Capture
             if (sourceDoc == null || SelectedIndexId <= 0)
                 return null;
 
-            string importFolder = @"C:\\IMS_Shared\Documnet_Import\";
-            Directory.CreateDirectory(importFolder);
+            string importFolder = IMSPathHelper.ImportRoot;
 
             var nodes = cabinet.GetAllNodes();
             TreeNode selectedNode = nodes.FirstOrDefault(n => n.IndexID == SelectedIndexId);
@@ -1532,8 +1535,9 @@ namespace IMS.Data.Capture
             if (string.IsNullOrWhiteSpace(tableName))
                 throw new Exception($"Table name not found for IndexID = {SelectedIndexId}");
 
-            string importRootPath = @"C:\IMS_Shared\Documnet_Import";
-            string ApproveRootPath = @"C:\IMS_Shared\Documnet_Approve";
+            string importRootPath = IMSPathHelper.ImportRoot;
+            string ApproveRootPath = IMSPathHelper.ApproveRoot;
+
 
             string ApproveTableFolderName = string.Join("_", tableName.Split(Path.GetInvalidFileNameChars()));
             string ApproveTablePath = Path.Combine(ApproveRootPath, ApproveTableFolderName);
@@ -1614,8 +1618,9 @@ namespace IMS.Data.Capture
             if (allIds.Count == 0)
                 return;
 
-            string importRootPath = @"C:\IMS_Shared\Documnet_Import";
-            string ApproveRootPath = @"C:\IMS_Shared\Documnet_Approve";
+            string importRootPath = IMSPathHelper.ImportRoot;
+            string ApproveRootPath = IMSPathHelper.ApproveRoot;
+
             string sourceFolder = Path.Combine(importRootPath, tableName);
             string destFolder = Path.Combine(ApproveRootPath, tableName);
             string destSubFolder = null;
@@ -1716,7 +1721,7 @@ namespace IMS.Data.Capture
             if (string.IsNullOrWhiteSpace(tableName))
                 throw new Exception($"Table name not found for IndexID = {SelectedIndexId}");
 
-            string tableFolder = Path.Combine(@"C:\IMS_Shared\Documnet_Import", tableName);
+            string tableFolder = Path.Combine(IMSPathHelper.ImportRoot, tableName);
 
             if (!Directory.Exists(tableFolder))
                 return;
@@ -1761,6 +1766,11 @@ namespace IMS.Data.Capture
                     list.Remove(batch);
             }
             LoadScannedBatchesFromFile(SelectedIndexId);
+        }
+      
+        public void DeleteDocumnetAfterImport(bool enable)
+        {
+            deleteAfterImport = enable;
         }
     }
 }

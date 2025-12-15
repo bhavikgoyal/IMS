@@ -42,63 +42,67 @@ namespace IMS
         }
         private void LoadComboBoxes()
         {
-            // combobox items already set in XAML resources — here we only set SelectedItem based on codes.
-
-            // Color
+            // Color (ascending)
             switch (ScannerColor)
             {
                 case 1: combColor.SelectedItem = "BlackAndWhite1Bit"; break;
-                case 5: combColor.SelectedItem = "TrueColor24bitRGB"; break;
-                case 3: combColor.SelectedItem = "Gray8Bit"; break;
                 case 2: combColor.SelectedItem = "Gray4Bit"; break;
+                case 3: combColor.SelectedItem = "Gray8Bit"; break;
                 case 4: combColor.SelectedItem = "ColorPal8Bit"; break;
+                case 5: combColor.SelectedItem = "TrueColor24bitRGB"; break;
                 case 6: combColor.SelectedItem = "ColorPal4Bit"; break;
                 default: combColor.SelectedItem = "BlackAndWhite1Bit"; break;
             }
 
-            // Display Type
+            // Display Type (ascending)
             switch (ScannerDisplayType)
             {
                 case 0: combDisplayType.SelectedItem = "BestDisplay"; break;
-                case 3: combDisplayType.SelectedItem = "CustomSettings"; break;
                 case 1: combDisplayType.SelectedItem = "GoodDisplay"; break;
                 case 2: combDisplayType.SelectedItem = "SmallestFile"; break;
+                case 3: combDisplayType.SelectedItem = "CustomSettings"; break;
                 default: combDisplayType.SelectedItem = "SmallestFile"; break;
             }
 
-            // Compression Type
+            // Compression Type (ascending)
             switch (ScannerCompressionType)
             {
+                case 0: combCompType.SelectedItem = "Uncompressed"; break;
                 case 1: combCompType.SelectedItem = "CCITTGroup31D"; break;
                 case 2: combCompType.SelectedItem = "CCITTGroup42D"; break;
+                case 4: combCompType.SelectedItem = "TIFFPackbits"; break;
                 case 8: combCompType.SelectedItem = "JPEGCompression"; break;
                 case 21: combCompType.SelectedItem = "LZWCompression"; break;
-                case 4: combCompType.SelectedItem = "TIFFPackbits"; break;
-                case 0: combCompType.SelectedItem = "Uncompressed"; break;
                 default: combCompType.SelectedItem = "CCITTGroup31D"; break;
             }
 
-            // Compression Info (includes negative codes for JPEG variants)
+            // Compression Info (ascending, negatives first)
             switch (ScannerCompressionInfo)
             {
-                case 6400: combCompInfo.SelectedItem = "G31DFax"; break;
-                case 2304: combCompInfo.SelectedItem = "G31DFaxRBO"; break;
+                case -28898: combCompInfo.SelectedItem = "JPEGHighHigh"; break;
+                case -25028: combCompInfo.SelectedItem = "JPEGHighMed"; break;
+                case -21158: combCompInfo.SelectedItem = "JPEGHighLow"; break;
+
+                case 0: combCompInfo.SelectedItem = "NoCompInfo"; break;
+                case 512: combCompInfo.SelectedItem = "G42DFaxRBO"; break;
+                case 3870: combCompInfo.SelectedItem = "JPEGLowHigh"; break;
                 case 4096: combCompInfo.SelectedItem = "G31DModifiedHuffman"; break;
                 case 4608: combCompInfo.SelectedItem = "G42DFax"; break;
-                case 512: combCompInfo.SelectedItem = "G42DFaxRBO"; break;
-                case -28898: combCompInfo.SelectedItem = "JPEGHighHigh"; break;
-                case -21158: combCompInfo.SelectedItem = "JPEGHighLow"; break;
-                case -25028: combCompInfo.SelectedItem = "JPEGHighMed"; break;
-                case 3870: combCompInfo.SelectedItem = "JPEGLowHigh"; break;
-                case 11610: combCompInfo.SelectedItem = "JPEGLowLow"; break;
+                case 6400: combCompInfo.SelectedItem = "G31DFax"; break;
                 case 7740: combCompInfo.SelectedItem = "JPEGLowMed"; break;
+                case 11610: combCompInfo.SelectedItem = "JPEGLowLow"; break;
                 case 20254: combCompInfo.SelectedItem = "JPEGMedHigh"; break;
-                case 27994: combCompInfo.SelectedItem = "JPEGMedLow"; break;
+                case 2304: combCompInfo.SelectedItem = "G31DFaxRBO"; break;
                 case 24124: combCompInfo.SelectedItem = "JPEGMedMed"; break;
-                case 0: combCompInfo.SelectedItem = "NoCompInfo"; break;
+                case 27994: combCompInfo.SelectedItem = "JPEGMedLow"; break;
+
                 default: combCompInfo.SelectedItem = "NoCompInfo"; break;
             }
         }
 
+        private void CloseButton_Click(object sender, RoutedEventArgs e)
+        {
+            this.Close();
+        }
     }
 }

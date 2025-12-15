@@ -233,7 +233,7 @@
           <MenuItem  x:Name="mnuDragDropMerge" Header="Enable Drag Drop Merge" IsCheckable="True" Click="mnuDragDropMerge_Click"/>
           <MenuItem Header="Approve Immediate" IsCheckable="True" IsChecked="True"/>
           <MenuItem Header="Import Each Folder As 1 Document" IsCheckable="True"/>
-          <MenuItem Header="Delete After Import" IsCheckable="True" IsChecked="True"/>
+          <MenuItem Header="Delete After Import" IsCheckable="True" IsChecked="False" Click="mnuDeleteAfterImport_Click"/>
         </MenuItem>
 
         <!-- Fields -->
@@ -285,7 +285,7 @@
           <MenuItem Header="Show Edit Dialog" InputGestureText="Shift+F1"/>
           <MenuItem Header="Save Annotations Without Burn In" InputGestureText="Shift+F2"/>
           <MenuItem Header="Burn In Annotations" InputGestureText="Shift+F3"/>
-          <MenuItem Header="Edit Annotations" InputGestureText="Shift+F4"/>
+          <MenuItem Header="Edit Annotations" InputGestureText="Shift+F4" Click="mnuEditAnnotations_Click"/>
           <MenuItem Header="Insert Predefined Text Annotations" InputGestureText="Shift+F5"/>
           <MenuItem Header="Show/Hide Annotations" InputGestureText="Shift+F6" IsCheckable="True" IsChecked="True"/>
           <MenuItem Header="Show All Layers" InputGestureText="Shift+F12"/>
@@ -365,7 +365,7 @@
             <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE8F4;" ToolTip="Record Without Document" Click="RecordWithoutDocument_Click"/>
             <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE74E;" ToolTip="Save Fields" Click="SaveFieldsButton_Click" />
             <Button Style="{StaticResource ToolBarIconButtonStyle}" FontFamily="Segoe MDL2 Assets" Content="&#xEA35;" ToolTip="Save Selected Field to All Document in Basket" Click="SaveSelectedFieldsToAllButton_Click"/>
-            <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE8AB;" ToolTip="Integrate"/>
+            <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE8AB;" ToolTip="Integrate" Click="IntegrateButton_Click"/>
             <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE7B8;" ToolTip="Send to Archive" Foreground="#00AA00" Click="SendToArchiveButton_Click" />
             <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xEC59;" ToolTip="Send to All Archive"  Click="SendAllToArchiveButton_Click"/>
             <Button Style="{StaticResource ToolBarIconButtonStyle}" Content="&#xE74D;" ToolTip="Delete All From Basket" Click="DeleteAllFromBasketButton_Click"/>
