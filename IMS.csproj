@@ -27,9 +27,12 @@
     <None Remove="Images\folder.png" />
     <None Remove="Images\folderdesign.png" />
     <None Remove="Images\group.png" />
-    <None Remove="Images\height.png" />
+    <None Remove="Images\height.png" />     
+    <None Remove="Images\ImageiDocs.jpg" />
+    <None Remove="Images\ImageWait.jpg" />
     <None Remove="Images\jpg.png" />
     <None Remove="Images\leftnext.png" />
+    <None Remove="Images\logo.jpg" />
     <None Remove="Images\logo.png" />
     <None Remove="Images\merge.png" />
     <None Remove="Images\mergeAll.png" />
@@ -83,9 +86,20 @@
     <Resource Include="Images\folderdesign.png" />
     <Resource Include="Images\group.png" />
     <Resource Include="Images\height.png" />
+    <Resource Include="Images\ImageiDocs.jpg">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Images\ImageWait.jpg">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="Images\jpg.png" />
     <Resource Include="Images\leftnext.png" />
-    <Resource Include="Images\logo.png" />
+    <Resource Include="Images\logo.jpg">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Images\logo.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="Images\merge.png" />
     <Resource Include="Images\mergeallicon.png" />
     <Resource Include="Images\pdf.png" />
