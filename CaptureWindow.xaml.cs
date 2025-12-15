@@ -6,15 +6,16 @@ using IMS.Models.DesignModel;
 using Microsoft.Win32;
 using System;
 using System.Collections.ObjectModel;
-using System.Windows.Media;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using static IMS.Data.Utilities.SessionManager;
 using static System.Net.WebRequestMethods;
-using System.Windows.Controls;
 
 
 namespace IMS
@@ -1246,5 +1247,48 @@ namespace IMS
             }
 
         }
-    }
+
+		private async void FromWeb_Click(object sender, RoutedEventArgs e)
+		{
+			if (capturerepository.SelectedIndexId <= 0)
+			{
+				MessageBox.Show(
+					"SELECT a Data Cabinet from the lower right tree view to be able to scan documents into this cabinet",
+					"IMS",
+					MessageBoxButton.OK,
+					MessageBoxImage.Information);
+				return;
+			}
+
+			// Hide document viewers
+			TextScrollViewer.Visibility = Visibility.Collapsed;
+			ImageScrollViewer.Visibility = Visibility.Collapsed;
+
+			// Show web
+			WebBrowserView.Visibility = Visibility.Visible;
+
+			if (WebBrowserView.CoreWebView2 == null)
+				await WebBrowserView.EnsureCoreWebView2Async();
+
+			string url = $"https://www.google.com/search";
+
+			WebBrowserView.CoreWebView2.Navigate(url);
+
+		}
+
+		private void FromExcel_Click(object sender, RoutedEventArgs e)
+		{
+			if (capturerepository.SelectedIndexId <= 0)
+			{
+				MessageBox.Show(
+					"SELECT a Data Cabinet from the lower right tree view to be able to scan documents into this cabinet",
+					"IMS",
+					MessageBoxButton.OK,
+					MessageBoxImage.Information);
+				return;
+			}
+
+		}
+
+	}
 }
