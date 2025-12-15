@@ -14,6 +14,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 using static IMS.Data.Utilities.SessionManager;
 using static System.Net.WebRequestMethods;
 
@@ -343,8 +344,7 @@ namespace IMS
             StatusLabel.Foreground = Brushes.Green;
             StatusLabel.Visibility = Visibility.Visible;
 
-            // hide after 2s
-            await Task.Delay(2000);
+            await Task.Delay(1000);
             StatusLabel.Visibility = Visibility.Collapsed;
 
         }
@@ -356,6 +356,11 @@ namespace IMS
         {
             SaveFieldsButton_Click(sender, e);
         }
+        private void mnuIntegrate_Click(object sender, RoutedEventArgs e)
+        {
+            SaveFieldsButton_Click(sender, e);
+        }
+
         private ScannedDocument GetCurrentSelectedDocument()
         {
             var item = ScannedTreeView.SelectedItem;
@@ -1000,14 +1005,44 @@ namespace IMS
                 return;
 
             string currentUser = SessionManager.CurrentUser.UserName;
-            capturerepository.ApproveSingleDocument(doc, currentUser);
+            capturerepository.SaveField(doc, currentUser);
 
+            // show
+            StatusLabel.Content = "Saved!";
+            StatusLabel.Foreground = Brushes.Green;
+            StatusLabel.Visibility = Visibility.Visible;
+
+            await Task.Delay(1000);
+            StatusLabel.Visibility = Visibility.Collapsed;
+
+            capturerepository.ApproveSingleDocument(doc, currentUser);
             StatusLabel.Content = "Approved!";
             StatusLabel.Foreground = Brushes.Red;
             StatusLabel.Visibility = Visibility.Visible;
-            await Task.Delay(2000);
+            await Task.Delay(1000);
             StatusLabel.Visibility = Visibility.Collapsed;
 
+            var firstDoc = capturerepository.ScannedBatches
+                .SelectMany(b => b.Pages)
+                .FirstOrDefault();
+
+            if (firstDoc != null && !string.IsNullOrEmpty(firstDoc.FullPath))
+            {
+                LoadDocumentToViewer(firstDoc.FullPath);
+                var originalField = capturerepository.Fields
+                .FirstOrDefault(f => f.ColName.Equals(
+                 "OriginalFileName",
+                 StringComparison.OrdinalIgnoreCase));
+
+                if (originalField != null)
+                    originalField.Value = firstDoc.OriginalFileName;
+                capturerepository.CurrentDocument = firstDoc;
+            }
+            else
+            {
+                DocumentImageViewer.Source = null;
+                DocumentTextViewer.Text = string.Empty;
+            }
         }
         private async void mnuApproveAll_click(Object sender, RoutedEventArgs e)
         {
@@ -1026,11 +1061,11 @@ namespace IMS
 
             string currentUser = SessionManager.CurrentUser.UserName;
             capturerepository.ApproveAllDocument(currentUser);
-
+            SaveFieldsButton_Click(sender, e);
             StatusLabel.Content = "Approved!";
             StatusLabel.Foreground = Brushes.Red;
             StatusLabel.Visibility = Visibility.Visible;
-            await Task.Delay(2000);
+            await Task.Delay(1000);
             StatusLabel.Visibility = Visibility.Collapsed;
 
         }
