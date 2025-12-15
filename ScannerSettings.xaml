@@ -101,7 +101,7 @@
                   Width="36" Height="28"
                   Margin="0,5,8,5"
                   Background="Transparent" BorderThickness="0"
-                  Cursor="Hand" ToolTip="Close">
+                  Cursor="Hand" ToolTip="Close" Click="CloseButton_Click">
             <TextBlock Text="✕" FontSize="14" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
           </Button>
         </Grid>

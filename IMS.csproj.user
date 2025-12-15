@@ -2,6 +2,9 @@
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup />
   <ItemGroup>
+    <Compile Update="AnnotationWindow.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="AuthorityWindow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -23,6 +26,9 @@
     <Compile Update="ListFieldOrderDialog.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="LoaderControl.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="LoginWindow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -36,6 +42,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="ReservedUsersInfoWindow.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="ScannerSettings.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="SimpleSearchWindow.xaml.cs">

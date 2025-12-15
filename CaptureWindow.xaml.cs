@@ -32,6 +32,7 @@ namespace IMS
         private string storedFileNo;
         private Point dragStartPoint;
         private object dragItem;
+       
         public CaptureWindow()
         {
             InitializeComponent();
@@ -120,6 +121,11 @@ namespace IMS
                 mnuSaveFields_Click(sender, e);
                 e.Handled = true;
             }
+            if (Keyboard.Modifiers == ModifierKeys.Shift && e.Key == Key.F4)
+            {
+                mnuEditAnnotations_Click(sender, e);
+                e.Handled = true;
+            }
         }
         private void MaximizeRestoreButton_Click(object sender, RoutedEventArgs e)
         {
@@ -184,9 +190,12 @@ namespace IMS
 
             if (result == true)
             {
-                capturerepository.ImportFiles(dialog.FileNames);
+                string newPath = capturerepository.ImportFiles(dialog.FileNames);
+                if (!string.IsNullOrWhiteSpace(newPath))
+                {
+                    LoadDocumentToViewer(newPath);
+                }
 
-                LoadDocumentToViewer(dialog.FileName);
             }
         }
 
@@ -342,6 +351,10 @@ namespace IMS
         private void SaveSelectedFieldsToAllButton_Click(object sender, RoutedEventArgs e)
         {
 
+        }
+        private void IntegrateButton_Click(object sender, RoutedEventArgs e)
+        {
+            SaveFieldsButton_Click(sender, e);
         }
         private ScannedDocument GetCurrentSelectedDocument()
         {
@@ -1086,7 +1099,6 @@ namespace IMS
             else
                 storedFileNo = null;
         }
-
         private TreeViewItem GetTreeViewItemUnderMouse(object source)
         {
             DependencyObject obj = source as DependencyObject;
@@ -1094,7 +1106,6 @@ namespace IMS
                 obj = VisualTreeHelper.GetParent(obj);
             return obj as TreeViewItem;
         }
-
         private void ScannedTreeView_PreviewMouseMove(object sender, MouseEventArgs e)
         {
             if (!mnuDragDropMerge.IsChecked)
@@ -1130,7 +1141,6 @@ namespace IMS
             dragItem = null;
             storedFileNo = null;
         }
-
         private void ScannedTreeView_PreviewDragOver(object sender, DragEventArgs e)
         {
             if (!mnuDragDropMerge.IsChecked)
@@ -1146,7 +1156,6 @@ namespace IMS
 
             e.Handled = true;
         }
-
         private void ScannedTreeView_Drop(object sender, DragEventArgs e)
         {
             ScannedDocument draggedDoc = null;
@@ -1221,8 +1230,22 @@ namespace IMS
         private void ScannerSettings_Click(object sender, RoutedEventArgs e)
         {
             ScannerSettings win = new ScannerSettings();
-            win.Owner = this;           // optional → keeps window centered on parent
-            win.ShowDialog();           // modal dialog (same as VB6 "Show")
+            win.Owner = this;          
+            win.ShowDialog();          
+        }
+        private void mnuEditAnnotations_Click(object sender, RoutedEventArgs e)
+        {
+            AnnotationWindow win = new AnnotationWindow();
+            win.Owner = this;           
+            win.ShowDialog();          
+        }
+        private void mnuDeleteAfterImport_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is MenuItem menu)
+            {
+                capturerepository.DeleteDocumnetAfterImport(menu.IsChecked);
+            }
+
         }
 
 		private async void FromWeb_Click(object sender, RoutedEventArgs e)

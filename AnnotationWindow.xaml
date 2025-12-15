@@ -1,0 +1,141 @@
+﻿<Window x:Class="IMS.AnnotationWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Annotation Settings"
+        Width="640"
+        Height="360"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="NoResize"
+        Background="#F6F6EE">
+
+  <!-- ROOT CONTAINER (IMPORTANT) -->
+  <Grid>
+    <!-- MAIN BORDER -->
+    <Border Margin="10"
+                CornerRadius="6"
+                Background="White"
+                BorderBrush="#CFCFCF"
+                BorderThickness="1">
+
+      <Grid Margin="15">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="*"/>
+          <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+          <Image Source="/Images/ImageiDocs.jpg"
+                           Width="45"
+                           Height="37"
+                           Margin="-11,-12,0,0"
+                           HorizontalAlignment="Left"/>
+        </StackPanel>
+
+        <!-- Content -->
+        <Grid Grid.Row="1">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="156"/>
+            <ColumnDefinition Width="168"/>
+            <ColumnDefinition/>
+          </Grid.ColumnDefinitions>
+
+          <Grid.RowDefinitions>
+            <RowDefinition Height="32"/>
+            <RowDefinition Height="32"/>
+            <RowDefinition Height="32"/>
+            <RowDefinition Height="32"/>
+            <RowDefinition Height="32"/>
+          </Grid.RowDefinitions>
+
+          <!-- Left side -->
+          <TextBlock Text="Annotation Color" Grid.Column="0" VerticalAlignment="Center" Height="16" FontWeight="Bold"/>
+          <ComboBox x:Name="cmbAnnColor" Grid.Row="0" Grid.Column="1" Margin="0,4,0,4">
+            <ComboBoxItem Content="Black"/>
+            <ComboBoxItem Content="Blue"/>
+            <ComboBoxItem Content="Green"/>
+            <ComboBoxItem Content="Red"/>
+            <ComboBoxItem Content="Yellow"/>
+          </ComboBox>
+
+          <TextBlock Text="Ann Fill Color" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Height="16" FontWeight="Bold"/>
+          <ComboBox x:Name="cmbFillColor" Grid.Row="1" Grid.Column="1" Margin="0,4,0,4">
+            <ComboBoxItem Content="Black"/>
+            <ComboBoxItem Content="Blue"/>
+            <ComboBoxItem Content="Green"/>
+            <ComboBoxItem Content="Red"/>
+            <ComboBoxItem Content="Yellow"/>
+          </ComboBox>
+
+          <TextBlock Text="Ann Bold" Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Height="16" FontWeight="Bold"/>
+          <ComboBox x:Name="cmbBold" Grid.Row="2" Grid.Column="1" Margin="0,4,0,4">
+            <ComboBoxItem Content="True"/>
+            <ComboBoxItem Content="False"/>
+          </ComboBox>
+
+          <TextBlock Text="X Location" Grid.Row="3" Grid.Column="0" VerticalAlignment="Center" Height="16" FontWeight="Bold"/>
+          <TextBox x:Name="txtX" Grid.Row="3" Grid.Column="1" Text="200" Margin="0,4,0,4"/>
+
+          <TextBlock Text="Annotation Text" Grid.Row="4" Grid.Column="0" VerticalAlignment="Center" Height="16" FontWeight="Bold"/>
+          <TextBox x:Name="txtAnnotationText"
+                             Grid.Row="4"
+                             Grid.Column="1"
+                             Grid.ColumnSpan="2"
+                             Text="Approved By" Margin="0,4,0,4"/>
+
+          <!-- Right side -->
+          <TextBlock Text="Ann. Font Name" Grid.Column="2" Margin="20,0,0,0" VerticalAlignment="Center" Height="16" FontWeight="Bold"/>
+          <ComboBox x:Name="cmbFontName" Grid.Row="0" Grid.Column="2" Margin="140,4,0,4">
+            <ComboBoxItem Content="Tahoma"/>
+            <ComboBoxItem Content="Arial"/>
+            <ComboBoxItem Content="Andalus"/>
+            <ComboBoxItem Content="Courier"/>
+            <ComboBoxItem Content="Simplified Arabic"/>
+            
+          </ComboBox>
+
+          <TextBlock Text="Ann Transparency" Grid.Row="1" Grid.Column="2" Margin="20,0,0,0" VerticalAlignment="Center" Height="16" FontWeight="Bold"/>
+          <ComboBox x:Name="cmbTransparency" Grid.Row="1" Grid.Column="2" Margin="140,4,0,4">
+          <ComboBoxItem Content="Black"/>
+          <ComboBoxItem Content="Blue"/>
+          <ComboBoxItem Content="Green"/>
+          <ComboBoxItem Content="Red"/>
+          <ComboBoxItem Content="Yellow"/>
+          </ComboBox>
+
+          <TextBlock Text="Ann. Font Size" Grid.Row="2" Grid.Column="2" Margin="20,0,0,0" VerticalAlignment="Center" Height="16" FontWeight="Bold"/>
+          <ComboBox x:Name="cmbFontSize" Grid.Row="2" Grid.Column="2" Margin="140,4,0,4">
+            <ComboBoxItem Content="10"/>
+            <ComboBoxItem Content="12"/>
+            <ComboBoxItem Content="14"/>
+            <ComboBoxItem Content="16" IsSelected="True"/>
+            <ComboBoxItem Content="6"/>
+            <ComboBoxItem Content="8"/>
+          </ComboBox>
+
+          <TextBlock Text="Y Location" Grid.Row="3" Grid.Column="2" Margin="20,0,0,0" VerticalAlignment="Center" Height="16" FontWeight="Bold"/>
+          <TextBox x:Name="txtY" Grid.Row="3" Grid.Column="2" Margin="140,4,0,4" Text="50"/>
+        </Grid>
+
+        <!-- Save Button -->
+        <Border Grid.Row="2"
+                        Height="48"
+                        Width="220"
+                        Margin="0,20,0,0"
+                        HorizontalAlignment="Center"
+                        Background="#8DBA2D"
+                        CornerRadius="4">
+          <Button Content="Save"
+                            FontSize="20"
+                            FontWeight="Bold"
+                            Foreground="White"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Click="Save_Click"/>
+        </Border>
+
+      </Grid>
+    </Border>
+  </Grid>
+</Window>
