@@ -246,7 +246,7 @@
           <MenuItem Header="Select All Fields" InputGestureText="Ctrl+F"/>
           <MenuItem Header="Save To MS Word" InputGestureText="Ctrl+W"/>
           <MenuItem Header="Undo Save To Word" InputGestureText="Ctrl+Z"/>
-          <MenuItem Header="Integrate" InputGestureText="F12"/>
+          <MenuItem Header="Integrate" InputGestureText="F12" Click="mnuIntegrate_Click"/>
           <MenuItem Header="Partial Integration"/>
           <MenuItem Header="Bring First Value"/>
           <MenuItem Header="Set Focus On Current Selected Field"/>
