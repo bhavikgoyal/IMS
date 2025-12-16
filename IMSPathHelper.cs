@@ -23,9 +23,6 @@ namespace IMS.Data.Utilities
         public static string ImportRoot
             => EnsureRootFolder("Documnet_Import");
 
-        public static string ArchiveRoot
-            => EnsureRootFolder("Documnet_Archive");
-
         public static string DeleteRoot
             => EnsureRootFolder("Documnet_Delete");
 

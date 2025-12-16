@@ -195,7 +195,7 @@
           <MenuItem Header="From Clip Board"/>
           <MenuItem Header="From Web" Click="FromWeb_Click"/>
           <MenuItem Header="Import Tiff"/>
-          <MenuItem Header="Record Only" InputGestureText="F5"/>
+          <MenuItem Header="Record Only" InputGestureText="F5" Click="mnuRecordOnly_Click"/>
           <MenuItem Header="Scan Into"/>
           <MenuItem Header="Show Scanner Dialog"/>
           <MenuItem Header="Change Scanner"/>
