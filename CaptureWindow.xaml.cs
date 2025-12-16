@@ -1,12 +1,8 @@
-﻿using IMS.Data.Authority;
-using IMS.Data.Capture;
+﻿using IMS.Data.Capture;
 using IMS.Data.Utilities;
 using IMS.Models.CaptureModel;
 using IMS.Models.DesignModel;
-using Microsoft.Win32;
-using System;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Windows;
@@ -14,9 +10,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Threading;
 using static IMS.Data.Utilities.SessionManager;
-using static System.Net.WebRequestMethods;
 
 
 namespace IMS
@@ -33,7 +27,7 @@ namespace IMS
         private string storedFileNo;
         private Point dragStartPoint;
         private object dragItem;
-       
+
         public CaptureWindow()
         {
             InitializeComponent();
@@ -214,7 +208,7 @@ namespace IMS
                 return;
             }
 
-            var ext = Path.GetExtension(path)?.ToLowerInvariant();
+            var ext = System.IO.Path.GetExtension(path)?.ToLowerInvariant();
 
             if (ext == ".txt" || ext == ".log" || ext == ".sql" ||
                 ext == ".cs" || ext == ".vb" || ext == ".html" ||
@@ -241,6 +235,7 @@ namespace IMS
                 bmp.Freeze();
 
                 DocumentImageViewer.Source = bmp;
+
             }
             else
             {
@@ -296,7 +291,6 @@ namespace IMS
         }
         private void RecordWithoutDocument_Click(object sender, RoutedEventArgs e)
         {
-
             if (capturerepository.SelectedIndexId <= 0)
             {
                 MessageBox.Show(
@@ -307,19 +301,30 @@ namespace IMS
                 return;
             }
 
-            var currentUser = IMS.Data.Utilities.SessionManager.CurrentUser.UserName;
+            string path;
+            var currentUser = CurrentUser.UserName;
 
-            var batch = capturerepository.CreateRecordWithoutDocument(currentUser);
+            var batch = capturerepository.CreateRecordWithoutDocument(currentUser, out path);
+            if (batch == null)
+                return;
 
-            if (batch != null)
-            {
-                MessageBox.Show(
-                    "Record created successfully (blank image page).",
-                    "IMS",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
-            }
+            var doc = batch.Pages.FirstOrDefault();
+            if (doc == null)
+                return;
+
+            LoadDocumentToViewer(doc.FullPath);
+
+            var originalField = capturerepository.Fields
+                .FirstOrDefault(f => f.ColName.Equals(
+                    "OriginalFileName",
+                    StringComparison.OrdinalIgnoreCase));
+
+            if (originalField != null)
+                originalField.Value = doc.OriginalFileName; 
+
+            capturerepository.CurrentDocument = doc;
         }
+
         private async void SaveFieldsButton_Click(object sender, RoutedEventArgs e)
         {
             var doc = GetCurrentSelectedDocument();
@@ -336,7 +341,7 @@ namespace IMS
             if (result != MessageBoxResult.Yes)
                 return;
 
-            string currentUser = SessionManager.CurrentUser.UserName;
+            string currentUser = CurrentUser.UserName;
             capturerepository.SaveField(doc, currentUser);
 
             // show
@@ -344,7 +349,7 @@ namespace IMS
             StatusLabel.Foreground = Brushes.Green;
             StatusLabel.Visibility = Visibility.Visible;
 
-            await Task.Delay(1000);
+            await Task.Delay(300);
             StatusLabel.Visibility = Visibility.Collapsed;
 
         }
@@ -375,41 +380,12 @@ namespace IMS
         }
         private void SendToArchiveButton_Click(object sender, RoutedEventArgs e)
         {
-            var doc = GetCurrentSelectedDocument();
-
-            if (doc == null)
-                return;
-
-            var result = MessageBox.Show(
-                "Are you sure you want to send selected document to archive?",
-                "IMS",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Question);
-
-            if (result != MessageBoxResult.Yes)
-                return;
-
-            string currentUser = SessionManager.CurrentUser.UserName;
-            capturerepository.ArchiveSingleDocument(doc, currentUser);
+            mnuApproveDocument_Click(sender, e);
 
         }
         private void SendAllToArchiveButton_Click(object sender, RoutedEventArgs e)
         {
-            if (capturerepository.ScannedBatches == null ||
-        capturerepository.ScannedBatches.Count == 0)
-                return;
-
-            var result = MessageBox.Show(
-                "Are you sure you want to send all documents in the current basket to archive?",
-                "IMS",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Question);
-
-            if (result != MessageBoxResult.Yes)
-                return;
-
-            string currentUser = SessionManager.CurrentUser.UserName;
-            capturerepository.ArchiveAllDocumentsInBasket(currentUser);
+            mnuApproveAll_click(sender, e);
         }
         private void ClearCurrentDocumentView()
         {
@@ -626,7 +602,7 @@ namespace IMS
             if (res != MessageBoxResult.Yes)
                 return;
 
-            string currentUser = SessionManager.CurrentUser.UserName;
+            string currentUser = CurrentUser.UserName;
             capturerepository.MergeSingleDocument(doc, currentUser);
         }
         public void MergeAllDocument_Click(object sender, RoutedEventArgs e)
@@ -644,7 +620,7 @@ namespace IMS
             if (result != MessageBoxResult.Yes)
                 return;
 
-            string currentUser = SessionManager.CurrentUser.UserName;
+            string currentUser = CurrentUser.UserName;
             capturerepository.MergeDocumnetAll(currentUser);
         }
         private void ZoomInButton_Click(object sender, RoutedEventArgs e)
@@ -1004,18 +980,20 @@ namespace IMS
             if (result != MessageBoxResult.Yes)
                 return;
 
-            string currentUser = SessionManager.CurrentUser.UserName;
-            capturerepository.SaveField(doc, currentUser);
+            string currentUser = CurrentUser.UserName;
+            capturerepository.ApproveSingleDocument(doc, currentUser);
 
+            TextScrollViewer.Visibility = Visibility.Collapsed;
+            ImageScrollViewer.Visibility = Visibility.Collapsed;
             // show
             StatusLabel.Content = "Saved!";
             StatusLabel.Foreground = Brushes.Green;
             StatusLabel.Visibility = Visibility.Visible;
 
-            await Task.Delay(1000);
+            await Task.Delay(300);
             StatusLabel.Visibility = Visibility.Collapsed;
 
-            capturerepository.ApproveSingleDocument(doc, currentUser);
+            
             StatusLabel.Content = "Approved!";
             StatusLabel.Foreground = Brushes.Red;
             StatusLabel.Visibility = Visibility.Visible;
@@ -1059,10 +1037,14 @@ namespace IMS
             if (result != MessageBoxResult.Yes)
                 return;
 
-            string currentUser = SessionManager.CurrentUser.UserName;
+            TextScrollViewer.Visibility = Visibility.Collapsed;
+            ImageScrollViewer.Visibility = Visibility.Collapsed;
+
+            string currentUser = CurrentUser.UserName;
             capturerepository.ApproveAllDocument(currentUser);
             SaveFieldsButton_Click(sender, e);
             StatusLabel.Content = "Approved!";
+
             StatusLabel.Foreground = Brushes.Red;
             StatusLabel.Visibility = Visibility.Visible;
             await Task.Delay(1000);
@@ -1248,7 +1230,7 @@ namespace IMS
                 return;
             }
 
-            string currentUser = SessionManager.CurrentUser.UserName;
+            string currentUser = CurrentUser.UserName;
 
             try
             {
@@ -1265,14 +1247,14 @@ namespace IMS
         private void ScannerSettings_Click(object sender, RoutedEventArgs e)
         {
             ScannerSettings win = new ScannerSettings();
-            win.Owner = this;          
-            win.ShowDialog();          
+            win.Owner = this;
+            win.ShowDialog();
         }
         private void mnuEditAnnotations_Click(object sender, RoutedEventArgs e)
         {
             AnnotationWindow win = new AnnotationWindow();
-            win.Owner = this;           
-            win.ShowDialog();          
+            win.Owner = this;
+            win.ShowDialog();
         }
         private void mnuDeleteAfterImport_Click(object sender, RoutedEventArgs e)
         {
@@ -1283,47 +1265,51 @@ namespace IMS
 
         }
 
-		private async void FromWeb_Click(object sender, RoutedEventArgs e)
-		{
-			if (capturerepository.SelectedIndexId <= 0)
-			{
-				MessageBox.Show(
-					"SELECT a Data Cabinet from the lower right tree view to be able to scan documents into this cabinet",
-					"IMS",
-					MessageBoxButton.OK,
-					MessageBoxImage.Information);
-				return;
-			}
+        private async void FromWeb_Click(object sender, RoutedEventArgs e)
+        {
+            if (capturerepository.SelectedIndexId <= 0)
+            {
+                MessageBox.Show(
+                    "SELECT a Data Cabinet from the lower right tree view to be able to scan documents into this cabinet",
+                    "IMS",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                return;
+            }
 
-			// Hide document viewers
-			TextScrollViewer.Visibility = Visibility.Collapsed;
-			ImageScrollViewer.Visibility = Visibility.Collapsed;
+            // Hide document viewers
+            TextScrollViewer.Visibility = Visibility.Collapsed;
+            ImageScrollViewer.Visibility = Visibility.Collapsed;
 
-			// Show web
-			WebBrowserView.Visibility = Visibility.Visible;
+            // Show web
+            WebBrowserView.Visibility = Visibility.Visible;
 
-			if (WebBrowserView.CoreWebView2 == null)
-				await WebBrowserView.EnsureCoreWebView2Async();
+            if (WebBrowserView.CoreWebView2 == null)
+                await WebBrowserView.EnsureCoreWebView2Async();
 
-			string url = $"https://www.google.com/search";
+            string url = $"https://www.google.com/search";
 
-			WebBrowserView.CoreWebView2.Navigate(url);
+            WebBrowserView.CoreWebView2.Navigate(url);
 
-		}
+        }
 
-		private void FromExcel_Click(object sender, RoutedEventArgs e)
-		{
-			if (capturerepository.SelectedIndexId <= 0)
-			{
-				MessageBox.Show(
-					"SELECT a Data Cabinet from the lower right tree view to be able to scan documents into this cabinet",
-					"IMS",
-					MessageBoxButton.OK,
-					MessageBoxImage.Information);
-				return;
-			}
+        private void FromExcel_Click(object sender, RoutedEventArgs e)
+        {
+            if (capturerepository.SelectedIndexId <= 0)
+            {
+                MessageBox.Show(
+                    "SELECT a Data Cabinet from the lower right tree view to be able to scan documents into this cabinet",
+                    "IMS",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                return;
+            }
 
-		}
+        }
+        private void mnuRecordOnly_Click(object sender, RoutedEventArgs e)
+        {
+            RecordWithoutDocument_Click(sender, e);
 
-	}
+        }
+}
 }
