@@ -296,6 +296,61 @@ namespace IMS.Data.Capture
             }
             return lastImportedPath;
         }
+        public void LoadFieldValuesForDocument(ScannedDocument doc)
+        {
+            if (doc == null || SelectedIndexId <= 0)
+                return;
+
+            string tableName = cabinet.GetTableName(SelectedIndexId);
+            if (string.IsNullOrWhiteSpace(tableName))
+                return;
+
+            using (SqlConnection conn = DatabaseHelper.GetConnection())
+            {
+                conn.Open();
+
+                string sql = $@"
+            SELECT *
+            FROM [{tableName}]
+            WHERE ES_FileName = @FileNo";   
+
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@FileNo", doc.FileNo);
+
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (!reader.Read())
+                            return;
+
+                        foreach (var field in Fields)
+                        {
+                            if (string.IsNullOrWhiteSpace(field.ColName))
+                                continue;
+
+                            // check column exist
+                            bool hasColumn = false;
+                            for (int i = 0; i < reader.FieldCount; i++)
+                            {
+                                if (reader.GetName(i)
+                                          .Equals(field.ColName, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    hasColumn = true;
+                                    break;
+                                }
+                            }
+
+                            if (!hasColumn)
+                                continue;
+
+                            object val = reader[field.ColName];
+                            field.Value = val == DBNull.Value ? string.Empty : val.ToString();
+                        }
+                    }
+                }
+            }
+        }
+
         private (int fileId, string fileNo, string folderPath) InsertDocumentRow(int indexId, string originalFileName, string fullPath)
         {
             string tableName = cabinet.GetTableNameForIndex(indexId);
@@ -382,27 +437,114 @@ namespace IMS.Data.Capture
             {
                 conn.Open();
 
-                string sql = $@"
-                    UPDATE [{tableName}]
-                    SET 
-                        ES_NewRecord   = 1,
-                        ES_SavedBy = @User,
-                        ES_SavedDate = GETDATE(),
-                        ES_SavedTime = CONVERT(varchar(8), GETDATE(), 108)
-                    WHERE ES_FileID    = @FileNo;";
+                foreach (var field in Fields)
+                {
+                    // skip empty / readonly fields
+                    if (string.IsNullOrWhiteSpace(field.ColName))
+                        continue;
 
-                using (SqlCommand cmd = new SqlCommand(sql, conn))
+                    string sql = $@"
+                UPDATE [{tableName}]
+                SET [{field.ColName}] = @Value
+                WHERE ES_FileName = @FileNo";
+
+                    using (SqlCommand cmd = new SqlCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue(
+                            "@Value",
+                            string.IsNullOrWhiteSpace(field.Value)
+                                ? (object)DBNull.Value
+                                : field.Value);
+
+                        cmd.Parameters.AddWithValue("@FileNo", doc.FileNo);
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+
+                // metadata save (already existing logic)
+                string metaSql = $@"
+            UPDATE [{tableName}]
+            SET 
+                ES_NewRecord = 1,
+                ES_SavedBy   = @User,
+                ES_SavedDate = GETDATE(),
+                ES_SavedTime = CONVERT(varchar(8), GETDATE(), 108)
+            WHERE ES_FileName = @FileNo";
+
+                using (SqlCommand cmd = new SqlCommand(metaSql, conn))
                 {
                     cmd.Parameters.AddWithValue("@FileNo", doc.FileNo);
                     cmd.Parameters.AddWithValue("@User",
                         string.IsNullOrEmpty(currentUser) ? (object)DBNull.Value : currentUser);
-
                     cmd.ExecuteNonQuery();
                 }
             }
         }
+
+        public void SaveSelectedFieldsToAll(ScannedDocument doc, string currentUser)
+        {
+            if (SelectedIndexId <= 0)
+                return;
+
+            string tableName = cabinet.GetTableName(SelectedIndexId);
+            if (string.IsNullOrWhiteSpace(tableName))
+                throw new Exception($"Table name not found for IndexID = {SelectedIndexId}");
+
+            var allDocs = ScannedBatches
+                .SelectMany(b => b.Pages)
+                .ToList();
+
+            using (SqlConnection conn = DatabaseHelper.GetConnection())
+            {
+                conn.Open();
+
+                foreach (var d in allDocs)
+                {
+                    foreach (var field in Fields)
+                    {
+                        if (!field.IsChecked)
+                            continue;
+
+                        if (string.IsNullOrWhiteSpace(field.ColName))
+                            continue;
+
+                        string sql = $@"
+                        UPDATE [{tableName}]
+                        SET [{field.ColName}] = @Value
+                        WHERE ES_FileName = @FileNo";
+
+                        using (SqlCommand cmd = new SqlCommand(sql, conn))
+                        {
+                            cmd.Parameters.AddWithValue(
+                                "@Value", string.IsNullOrWhiteSpace(field.Value)? (object)DBNull.Value : field.Value);
+                            cmd.Parameters.AddWithValue("@FileNo", d.FileNo);
+                            cmd.ExecuteNonQuery();
+                        }
+                    }
+
+                    string saveall = $@"
+                    UPDATE [{tableName}]
+                    SET 
+                        ES_NewRecord = 1,
+                        ES_SavedBy   = @User,
+                        ES_SavedDate = GETDATE(),
+                        ES_SavedTime = CONVERT(varchar(8), GETDATE(), 108)
+                    WHERE ES_FileName = @FileNo";
+
+                    using (SqlCommand cmd = new SqlCommand(saveall, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@FileNo", d.FileNo);
+                        cmd.Parameters.AddWithValue("@User",
+                            string.IsNullOrEmpty(currentUser) ? (object)DBNull.Value : currentUser);
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+            }
+        }
+
         public ScanBatch CreateRecordWithoutDocument(string currentUser, out string createdPath)
         {
+           
             createdPath = null;
             if (SelectedIndexId <= 0)
                 return null;

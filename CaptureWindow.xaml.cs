@@ -11,6 +11,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using static IMS.Data.Utilities.SessionManager;
+using static System.Net.WebRequestMethods;
 
 
 namespace IMS
@@ -119,6 +120,11 @@ namespace IMS
             if (Keyboard.Modifiers == ModifierKeys.Shift && e.Key == Key.F4)
             {
                 mnuEditAnnotations_Click(sender, e);
+                e.Handled = true;
+            }
+            if (Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.F5)
+            {
+                mnuRecordOnly_Click(sender, e);
                 e.Handled = true;
             }
         }
@@ -252,11 +258,8 @@ namespace IMS
             {
                 LoadDocumentToViewer(doc.FullPath);
 
-                var originalField = capturerepository.Fields
-                    .FirstOrDefault(f => f.ColName.Equals("OriginalFileName",
-                                  StringComparison.OrdinalIgnoreCase));
-                if (originalField != null)
-                    originalField.Value = doc.OriginalFileName;
+                capturerepository.LoadFieldValuesForDocument(doc);
+
                 capturerepository.CurrentDocument = doc;
             }
         }
@@ -300,7 +303,7 @@ namespace IMS
                     MessageBoxImage.Information);
                 return;
             }
-
+            ClearCurrentDocumentView();
             string path;
             var currentUser = CurrentUser.UserName;
 
@@ -353,9 +356,31 @@ namespace IMS
             StatusLabel.Visibility = Visibility.Collapsed;
 
         }
-        private void SaveSelectedFieldsToAllButton_Click(object sender, RoutedEventArgs e)
+        private async void SaveSelectedFieldsToAllButton_Click(object sender, RoutedEventArgs e)
         {
+            var doc = GetCurrentSelectedDocument();
 
+            if (doc == null)
+                return;
+            var result = MessageBox.Show(
+                "Are You Sure You Want To Apply Selected Field Values to All DocumentsIn The Current Basket?",
+                "IMS",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (result != MessageBoxResult.Yes)
+                return;
+
+            string currentUser = CurrentUser.UserName;
+            capturerepository.SaveSelectedFieldsToAll(doc, currentUser);
+
+            // show
+            StatusLabel.Content = "Saved!";
+            StatusLabel.Foreground = Brushes.Green;
+            StatusLabel.Visibility = Visibility.Visible;
+
+            await Task.Delay(300);
+            StatusLabel.Visibility = Visibility.Collapsed;
         }
         private void IntegrateButton_Click(object sender, RoutedEventArgs e)
         {
