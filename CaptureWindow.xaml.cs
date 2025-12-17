@@ -27,6 +27,8 @@ namespace IMS
         private readonly CaptureRepository capturerepository = new CaptureRepository();
         public ObservableCollection<FieldViewModel> Fields { get; set; }
         private string lastBatchNameForImport;
+        private bool _isEasyImportEnabled = false;
+        private List<string> _easyImportFolders = new List<string>();
         private double zoomFactor = 1.0;
         private string storedFileNo;
         private Point dragStartPoint;
@@ -772,6 +774,41 @@ namespace IMS
         {
             FitToWidthButton_Click(sender, e);
         }
+        private void mnuEnableEasyImport_Click(object sender, RoutedEventArgs e)
+        {
+            _isEasyImportEnabled = mnuEnableEasyImport.IsChecked == true;
+
+            if (!_isEasyImportEnabled)
+                return;
+
+            string lastImportedFile = null;
+            if (_isEasyImportEnabled)
+            {
+                foreach (var folder in _easyImportFolders)
+                {
+                    try
+                    {
+                        var files = Directory.EnumerateFiles(
+                            folder,
+                            "*.*",
+                            SearchOption.TopDirectoryOnly
+                        );
+
+                        capturerepository.ImportFiles(files);
+                        lastImportedFile = files.Last();
+                        LoadDocumentToViewer(lastImportedFile);
+                    }
+                    catch
+                    {
+                        MessageBox.Show(
+                            $"Unable to access folder: {folder}",
+                            "Error",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Warning);
+                    }
+                }
+            }
+        }
         private void ManageEasyImportFolders_Click(object sender, RoutedEventArgs e)
         {
             if (capturerepository.SelectedIndexId <= 0)
@@ -784,27 +821,16 @@ namespace IMS
                 return;
             }
 
-            var dlg = new ManageEasyImportsWindow
+            var dlg = new ManageEasyImportsWindow(_easyImportFolders)
             {
                 Owner = this
             };
 
             if (dlg.ShowDialog() == true)
             {
-                foreach (var folder in dlg.SelectedFolders)
-                {
-                    var searchOption = dlg.IncludeSubDirectories ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
-                    try
-                    {
-                        var files = Directory.EnumerateFiles(folder, "*.*", searchOption);
-                        capturerepository.ImportFiles(files);
-                    }
-                    catch
-                    {
-                        MessageBox.Show($"Unable to access folder: {folder}", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    }
-                }
+                _easyImportFolders = dlg.SelectedFolders;
             }
+
         }
         private void mnuNewBatch_Click(object sender, RoutedEventArgs e)
         {

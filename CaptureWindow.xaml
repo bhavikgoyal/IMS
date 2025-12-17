@@ -189,7 +189,7 @@
 
         <!-- Scanning -->
         <MenuItem Header="Scanning">
-          <MenuItem Header="Enable Easylmport"/>
+          <MenuItem Header="Enable Easylmport" x:Name="mnuEnableEasyImport" IsCheckable="True" IsChecked="False"  Click="mnuEnableEasyImport_Click"/>
           <MenuItem Header="Manage Easylmport Folders" Click="ManageEasyImportFolders_Click"/>
           <MenuItem Header="From Excel" Click="FromExcel_Click"/>
           <MenuItem Header="Short Field Name Same as Excel"/>
