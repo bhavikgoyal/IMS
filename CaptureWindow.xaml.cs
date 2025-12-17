@@ -11,6 +11,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 using static IMS.Data.Utilities.SessionManager;
 using static System.Net.WebRequestMethods;
 using File = System.IO.File;
@@ -30,8 +31,9 @@ namespace IMS
         private string storedFileNo;
         private Point dragStartPoint;
         private object dragItem;
+		private string _lastClipboardHash;
 
-        public CaptureWindow()
+		public CaptureWindow()
         {
             InitializeComponent();
             DataContext = capturerepository;
@@ -1445,5 +1447,59 @@ namespace IMS
             }
         }
 
-    }
+		private void FromClipboard_Click(object sender, RoutedEventArgs e)
+		{
+			// OFF → stop functionality
+			if (!mnuFromClipboard.IsChecked)
+				return;
+
+			if (capturerepository.SelectedIndexId <= 0)
+			{
+				MessageBox.Show(
+					"SELECT a Data Cabinet from the lower right tree view to be able to scan documents into this cabinet",
+					"IMS",
+					MessageBoxButton.OK,
+					MessageBoxImage.Information);
+				//MessageBox.Show("SELECT a Data Cabinet from the lower right tree view to be able to scan documents into this cabinet", "IMS");
+				mnuFromClipboard.IsChecked = false;
+				return;
+			}
+
+			if (!Clipboard.ContainsImage())
+			{
+				MessageBox.Show("Clipboard does not contain image.", "IMS");
+				return;
+			}
+
+			BitmapSource image = Clipboard.GetImage();
+			if (image == null)
+				return;
+
+			string hash = GetImageHash(image);
+			if (_lastClipboardHash == hash)
+				return;
+
+			_lastClipboardHash = hash;
+
+			string newPath = capturerepository.ImportClipboardImageDirect(image);
+
+
+			if (!string.IsNullOrEmpty(newPath))
+			{
+				LoadDocumentToViewer(newPath);
+			}
+		}
+
+		private string GetImageHash(BitmapSource image)
+		{
+			using var ms = new MemoryStream();
+			var encoder = new PngBitmapEncoder();
+			encoder.Frames.Add(BitmapFrame.Create(image));
+			encoder.Save(ms);
+
+			using var sha = System.Security.Cryptography.SHA256.Create();
+			return Convert.ToBase64String(sha.ComputeHash(ms.ToArray()));
+		}
+
+	}
 }
