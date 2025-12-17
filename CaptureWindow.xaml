@@ -13,7 +13,8 @@
         AllowsTransparency="True"
         Background="Transparent"
         FontFamily="Segoe UI"
-        PreviewKeyDown="Window_PreviewKeyDown">
+        PreviewKeyDown="Window_PreviewKeyDown"
+        Loaded="Window_Loaded">
 
   <Window.Resources>
     <Style x:Key="TitleBarButtonStyle" TargetType="{x:Type Button}">
@@ -172,7 +173,7 @@
         <Grid>
           <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="10,0,0,0">
             <Image Source="/Images/logo.png" Width="20" Height="20" Margin="0,0,8,0"/>
-            <TextBlock Text="Capture" Margin="0,8,0,0"
+            <TextBlock x:Name="HeaderTitleText" Margin="0,8,0,0"
                                    Foreground="White" FontSize="15" FontWeight="SemiBold"/>
           </StackPanel>
 
@@ -243,7 +244,7 @@
           <MenuItem Header="Keep Entries"/>
           <MenuItem Header="Save Fields" InputGestureText="Ctrl+S" Click="mnuSaveFields_Click"/>
           <MenuItem Header="Apply To All" InputGestureText="Ctrl+U"/>
-          <MenuItem Header="Select All Fields" InputGestureText="Ctrl+F"/>
+          <MenuItem Header="Select All Fields" IsCheckable="True" InputGestureText="Ctrl+F" Click="SelectAllFields_Click"/>
           <MenuItem Header="Save To MS Word" InputGestureText="Ctrl+W"/>
           <MenuItem Header="Undo Save To Word" InputGestureText="Ctrl+Z"/>
           <MenuItem Header="Integrate" InputGestureText="F12" Click="mnuIntegrate_Click"/>

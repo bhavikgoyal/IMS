@@ -35,7 +35,10 @@ namespace IMS
             DataContext = capturerepository;
             capturerepository.LoadTreeView();
         }
-
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            HeaderTitleText.Text = "Capture";
+        }
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (e.ChangedButton == MouseButton.Left)
@@ -127,6 +130,11 @@ namespace IMS
                 mnuRecordOnly_Click(sender, e);
                 e.Handled = true;
             }
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.F)
+            {
+                SelectAllFields_Click(sender, e);
+                e.Handled = true;
+            }
         }
         private void MaximizeRestoreButton_Click(object sender, RoutedEventArgs e)
         {
@@ -199,7 +207,6 @@ namespace IMS
 
             }
         }
-
         private void LoadDocumentToViewer(string path)
         {
             DocumentTextViewer.Clear();
@@ -252,6 +259,26 @@ namespace IMS
                     $"Preview for '{ext}' files is not implemented yet.";
             }
         }
+        private void UpdateHeaderTitle(ScannedDocument doc)
+        {
+            if (doc == null)
+            {
+                HeaderTitleText.Text = "Capture";
+                return;
+            }
+
+            int pageNo = doc.PageNo > 0 ? doc.PageNo : 1;
+            int totalPages = 1;
+            var batch = capturerepository.ScannedBatches
+                .FirstOrDefault(b => b.Pages.Any(p => p.FileNo == doc.FileNo));
+
+            if (batch != null)
+                totalPages = batch.Pages.Count;
+
+            HeaderTitleText.Text =
+                $"Last Document Pressed {doc.FileNo} - Page {pageNo} Of {totalPages}";
+        }
+
         private void ScannedTreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             if (e.NewValue is ScannedDocument doc && !string.IsNullOrEmpty(doc.FullPath))
@@ -261,6 +288,11 @@ namespace IMS
                 capturerepository.LoadFieldValuesForDocument(doc);
 
                 capturerepository.CurrentDocument = doc;
+                UpdateHeaderTitle(doc);
+            }
+            else
+            {
+                HeaderTitleText.Text = "Capture";
             }
         }
         private void ImportFolderButton_Click(object sender, RoutedEventArgs e)
@@ -1336,5 +1368,18 @@ namespace IMS
             RecordWithoutDocument_Click(sender, e);
 
         }
-}
+        private void SelectAllFields_Click(object sender, RoutedEventArgs e)
+        {
+            if (capturerepository?.Fields == null)
+                return;
+
+            bool selectAll = capturerepository.Fields.Any(f => !f.IsChecked);
+
+            foreach (var field in capturerepository.Fields)
+            {
+                field.IsChecked = selectAll;
+            }
+        }
+
+    }
 }
