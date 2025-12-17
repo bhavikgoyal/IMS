@@ -1,4 +1,5 @@
-﻿using IMS.Data.Capture;
+﻿using ExcelDataReader;
+using IMS.Data.Capture;
 using IMS.Data.Utilities;
 using IMS.Models.CaptureModel;
 using IMS.Models.DesignModel;
@@ -12,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using static IMS.Data.Utilities.SessionManager;
 using static System.Net.WebRequestMethods;
+using File = System.IO.File;
 
 
 namespace IMS
@@ -1350,20 +1352,82 @@ namespace IMS
 
         }
 
-        private void FromExcel_Click(object sender, RoutedEventArgs e)
-        {
-            if (capturerepository.SelectedIndexId <= 0)
-            {
-                MessageBox.Show(
-                    "SELECT a Data Cabinet from the lower right tree view to be able to scan documents into this cabinet",
-                    "IMS",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
-                return;
-            }
+		private void FromExcel_Click(object sender, RoutedEventArgs e)
+		{
+			if (capturerepository.SelectedIndexId <= 0)
+			{
+				MessageBox.Show(
+					"SELECT a Data Cabinet from the lower right tree view to be able to scan documents into this cabinet",
+					"IMS",
+					MessageBoxButton.OK,
+					MessageBoxImage.Information);
+				return;
+			}
 
-        }
-        private void mnuRecordOnly_Click(object sender, RoutedEventArgs e)
+			var result = MessageBox.Show(
+				"Selected File Must Contain a Sheet.\n" +
+				"First Line Of This Sheet Must Contain Field Names.\n\n" +
+				"Do you Wish to Activate Approve Immediate Feature (Advised)?",
+				"IMS",
+				MessageBoxButton.YesNo,
+				MessageBoxImage.Information);
+
+			if (result != MessageBoxResult.Yes)
+				return;
+
+			string excelPath = Microsoft.VisualBasic.Interaction.InputBox(
+				"Enter Full Path To Excel File",
+				"IMS",
+				"");
+
+			if (string.IsNullOrWhiteSpace(excelPath))
+				return;
+
+			if (!File.Exists(excelPath))
+			{
+				MessageBox.Show(
+					"Excel file does not exist.",
+					"IMS",
+					MessageBoxButton.OK,
+					MessageBoxImage.Error);
+				return;
+			}
+
+			try
+			{
+				LoadExcelToGrid(excelPath);
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(
+					ex.Message,
+					"IMS",
+					MessageBoxButton.OK,
+					MessageBoxImage.Error);
+			}
+		}
+
+		private void LoadExcelToGrid(string excelPath)
+		{
+			using (var stream = File.Open(excelPath, FileMode.Open, FileAccess.Read))
+			using (var reader = ExcelDataReader.ExcelReaderFactory.CreateReader(stream))
+			{
+				var result = reader.AsDataSet(new ExcelDataSetConfiguration()
+				{
+					ConfigureDataTable = (_) => new ExcelDataTableConfiguration()
+					{
+						UseHeaderRow = true // First row = column names
+					}
+				});
+
+				if (result.Tables.Count == 0)
+					throw new Exception("No worksheet found in Excel file.");
+
+				// Show first sheet
+				ExcelDataGrid.ItemsSource = result.Tables[0].DefaultView;
+			}
+		}
+		private void mnuRecordOnly_Click(object sender, RoutedEventArgs e)
         {
             RecordWithoutDocument_Click(sender, e);
 
