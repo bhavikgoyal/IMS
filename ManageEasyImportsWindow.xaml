@@ -5,7 +5,8 @@
         Height="466" Width="260"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
-        Background="LightGray">
+        Background="LightGray"
+        Loaded="Window_Loaded">
 
   <Border BorderBrush="LightGray" BorderThickness="9" Background="White">
     <Grid Margin="2">

@@ -9,16 +9,34 @@ namespace IMS
         public List<string> SelectedFolders { get; private set; } = new List<string>();
         public bool IncludeSubDirectories { get; private set; } = true;
 
-        public ManageEasyImportsWindow()
+        public ManageEasyImportsWindow(List<string> existingFolders)
         {
             InitializeComponent();
 
+            SelectedFolders = existingFolders != null
+      ? new List<string>(existingFolders)
+      : new List<string>();
+
             cbDrives.ItemsSource = Environment.GetLogicalDrives();
-            cbDrives.SelectedIndex = 0;
             cbDrives.SelectionChanged += cbDrives_SelectionChanged;
             tvFolders.SelectedItemChanged += tvFolders_SelectedItemChanged;
         }
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            cbDrives.SelectedIndex = 0;   // C:\ select
+            LoadDriveFolders(cbDrives.SelectedItem?.ToString());
 
+            lbAdded.Items.Clear();
+
+            foreach (var folder in SelectedFolders)
+            {
+                lbAdded.Items.Add(new CheckBox
+                {
+                    Content = folder,
+                    Margin = new Thickness(3)
+                });
+            }
+        }
         private void cbDrives_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             LoadDriveFolders(cbDrives.SelectedItem?.ToString());
@@ -29,7 +47,14 @@ namespace IMS
             tvFolders.Items.Clear();
             if (string.IsNullOrWhiteSpace(drive)) return;
 
-            TreeViewItem root = new TreeViewItem { Header = drive, Tag = drive };
+            TreeViewItem root = new TreeViewItem
+            {
+                Header = drive,
+                Tag = drive,
+                IsExpanded = true,
+                IsSelected = true
+            };
+
             tvFolders.Items.Add(root);
 
             try
@@ -91,7 +116,6 @@ namespace IMS
                     {
                         Content = txtSelected.Text,
                         Margin = new Thickness(3),
-                        IsChecked = true
                     };
                     lbAdded.Items.Add(chk);
                 }
@@ -127,5 +151,3 @@ namespace IMS
         }
     }
 }
-
-
