@@ -598,6 +598,12 @@
                      FontSize="13"
                      VerticalScrollBarVisibility="Auto"/>
                 </ScrollViewer>
+                <DataGrid x:Name="ExcelDataGrid"
+         SelectionMode="Extended"
+         SelectionUnit="FullRow"
+         AutoGenerateColumns="True"
+         CanUserAddRows="False"
+         IsReadOnly="True"/>
 
                 <ScrollViewer x:Name="ImageScrollViewer"
               Visibility="Collapsed"
