@@ -193,7 +193,7 @@
           <MenuItem Header="Manage Easylmport Folders" Click="ManageEasyImportFolders_Click"/>
           <MenuItem Header="From Excel" Click="FromExcel_Click"/>
           <MenuItem Header="Short Field Name Same as Excel"/>
-          <MenuItem Header="From Clip Board"/>
+          <MenuItem Header="From Clip Board" x:Name="mnuFromClipboard" IsCheckable="True" Click="FromClipboard_Click"/>
           <MenuItem Header="From Web" Click="FromWeb_Click"/>
           <MenuItem Header="Import Tiff"/>
           <MenuItem Header="Record Only" InputGestureText="F5" Click="mnuRecordOnly_Click"/>
@@ -603,7 +603,8 @@
          SelectionUnit="FullRow"
          AutoGenerateColumns="True"
          CanUserAddRows="False"
-         IsReadOnly="True"/>
+         IsReadOnly="True"
+                          Visibility="Collapsed"/>
 
                 <ScrollViewer x:Name="ImageScrollViewer"
               Visibility="Collapsed"

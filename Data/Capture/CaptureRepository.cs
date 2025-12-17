@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using System.Data.SqlClient;
 using System.IO;
 using System.Windows;
+using System.Windows.Media.Imaging;
 using static IMS.Data.Utilities.SessionManager;
 
 namespace IMS.Data.Capture
@@ -1683,6 +1684,75 @@ namespace IMS.Data.Capture
         {
             deleteAfterImport = enable;
         }
-    }
+
+
+		public string ImportClipboardImageDirect(BitmapSource image)
+		{
+			if (SelectedIndexId <= 0 || image == null)
+				return null;
+
+			// 1️⃣ Save clipboard image temporarily
+			string tempFolder = Path.Combine(Path.GetTempPath(), "IMS_Clipboard");
+			Directory.CreateDirectory(tempFolder);
+
+			string tempImagePath = Path.Combine(
+				tempFolder,
+				$"Clipboard_{DateTime.Now:yyyyMMdd_HHmmss}.png");
+
+			using (var fs = new FileStream(tempImagePath, FileMode.Create))
+			{
+				var encoder = new PngBitmapEncoder();
+				encoder.Frames.Add(BitmapFrame.Create(image));
+				encoder.Save(fs);
+			}
+
+			// 2️⃣ INSERT RECORD (🔥 direct call)
+			var (fileId, fileNo, folderPath) =
+				InsertDocumentRow(
+					SelectedIndexId,
+					"from clip board",        // 👈 IMPORTANT
+					tempImagePath
+				);
+
+			// 3️⃣ Copy image into document folder
+			string destFilePath = Path.Combine(folderPath, "clipboard.png");
+			File.Copy(tempImagePath, destFilePath, true);
+
+			// 4️⃣ Update field value
+			var originalField = Fields.FirstOrDefault(f =>
+				f.ColName.Equals("OriginalFileName", StringComparison.OrdinalIgnoreCase));
+
+			if (originalField != null)
+				originalField.Value = "from clip board";
+
+			// 5️⃣ Update batches (same as ImportFiles logic)
+			if (!_batchesPerIndex.TryGetValue(SelectedIndexId, out var list))
+			{
+				list = new ObservableCollection<ScanBatch>();
+				_batchesPerIndex[SelectedIndexId] = list;
+			}
+
+			var batch = new ScanBatch { FileNo = fileNo };
+
+			var page = new ScannedDocument
+			{
+				FileId = fileId,
+				FileNo = fileNo,
+				PageNo = 1,
+				OriginalFileName = "from clip board",
+				FullPath = destFilePath
+			};
+
+			batch.Pages.Add(page);
+			list.Add(batch);
+			ScannedBatches.Add(batch);
+
+			return destFilePath;
+		}
+
+
+
+
+	}
 }
 
