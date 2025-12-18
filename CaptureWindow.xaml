@@ -190,11 +190,11 @@
         <!-- Scanning -->
         <MenuItem Header="Scanning">
           <MenuItem Header="Enable Easylmport" x:Name="mnuEnableEasyImport" IsCheckable="True" IsChecked="False"  Click="mnuEnableEasyImport_Click"/>
-          <MenuItem Header="Manage Easylmport Folders" Click="ManageEasyImportFolders_Click"/>
-          <MenuItem Header="From Excel" Click="FromExcel_Click"/>
-          <MenuItem Header="Short Field Name Same as Excel"/>
-          <MenuItem Header="From Clip Board" x:Name="mnuFromClipboard" IsCheckable="True" Click="FromClipboard_Click"/>
-          <MenuItem Header="From Web" Click="FromWeb_Click"/>
+          <MenuItem Header="Manage Easylmport Folders" Click="mnuManageEasyImportFolders_Click"/>
+          <MenuItem Header="From Excel" Click="mnuFromExcel_Click"/>
+          <MenuItem x:Name="mnuShortFieldSameAsExcel" Header="Short Field Name Same as Excel" IsCheckable="True" IsChecked="False" />
+          <MenuItem Header="From Clip Board" x:Name="mnuFromClipboard" IsCheckable="True" Click="mnuFromClipboard_Click"/>
+          <MenuItem Header="From Web" Click="mnuFromWeb_Click"/>
           <MenuItem Header="Import Tiff"/>
           <MenuItem Header="Record Only" InputGestureText="F5" Click="mnuRecordOnly_Click"/>
           <MenuItem Header="Scan Into"/>
@@ -232,8 +232,8 @@
           <MenuItem Header="Approve Document" InputGestureText="Ctrl+D" Click="mnuApproveDocument_Click"/>
           <MenuItem Header="Approve All" InputGestureText="Ctrl+A" Click="mnuApproveAll_click"/>
           <MenuItem Header="Ignore Approve Errors" IsCheckable="True"/>
-          <MenuItem  x:Name="mnuDragDropMerge" Header="Enable Drag Drop Merge" IsCheckable="True" Click="mnuDragDropMerge_Click"/>
-          <MenuItem Header="Approve Immediate" IsCheckable="True" IsChecked="True"/>
+          <MenuItem x:Name="mnuDragDropMerge" Header="Enable Drag Drop Merge" IsCheckable="True" Click="mnuDragDropMerge_Click"/>
+          <MenuItem x:Name="mnuApproveImmediate" Header="Approve Immediate" IsCheckable="True" IsChecked="True"/>
           <MenuItem Header="Import Each Folder As 1 Document" IsCheckable="True"/>
           <MenuItem Header="Delete After Import" IsCheckable="True" IsChecked="False" Click="mnuDeleteAfterImport_Click"/>
         </MenuItem>
@@ -598,13 +598,6 @@
                      FontSize="13"
                      VerticalScrollBarVisibility="Auto"/>
                 </ScrollViewer>
-                <DataGrid x:Name="ExcelDataGrid"
-         SelectionMode="Extended"
-         SelectionUnit="FullRow"
-         AutoGenerateColumns="True"
-         CanUserAddRows="False"
-         IsReadOnly="True"
-                          Visibility="Collapsed"/>
 
                 <ScrollViewer x:Name="ImageScrollViewer"
               Visibility="Collapsed"

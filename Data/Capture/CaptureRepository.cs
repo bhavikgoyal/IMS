@@ -1,9 +1,12 @@
-﻿using IMS.Data.Design;
+﻿using ExcelDataReader;
+using IMS.Data.Design;
 using IMS.Data.Utilities;
 using IMS.Models.CaptureModel;
 using IMS.Models.DesignModel;
 using System.Collections.ObjectModel;
+using System.Data;
 using System.Data.SqlClient;
+using System.Globalization;
 using System.IO;
 using System.Windows;
 using System.Windows.Media.Imaging;
@@ -431,8 +434,6 @@ namespace IMS.Data.Capture
                 return;
 
             string tableName = cabinet.GetTableName(SelectedIndexId);
-            if (string.IsNullOrWhiteSpace(tableName))
-                throw new Exception($"Table name not found for IndexID = {SelectedIndexId}");
 
             using (SqlConnection conn = DatabaseHelper.GetConnection())
             {
@@ -440,29 +441,58 @@ namespace IMS.Data.Capture
 
                 foreach (var field in Fields)
                 {
-                    // skip empty / readonly fields
                     if (string.IsNullOrWhiteSpace(field.ColName))
                         continue;
 
-                    string sql = $@"
+                    if (string.IsNullOrWhiteSpace(field.Value))
+                        continue;
+
+                    string selectSql = $@"
+                SELECT [{field.ColName}]
+                FROM [{tableName}]
+                WHERE ES_FileName = @FileNo";
+
+                    object existingValue;
+
+                    using (SqlCommand selectCmd = new SqlCommand(selectSql, conn))
+                    {
+                        selectCmd.Parameters.AddWithValue("@FileNo", doc.FileNo);
+                        existingValue = selectCmd.ExecuteScalar();
+                    }
+
+                    string existingStr =
+                        existingValue == null || existingValue == DBNull.Value
+                            ? string.Empty
+                            : existingValue.ToString();
+
+                    if (existingStr.Equals(field.Value, StringComparison.OrdinalIgnoreCase))
+                        continue;
+
+                    string updateSql = $@"
                 UPDATE [{tableName}]
                 SET [{field.ColName}] = @Value
                 WHERE ES_FileName = @FileNo";
 
-                    using (SqlCommand cmd = new SqlCommand(sql, conn))
+                    using (SqlCommand cmd = new SqlCommand(updateSql, conn))
                     {
-                        cmd.Parameters.AddWithValue(
-                            "@Value",
-                            string.IsNullOrWhiteSpace(field.Value)
-                                ? (object)DBNull.Value
-                                : field.Value);
+                        object dbValue = field.Value;
 
+                        if (field.FldType == "Date" &&
+                            DateTime.TryParse(field.Value, out DateTime d))
+                        {
+                            dbValue = d;
+                        }
+
+                        cmd.Parameters.AddWithValue(
+                          "@Value",
+                          string.IsNullOrWhiteSpace(field.Value)
+                              ? (object)DBNull.Value
+                              : field.Value);
                         cmd.Parameters.AddWithValue("@FileNo", doc.FileNo);
                         cmd.ExecuteNonQuery();
                     }
                 }
 
-                // metadata save (already existing logic)
                 string metaSql = $@"
             UPDATE [{tableName}]
             SET 
@@ -1679,13 +1709,10 @@ namespace IMS.Data.Capture
             }
             LoadScannedBatchesFromFile(SelectedIndexId);
         }
-      
         public void DeleteDocumnetAfterImport(bool enable)
         {
             deleteAfterImport = enable;
         }
-
-
 		public string ImportClipboardImageDirect(BitmapSource image)
 		{
 			if (SelectedIndexId <= 0 || image == null)
@@ -1749,10 +1776,69 @@ namespace IMS.Data.Capture
 
 			return destFilePath;
 		}
+        public void ImportExcelRow( DataRow row, bool shortFieldSameAsExcel, bool approveImmediate)
+        {
+            string createdPath;
+
+            var batch = CreateRecordWithoutDocument(
+                CurrentUser.UserName, out createdPath);
+
+            if (batch == null)
+                return;
+
+            var doc = batch.Pages.FirstOrDefault();
+            if (doc == null)
+                return;
+
+            foreach (var field in Fields)
+            {
+                string excelColumnName =
+                    shortFieldSameAsExcel
+                        ? field.ColName      //  ON
+                        : field.Caption;     //  OFF
+
+                if (string.IsNullOrWhiteSpace(excelColumnName))
+                    continue;
+
+                var excelCol = row.Table.Columns
+                    .Cast<DataColumn>()
+                    .FirstOrDefault(c =>
+                        c.ColumnName.Trim()
+                            .Equals(excelColumnName.Trim(),
+                                StringComparison.OrdinalIgnoreCase));
+
+                if (excelCol == null)
+                    continue;
+
+                var val = row[excelCol];
+
+                if (val == null || val == DBNull.Value)
+                    continue;
+
+                string strVal = val.ToString();
+                if (string.IsNullOrWhiteSpace(strVal))
+                    continue;
+
+                field.Value = strVal;
+            }
+
+            SaveField(doc, CurrentUser.UserName);
+            CurrentDocument = doc;
+
+            if (approveImmediate)
+            {
+                Task.Run(async () =>
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(30));
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        ApproveSingleDocument(doc, CurrentUser.UserName);
+                    });
+                });
+            }
+        }
 
 
-
-
-	}
+    }
 }
 

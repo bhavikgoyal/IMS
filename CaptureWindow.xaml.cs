@@ -4,6 +4,7 @@ using IMS.Data.Utilities;
 using IMS.Models.CaptureModel;
 using IMS.Models.DesignModel;
 using System.Collections.ObjectModel;
+using System.Data;
 using System.IO;
 using System.Text;
 using System.Windows;
@@ -809,7 +810,7 @@ namespace IMS
                 }
             }
         }
-        private void ManageEasyImportFolders_Click(object sender, RoutedEventArgs e)
+        private void mnuManageEasyImportFolders_Click(object sender, RoutedEventArgs e)
         {
             if (capturerepository.SelectedIndexId <= 0)
             {
@@ -1352,7 +1353,7 @@ namespace IMS
 
         }
 
-        private async void FromWeb_Click(object sender, RoutedEventArgs e)
+        private async void mnuFromWeb_Click(object sender, RoutedEventArgs e)
         {
             if (capturerepository.SelectedIndexId <= 0)
             {
@@ -1379,83 +1380,97 @@ namespace IMS
             WebBrowserView.CoreWebView2.Navigate(url);
 
         }
+        private void mnuFromExcel_Click(object sender, RoutedEventArgs e)
+        {
+            if (capturerepository.SelectedIndexId <= 0)
+            {
+                MessageBox.Show(
+                    "SELECT a Data Cabinet from the lower right tree view",
+                    "IMS",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                return;
+            }
 
-		private void FromExcel_Click(object sender, RoutedEventArgs e)
-		{
-			if (capturerepository.SelectedIndexId <= 0)
-			{
-				MessageBox.Show(
-					"SELECT a Data Cabinet from the lower right tree view to be able to scan documents into this cabinet",
-					"IMS",
-					MessageBoxButton.OK,
-					MessageBoxImage.Information);
-				return;
-			}
+            var msg = MessageBox.Show(
+                "Selected File Must Contain a Sheet.\n" +
+                "First Line Must Contain Field Names.\n\n" +
+                "Do you Wish to Activate Approve Immediate Feature?",
+                "IMS",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
 
-			var result = MessageBox.Show(
-				"Selected File Must Contain a Sheet.\n" +
-				"First Line Of This Sheet Must Contain Field Names.\n\n" +
-				"Do you Wish to Activate Approve Immediate Feature (Advised)?",
-				"IMS",
-				MessageBoxButton.YesNo,
-				MessageBoxImage.Information);
+            mnuApproveImmediate.IsChecked = (msg == MessageBoxResult.Yes);
 
-			if (result != MessageBoxResult.Yes)
-				return;
+            string excelPath = Microsoft.VisualBasic.Interaction.InputBox(
+                "Enter Full Path To Excel File",
+                "IMS",
+                "");
 
-			string excelPath = Microsoft.VisualBasic.Interaction.InputBox(
-				"Enter Full Path To Excel File",
-				"IMS",
-				"");
+            if (string.IsNullOrWhiteSpace(excelPath))
+                return;
 
-			if (string.IsNullOrWhiteSpace(excelPath))
-				return;
+            if (!File.Exists(excelPath))
+            {
+                MessageBox.Show("File Not Found!", "IMS");
+                return;
+            }
 
-			if (!File.Exists(excelPath))
-			{
-				MessageBox.Show(
-					"Excel file does not exist.",
-					"IMS",
-					MessageBoxButton.OK,
-					MessageBoxImage.Error);
-				return;
-			}
+            string sheetName = Microsoft.VisualBasic.Interaction.InputBox(
+                "Enter Sheet Name Please",
+                "IMS",
+                "Sheet1");
 
-			try
-			{
-				LoadExcelToGrid(excelPath);
-			}
-			catch (Exception ex)
-			{
-				MessageBox.Show(
-					ex.Message,
-					"IMS",
-					MessageBoxButton.OK,
-					MessageBoxImage.Error);
-			}
-		}
+            if (string.IsNullOrWhiteSpace(sheetName))
+                return;
 
-		private void LoadExcelToGrid(string excelPath)
-		{
-			using (var stream = File.Open(excelPath, FileMode.Open, FileAccess.Read))
-			using (var reader = ExcelDataReader.ExcelReaderFactory.CreateReader(stream))
-			{
-				var result = reader.AsDataSet(new ExcelDataSetConfiguration()
-				{
-					ConfigureDataTable = (_) => new ExcelDataTableConfiguration()
-					{
-						UseHeaderRow = true // First row = column names
-					}
-				});
+            ImportExcelFile(excelPath, sheetName);
+        }
 
-				if (result.Tables.Count == 0)
-					throw new Exception("No worksheet found in Excel file.");
+        private void ImportExcelFile(string excelPath, string sheetName)
+        {
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-				// Show first sheet
-				ExcelDataGrid.ItemsSource = result.Tables[0].DefaultView;
-			}
-		}
-		private void mnuRecordOnly_Click(object sender, RoutedEventArgs e)
+            using var stream = new FileStream(
+                excelPath,
+                FileMode.Open,
+                FileAccess.Read,
+                FileShare.ReadWrite);
+
+            using var reader = ExcelReaderFactory.CreateReader(stream);
+
+            var ds = reader.AsDataSet(new ExcelDataSetConfiguration
+            {
+                ConfigureDataTable = _ => new ExcelDataTableConfiguration
+                {
+                    UseHeaderRow = true   
+                }
+            });
+
+            var table = ds.Tables
+                .Cast<DataTable>()
+                .FirstOrDefault(t =>
+                    t.TableName.Equals(sheetName, StringComparison.OrdinalIgnoreCase));
+
+            if (table == null)
+            {
+                MessageBox.Show($"Sheet '{sheetName}' not found.", "IMS");
+                return;
+            }
+
+            bool shortFieldSameAsExcel =
+                mnuShortFieldSameAsExcel.IsChecked == true;
+
+            bool approveImmediate =
+                mnuApproveImmediate.IsChecked == true;
+
+            foreach (DataRow row in table.Rows)
+            {
+                capturerepository.ImportExcelRow(row,shortFieldSameAsExcel,approveImmediate);
+            }
+        }
+
+        private void mnuRecordOnly_Click(object sender, RoutedEventArgs e)
         {
             RecordWithoutDocument_Click(sender, e);
 
@@ -1473,7 +1488,7 @@ namespace IMS
             }
         }
 
-		private void FromClipboard_Click(object sender, RoutedEventArgs e)
+		private void mnuFromClipboard_Click(object sender, RoutedEventArgs e)
 		{
 			// OFF → stop functionality
 			if (!mnuFromClipboard.IsChecked)
@@ -1527,5 +1542,5 @@ namespace IMS
 			return Convert.ToBase64String(sha.ComputeHash(ms.ToArray()));
 		}
 
-	}
+    }
 }
