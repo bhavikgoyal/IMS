@@ -233,7 +233,7 @@
           <MenuItem Header="Approve All" InputGestureText="Ctrl+A" Click="mnuApproveAll_click"/>
           <MenuItem Header="Ignore Approve Errors" IsCheckable="True"/>
           <MenuItem x:Name="mnuDragDropMerge" Header="Enable Drag Drop Merge" IsCheckable="True" Click="mnuDragDropMerge_Click"/>
-          <MenuItem x:Name="mnuApproveImmediate" Header="Approve Immediate" IsCheckable="True" IsChecked="True"/>
+          <MenuItem x:Name="mnuApproveImmediate" Header="Approve Immediate" IsCheckable="True" />
           <MenuItem x:Name="mnuImportEachFolderAs1Document" Header="Import Each Folder As 1 Document" IsCheckable="True" Click="mnuImportEachFolderAs1Document_Click"/>
           <MenuItem Header="Delete After Import" IsCheckable="True" IsChecked="False" Click="mnuDeleteAfterImport_Click"/>
         </MenuItem>
@@ -243,7 +243,7 @@
           <MenuItem Header="Show All Dialogs" InputGestureText="Ctrl+F8"/>
           <MenuItem Header="Keep Entries"  IsCheckable="True" Click="mnuKeepEntries_Click"/>
           <MenuItem Header="Save Fields" InputGestureText="Ctrl+S" Click="mnuSaveFields_Click"/>
-          <MenuItem Header="Apply To All" InputGestureText="Ctrl+U"/>
+          <MenuItem Header="Apply To All" InputGestureText="Ctrl+U" Click="mnuApplyToAll_Click"/>
           <MenuItem Header="Select All Fields" IsCheckable="True" InputGestureText="Ctrl+F" Click="SelectAllFields_Click"/>
           <MenuItem Header="Save To MS Word" InputGestureText="Ctrl+W"/>
           <MenuItem Header="Undo Save To Word" InputGestureText="Ctrl+Z"/>
@@ -251,7 +251,7 @@
           <MenuItem Header="Partial Integration"/>
           <MenuItem Header="Bring First Value"/>
           <MenuItem Header="Set Focus On Current Selected Field"/>
-          <MenuItem Header="Clear" InputGestureText="Ctrl+L"/>
+          <MenuItem Header="Clear" InputGestureText="Ctrl+L" Click="mnuClear_Click"/>
         </MenuItem>
 
         <!-- Stamps/Signatures -->
