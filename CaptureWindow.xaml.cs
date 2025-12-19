@@ -35,8 +35,11 @@ namespace IMS
         private Point dragStartPoint;
         private object dragItem;
 		private string _lastClipboardHash;
+        private bool onClickMergeEnabled = false;
+        private ScannedDocument mergeTargetDoc = null;
+        private int _mergeCount = 0;
 
-		public CaptureWindow()
+        public CaptureWindow()
         {
             InitializeComponent();
             DataContext = capturerepository;
@@ -170,17 +173,36 @@ namespace IMS
         {
 
         }
+        private void HideAllDocumentViewers()
+        {
+            // Hide all viewers
+            TextScrollViewer.Visibility = Visibility.Collapsed;
+            ImageScrollViewer.Visibility = Visibility.Collapsed;
+            WebBrowserView.Visibility = Visibility.Collapsed;
+
+            // Clear content
+            DocumentTextViewer.Text = string.Empty;
+            DocumentImageViewer.Source = null;
+        }
         private async void CabinetTree_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             if (e.NewValue is not TreeNode node)
                 return;
 
+            onClickMergeEnabled = false;
+            mergeTargetDoc = null;
+            _mergeCount = 0;
+
+            if (mnuEnableOnClickMerge != null)
+                mnuEnableOnClickMerge.IsChecked = false;
+
+            HideAllDocumentViewers();
+           
             await LoaderManager.RunAsync(async () =>
             {
                 capturerepository.OnNodeSelected(node);
             });
         }
-
         private void ImportFileButton_Click(object sender, RoutedEventArgs e)
         {
             if (capturerepository.SelectedIndexId <= 0)
@@ -286,14 +308,37 @@ namespace IMS
                 $"Last Document Pressed {doc.FileNo} - Page {pageNo} Of {totalPages}";
         }
 
-        private void ScannedTreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        private void ScannedTreeView_SelectedItemChanged( object sender, RoutedPropertyChangedEventArgs<object> e)
         {
-            if (e.NewValue is ScannedDocument doc && !string.IsNullOrEmpty(doc.FullPath))
+            ScannedDocument doc = null;
+
+            if (e.NewValue is ScannedDocument sd)
+                doc = sd;
+            else if (e.NewValue is ScanBatch sb)
+                doc = sb.Pages.FirstOrDefault();
+
+            if (doc == null)
+                return;
+
+            if (onClickMergeEnabled && mergeTargetDoc != null)
+            {
+                if (doc.FileNo == mergeTargetDoc.FileNo)
+                    return;
+
+                capturerepository.MergeIntoTargetDocument(doc, mergeTargetDoc, CurrentUser.UserName);
+                TextScrollViewer.Visibility = Visibility.Visible;
+                ImageScrollViewer.Visibility = Visibility.Collapsed;
+
+                DocumentTextViewer.Text =
+                    "Refresh the page ";
+                _mergeCount++;
+                return;
+            }
+
+            if (!string.IsNullOrEmpty(doc.FullPath))
             {
                 LoadDocumentToViewer(doc.FullPath);
-
                 capturerepository.LoadFieldValuesForDocument(doc);
-
                 capturerepository.CurrentDocument = doc;
                 UpdateHeaderTitle(doc);
             }
@@ -302,6 +347,7 @@ namespace IMS
                 HeaderTitleText.Text = "Capture";
             }
         }
+
         private void ImportFolderButton_Click(object sender, RoutedEventArgs e)
         {
             if (capturerepository.SelectedIndexId <= 0)
@@ -366,7 +412,6 @@ namespace IMS
 
             capturerepository.CurrentDocument = doc;
         }
-
         private async void SaveFieldsButton_Click(object sender, RoutedEventArgs e)
         {
             var doc = GetCurrentSelectedDocument();
@@ -429,7 +474,6 @@ namespace IMS
         {
             SaveFieldsButton_Click(sender, e);
         }
-
         private ScannedDocument GetCurrentSelectedDocument()
         {
             var item = ScannedTreeView.SelectedItem;
@@ -1352,7 +1396,6 @@ namespace IMS
             }
 
         }
-
         private async void mnuFromWeb_Click(object sender, RoutedEventArgs e)
         {
             if (capturerepository.SelectedIndexId <= 0)
@@ -1426,7 +1469,6 @@ namespace IMS
 
             ImportExcelFile(excelPath, sheetName);
         }
-
         private void ImportExcelFile(string excelPath, string sheetName)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
@@ -1469,7 +1511,6 @@ namespace IMS
                 capturerepository.ImportExcelRow(row,shortFieldSameAsExcel,approveImmediate);
             }
         }
-
         private void mnuRecordOnly_Click(object sender, RoutedEventArgs e)
         {
             RecordWithoutDocument_Click(sender, e);
@@ -1487,7 +1528,6 @@ namespace IMS
                 field.IsChecked = selectAll;
             }
         }
-
 		private void mnuFromClipboard_Click(object sender, RoutedEventArgs e)
 		{
 			// OFF → stop functionality
@@ -1530,7 +1570,6 @@ namespace IMS
 				LoadDocumentToViewer(newPath);
 			}
 		}
-
 		private string GetImageHash(BitmapSource image)
 		{
 			using var ms = new MemoryStream();
@@ -1541,6 +1580,59 @@ namespace IMS
 			using var sha = System.Security.Cryptography.SHA256.Create();
 			return Convert.ToBase64String(sha.ComputeHash(ms.ToArray()));
 		}
+        private void mnuSplitInto_Click(object sender, RoutedEventArgs e)
+        {
+            var selectedDoc = GetCurrentSelectedDocument();
+            if (selectedDoc == null)
+                return;
+
+            // Documents list
+            var docs = capturerepository.ScannedBatches
+                .SelectMany(b => b.Pages)
+                .OrderBy(d => d.FileNo)
+                .ToList();
+
+            int index = docs.FindIndex(d => d.FileNo == selectedDoc.FileNo);
+            if (index < 0)
+                return;
+
+            bool isLastDocument = index == docs.Count - 1;
+            if (isLastDocument)
+            {
+                SplitCurrentDocument_Click(sender, e);
+            }
+            else
+            {
+                string currentUser = CurrentUser.UserName;
+                capturerepository.SplitIntoDocuments(selectedDoc, currentUser);
+            }
+        }
+        private void mnuEnableOnClickMerge_Click(object sender, RoutedEventArgs e)
+        {
+            var menu = sender as MenuItem;
+
+            var selectedDoc = GetCurrentSelectedDocument();
+            if (selectedDoc == null)
+            {
+                MessageBox.Show("Please select a document first.", "IMS");
+                menu.IsChecked = false;
+                return;
+            }
+
+            onClickMergeEnabled = menu.IsChecked == true;
+
+            if (onClickMergeEnabled)
+            {
+                mergeTargetDoc = selectedDoc;
+                _mergeCount = 0;
+            }
+            else
+            {
+                mergeTargetDoc = null;
+                _mergeCount = 0;
+                StatusLabel.Visibility = Visibility.Collapsed;
+            }
+        }
 
     }
 }

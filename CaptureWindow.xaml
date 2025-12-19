@@ -222,12 +222,12 @@
           <MenuItem Header="Delete Page" InputGestureText="Alt+Bksp" Click="mnuDeletePage_Click"/>
           <MenuItem Header="Merge" InputGestureText="Ctrl+M" Click="mnuMerge_Click"/>
           <MenuItem Header="Split" InputGestureText="Ctrl+T" Click="mnuSplit_Click"/>
-          <MenuItem Header="Split Into"/>
+          <MenuItem Header="Split Into" Click="mnuSplitInto_Click"/>
           <MenuItem Header="Multi Split" Click="mnuMultiSplit_Click"/>
           <MenuItem Header="Merge All" Click="mnuMergeAll_Click"/>
           <MenuItem Header="Enable Intelligent Split" InputGestureText="Ctrl+F6"/>
           <MenuItem Header="Intelligent Split" InputGestureText="F6"/>
-          <MenuItem Header="Enable On Click Merge"/>
+          <MenuItem x:Name="mnuEnableOnClickMerge" Header="Enable On Click Merge" IsCheckable="True" Click="mnuEnableOnClickMerge_Click"/>
           <MenuItem Header="Enable Page Reorder By Mouse"/>
           <MenuItem Header="Approve Document" InputGestureText="Ctrl+D" Click="mnuApproveDocument_Click"/>
           <MenuItem Header="Approve All" InputGestureText="Ctrl+A" Click="mnuApproveAll_click"/>
@@ -584,7 +584,7 @@
                 <!-- 🔹 WEB VIEW (NEW) -->
                 <wv2:WebView2 x:Name="WebBrowserView"
                           Visibility="Collapsed"/>
-
+               
                 <ScrollViewer x:Name="TextScrollViewer"
                       VerticalScrollBarVisibility="Auto">
                   <TextBox x:Name="DocumentTextViewer"
