@@ -21,12 +21,13 @@ namespace IMS.Data.Capture
         public bool DragDropMergeEnabled { get; private set; }
         public ObservableCollection<ScanBatch> ScannedBatches { get; } = new ObservableCollection<ScanBatch>();
         private readonly Dictionary<int, ObservableCollection<ScanBatch>> _batchesPerIndex = new Dictionary<int, ObservableCollection<ScanBatch>>();
-
         private Cabinet cabinet = new Cabinet();
         public int SelectedIndexId { get; private set; }
         public ScannedDocument CurrentDocument { get; set; }
         private bool deleteAfterImport = false;
-
+        public bool ImportEachFolderAsOneDocument { get; set; }
+        public bool KeepEntriesEnabled { get; set; } = false;
+        public Dictionary<string, string> KeepEntryValues = new Dictionary<string, string>();
         public CaptureRepository()
         {
             LoadTreeView();
@@ -264,6 +265,32 @@ namespace IMS.Data.Capture
                     continue;
 
                 var fileName = Path.GetFileName(path);
+
+                if (KeepEntriesEnabled && KeepEntryValues.Any())
+                {
+                    foreach (var field in Fields)
+                    {
+                        if (field.ColName.Equals("OriginalFileName",
+                            StringComparison.OrdinalIgnoreCase))
+                            continue;
+
+                        if (KeepEntryValues.TryGetValue(field.ColName, out var val))
+                        {
+                            field.Value = val;
+                        }
+                    }
+                }
+
+                var originalField = Fields.FirstOrDefault(f =>
+                    f.ColName.Equals("OriginalFileName",
+                        StringComparison.OrdinalIgnoreCase));
+
+                if (originalField != null)
+                {
+                    originalField.Value = fileName;
+                }
+
+
                 var (fileId, fileNo, folderPath) =
              InsertDocumentRow(SelectedIndexId, fileName, path);
 
@@ -273,14 +300,7 @@ namespace IMS.Data.Capture
 
                 if (deleteAfterImport)
                 {
-                        File.Delete(path); 
-                }
-
-                var originalField = Fields.FirstOrDefault(f =>
-                    f.ColName.Equals("OriginalFileName", StringComparison.OrdinalIgnoreCase));
-                if (originalField != null)
-                {
-                    originalField.Value = fileName;
+                    File.Delete(path);
                 }
 
                 var batch = new ScanBatch { FileNo = fileNo };
@@ -316,7 +336,7 @@ namespace IMS.Data.Capture
                 string sql = $@"
             SELECT *
             FROM [{tableName}]
-            WHERE ES_FileName = @FileNo";   
+            WHERE ES_FileName = @FileNo";
 
                 using (SqlCommand cmd = new SqlCommand(sql, conn))
                 {
@@ -384,44 +404,60 @@ namespace IMS.Data.Capture
                 if (!Directory.Exists(documentFolder))
                     Directory.CreateDirectory(documentFolder);
 
+               var columns = new List<string>
+                {
+                    "ES_VersionID","ES_Exported","ES_FileID","ES_FileName",
+                    "ES_ScanningOperator","ES_ScaneDate","ES_ScanTime",
+                    "ES_NewRecord","ES_Approved","ES_Locked",
+                    "ES_FilePath","ES_Indexed","ES_Encrypted",
+                    "ES_PageCount","OriginalFileName"
+                };
+
+                var values = new List<string>
+                {
+                    "1","NULL","@FileID","@FileName",
+                    "@User","GETDATE()","CONVERT(varchar(8), GETDATE(), 108)",
+                    "0","0","0",
+                    "@FilePath","1","1",
+                    "@PageCount","@OriginalFileName"
+                };
+
+                var parameters = new List<SqlParameter>
+                {
+                    new SqlParameter("@FileID", newId),
+                    new SqlParameter("@FileName", fileNo),
+                    new SqlParameter("@User", string.IsNullOrEmpty(CurrentUser.UserName)
+                            ? (object)DBNull.Value : CurrentUser.UserName),
+                    new SqlParameter("@FilePath", documentFolder),
+                    new SqlParameter("@PageCount", 1),
+                    new SqlParameter("@OriginalFileName", string.IsNullOrEmpty(originalFileName)
+                            ? (object)DBNull.Value : originalFileName)
+                };
+
+                foreach (var field in Fields)
+                {
+                    if (string.IsNullOrWhiteSpace(field.Value))
+                        continue;
+
+                    if (field.ColName.Equals("OriginalFileName",
+                        StringComparison.OrdinalIgnoreCase))
+                        continue;
+
+                    columns.Add(field.ColName);
+                    values.Add("@" + field.ColName);
+                    parameters.Add(new SqlParameter(
+                        "@" + field.ColName, field.Value));
+                }
+
                 string insertSql = $@"
-                        INSERT INTO [{tableName}]
-                        (ES_VersionID, ES_Exported, ES_FileID, ES_FileName,
-                         ES_ScanningOperator, ES_ScaneDate, ES_ScanTime,
-                         ES_SavedBy, ES_SavedDate, ES_SavedTime,
-                         ES_ApprovedBy, ES_ApprovedDate, ES_ApprovedTime,
-                         ES_NewRecord, ES_Approved, ES_Locked, ES_LockedBy,
-                         ES_AllowedUsers, ES_MyEmptyField, ES_FilePath,
-                         ES_DeleteMe, ES_DeletionDate, ES_DeletionTime, ES_DeletedBy,
-                         ES_Indexed, ES_Encrypted, ES_Annotations, ES_PageCount,
-                         OriginalFileName)
-                        VALUES
-                        (1, NULL, @FileID, @FileName,
-                         @User, GETDATE(), CONVERT(varchar(8), GETDATE(), 108),
-                         NULL, NULL, NULL,
-                         NULL, NULL, NULL,
-                         0, 0, 0, NULL,
-                         NULL, NULL, @FilePath,
-                         0, NULL, NULL, NULL,
-                         1, 1, NULL, @PageCount,
-                         @OriginalFileName);";
+                INSERT INTO [{tableName}]
+                ({string.Join(",", columns)})
+                VALUES
+                ({string.Join(",", values)}); ";
 
                 using (SqlCommand insertCmd = new SqlCommand(insertSql, conn))
                 {
-                    insertCmd.Parameters.AddWithValue("@FileID", newId);
-                    insertCmd.Parameters.AddWithValue("@FileName", fileNo);
-
-                    var userName = CurrentUser.UserName;
-                    if (string.IsNullOrEmpty(userName))
-                        insertCmd.Parameters.AddWithValue("@User", DBNull.Value);
-                    else
-                        insertCmd.Parameters.AddWithValue("@User", userName);
-
-                    insertCmd.Parameters.AddWithValue("@FilePath", documentFolder);
-                    insertCmd.Parameters.AddWithValue("@PageCount", 1);
-                    insertCmd.Parameters.AddWithValue("@OriginalFileName",
-                        string.IsNullOrEmpty(originalFileName) ? (object)DBNull.Value : originalFileName);
-
+                    insertCmd.Parameters.AddRange(parameters.ToArray());
                     insertCmd.ExecuteNonQuery();
                 }
 
@@ -575,7 +611,7 @@ namespace IMS.Data.Capture
 
         public ScanBatch CreateRecordWithoutDocument(string currentUser, out string createdPath)
         {
-           
+
             createdPath = null;
             if (SelectedIndexId <= 0)
                 return null;
@@ -659,7 +695,7 @@ namespace IMS.Data.Capture
                 }
             }
         }
- 
+
         //Delete
         public bool HasDocumentsInBasket()
         {
@@ -1713,70 +1749,70 @@ namespace IMS.Data.Capture
         {
             deleteAfterImport = enable;
         }
-		public string ImportClipboardImageDirect(BitmapSource image)
-		{
-			if (SelectedIndexId <= 0 || image == null)
-				return null;
+        public string ImportClipboardImageDirect(BitmapSource image)
+        {
+            if (SelectedIndexId <= 0 || image == null)
+                return null;
 
-			// 1️⃣ Save clipboard image temporarily
-			string tempFolder = Path.Combine(Path.GetTempPath(), "IMS_Clipboard");
-			Directory.CreateDirectory(tempFolder);
+            // 1️⃣ Save clipboard image temporarily
+            string tempFolder = Path.Combine(Path.GetTempPath(), "IMS_Clipboard");
+            Directory.CreateDirectory(tempFolder);
 
-			string tempImagePath = Path.Combine(
-				tempFolder,
-				$"Clipboard_{DateTime.Now:yyyyMMdd_HHmmss}.png");
+            string tempImagePath = Path.Combine(
+                tempFolder,
+                $"Clipboard_{DateTime.Now:yyyyMMdd_HHmmss}.png");
 
-			using (var fs = new FileStream(tempImagePath, FileMode.Create))
-			{
-				var encoder = new PngBitmapEncoder();
-				encoder.Frames.Add(BitmapFrame.Create(image));
-				encoder.Save(fs);
-			}
+            using (var fs = new FileStream(tempImagePath, FileMode.Create))
+            {
+                var encoder = new PngBitmapEncoder();
+                encoder.Frames.Add(BitmapFrame.Create(image));
+                encoder.Save(fs);
+            }
 
-			// 2️⃣ INSERT RECORD (🔥 direct call)
-			var (fileId, fileNo, folderPath) =
-				InsertDocumentRow(
-					SelectedIndexId,
-					"from clip board",        // 👈 IMPORTANT
-					tempImagePath
-				);
+            // 2️⃣ INSERT RECORD (🔥 direct call)
+            var (fileId, fileNo, folderPath) =
+                InsertDocumentRow(
+                    SelectedIndexId,
+                    "from clip board",        // 👈 IMPORTANT
+                    tempImagePath
+                );
 
-			// 3️⃣ Copy image into document folder
-			string destFilePath = Path.Combine(folderPath, "clipboard.png");
-			File.Copy(tempImagePath, destFilePath, true);
+            // 3️⃣ Copy image into document folder
+            string destFilePath = Path.Combine(folderPath, "clipboard.png");
+            File.Copy(tempImagePath, destFilePath, true);
 
-			// 4️⃣ Update field value
-			var originalField = Fields.FirstOrDefault(f =>
-				f.ColName.Equals("OriginalFileName", StringComparison.OrdinalIgnoreCase));
+            // 4️⃣ Update field value
+            var originalField = Fields.FirstOrDefault(f =>
+                f.ColName.Equals("OriginalFileName", StringComparison.OrdinalIgnoreCase));
 
-			if (originalField != null)
-				originalField.Value = "from clip board";
+            if (originalField != null)
+                originalField.Value = "from clip board";
 
-			// 5️⃣ Update batches (same as ImportFiles logic)
-			if (!_batchesPerIndex.TryGetValue(SelectedIndexId, out var list))
-			{
-				list = new ObservableCollection<ScanBatch>();
-				_batchesPerIndex[SelectedIndexId] = list;
-			}
+            // 5️⃣ Update batches (same as ImportFiles logic)
+            if (!_batchesPerIndex.TryGetValue(SelectedIndexId, out var list))
+            {
+                list = new ObservableCollection<ScanBatch>();
+                _batchesPerIndex[SelectedIndexId] = list;
+            }
 
-			var batch = new ScanBatch { FileNo = fileNo };
+            var batch = new ScanBatch { FileNo = fileNo };
 
-			var page = new ScannedDocument
-			{
-				FileId = fileId,
-				FileNo = fileNo,
-				PageNo = 1,
-				OriginalFileName = "from clip board",
-				FullPath = destFilePath
-			};
+            var page = new ScannedDocument
+            {
+                FileId = fileId,
+                FileNo = fileNo,
+                PageNo = 1,
+                OriginalFileName = "from clip board",
+                FullPath = destFilePath
+            };
 
-			batch.Pages.Add(page);
-			list.Add(batch);
-			ScannedBatches.Add(batch);
+            batch.Pages.Add(page);
+            list.Add(batch);
+            ScannedBatches.Add(batch);
 
-			return destFilePath;
-		}
-        public void ImportExcelRow( DataRow row, bool shortFieldSameAsExcel, bool approveImmediate)
+            return destFilePath;
+        }
+        public void ImportExcelRow(DataRow row, bool shortFieldSameAsExcel, bool approveImmediate)
         {
             string createdPath;
 
@@ -1914,7 +1950,7 @@ namespace IMS.Data.Capture
             }
             LoadScannedBatchesFromFile(SelectedIndexId);
         }
-        public void MergeIntoTargetDocument( ScannedDocument sourceDoc, ScannedDocument targetDoc,string currentUser)
+        public void MergeIntoTargetDocument(ScannedDocument sourceDoc, ScannedDocument targetDoc, string currentUser)
         {
             if (sourceDoc == null || targetDoc == null)
                 return;
@@ -1951,7 +1987,53 @@ namespace IMS.Data.Capture
                 cmd.ExecuteNonQuery();
             }
         }
+        public void ImportFoldersAsSingleDocument(IEnumerable<IGrouping<string, string>> folderGroups)
+        {
+            if (SelectedIndexId <= 0)
+                return;
 
+            if (!_batchesPerIndex.TryGetValue(SelectedIndexId, out var list))
+            {
+                list = new ObservableCollection<ScanBatch>();
+                _batchesPerIndex[SelectedIndexId] = list;
+            }
+
+            foreach (var folder in folderGroups)
+            {
+                string folderPath = folder.Key;
+                string folderName = Path.GetFileName(folderPath);
+
+                // create ONE document
+                var (fileId, fileNo, docFolderPath) =
+                    InsertDocumentRow(SelectedIndexId, folderName, folderPath);
+
+                var batch = new ScanBatch { FileNo = fileNo };
+
+                int pageNo = 1;
+
+                foreach (var file in folder)
+                {
+                    string fileName = Path.GetFileName(file);
+                    string destPath = Path.Combine(docFolderPath, fileName);
+
+                    File.Copy(file, destPath, true);
+
+                    var page = new ScannedDocument
+                    {
+                        FileId = fileId,
+                        FileNo = fileNo,
+                        PageNo = pageNo++,
+                        OriginalFileName = folderName,
+                        FullPath = destPath
+                    };
+
+                    batch.Pages.Add(page);
+                }
+
+                list.Add(batch);
+                ScannedBatches.Add(batch);
+            }
+        }
 
     }
 }
