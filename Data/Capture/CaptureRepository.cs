@@ -1837,6 +1837,120 @@ namespace IMS.Data.Capture
                 });
             }
         }
+        public void SplitIntoDocuments(ScannedDocument doc, string currentUser)
+        {
+            if (doc == null || SelectedIndexId <= 0)
+                return;
+
+            string tableName = cabinet.GetTableName(SelectedIndexId);
+            if (string.IsNullOrWhiteSpace(tableName))
+                throw new Exception($"Table name not found for IndexID = {SelectedIndexId}");
+
+            string tableFolder = Path.Combine(IMSPathHelper.ImportRoot, tableName);
+
+            if (!Directory.Exists(tableFolder))
+                return;
+
+
+            var fileNoFolders = Directory.GetDirectories(tableFolder)
+                .Select(f => Path.GetFileName(f))
+                .Where(f => string.Compare(f, doc.FileNo) > 0)
+                .OrderByDescending(f => f)
+                .ToList();
+
+            if (!fileNoFolders.Any())
+                return;
+
+            string previousDocFolder = Path.Combine(tableFolder, fileNoFolders.First());
+
+
+            string documentImportPath = Path.Combine(tableFolder, doc.FileNo);
+            if (!Directory.Exists(documentImportPath))
+                return;
+
+            try
+            {
+                foreach (var file in Directory.GetFiles(documentImportPath))
+                {
+                    string fileName = Path.GetFileName(file);
+                    string destFile = Path.Combine(previousDocFolder, fileName);
+
+                    if (File.Exists(destFile))
+                        File.Delete(destFile);
+
+                    File.Move(file, destFile);
+                }
+
+                if (!Directory.EnumerateFileSystemEntries(documentImportPath).Any())
+                {
+                    Directory.Delete(documentImportPath, true);
+
+                    using (SqlConnection conn = DatabaseHelper.GetConnection())
+                    {
+                        conn.Open();
+
+                        string sql = $@"DELETE FROM [{tableName}] WHERE ES_FileName = @FileNo;";
+                        using (SqlCommand cmd = new SqlCommand(sql, conn))
+                        {
+                            cmd.Parameters.AddWithValue("@FileNo", doc.FileNo);
+                            cmd.ExecuteNonQuery();
+                        }
+                    }
+                }
+
+            }
+            catch
+            {
+                return;
+            }
+
+            var batch = ScannedBatches.FirstOrDefault(b => b.Pages.Any(p => p.FileId == doc.FileId));
+            if (batch != null)
+            {
+                ScannedBatches.Remove(batch);
+
+                if (_batchesPerIndex.TryGetValue(SelectedIndexId, out var list))
+                    list.Remove(batch);
+            }
+            LoadScannedBatchesFromFile(SelectedIndexId);
+        }
+        public void MergeIntoTargetDocument( ScannedDocument sourceDoc, ScannedDocument targetDoc,string currentUser)
+        {
+            if (sourceDoc == null || targetDoc == null)
+                return;
+
+            if (sourceDoc.FileNo == targetDoc.FileNo)
+                return;
+
+            string tableName = cabinet.GetTableName(SelectedIndexId);
+            if (string.IsNullOrWhiteSpace(tableName))
+                return;
+
+            string tableFolder = Path.Combine(IMSPathHelper.ImportRoot, tableName);
+            string sourceFolder = Path.Combine(tableFolder, sourceDoc.FileNo);
+            string targetFolder = Path.Combine(tableFolder, targetDoc.FileNo);
+
+            if (!Directory.Exists(sourceFolder) || !Directory.Exists(targetFolder))
+                return;
+
+            foreach (var file in Directory.GetFiles(sourceFolder))
+            {
+                string dest = Path.Combine(targetFolder, Path.GetFileName(file));
+                if (File.Exists(dest)) File.Delete(dest);
+                File.Move(file, dest);
+            }
+
+            Directory.Delete(sourceFolder, true);
+
+            using (SqlConnection conn = DatabaseHelper.GetConnection())
+            {
+                conn.Open();
+                using var cmd = new SqlCommand(
+                    $"DELETE FROM [{tableName}] WHERE ES_FileName=@f", conn);
+                cmd.Parameters.AddWithValue("@f", sourceDoc.FileNo);
+                cmd.ExecuteNonQuery();
+            }
+        }
 
 
     }
