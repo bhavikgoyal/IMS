@@ -38,7 +38,6 @@ namespace IMS
         private bool onClickMergeEnabled = false;
         private ScannedDocument mergeTargetDoc = null;
         private int _mergeCount = 0;
-
         public CaptureWindow()
         {
             InitializeComponent();
@@ -307,7 +306,6 @@ namespace IMS
             HeaderTitleText.Text =
                 $"Last Document Pressed {doc.FileNo} - Page {pageNo} Of {totalPages}";
         }
-
         private void ScannedTreeView_SelectedItemChanged( object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             ScannedDocument doc = null;
@@ -374,7 +372,16 @@ namespace IMS
 
                 var files = Directory.EnumerateFiles(dlg.SelectedPath, "*.*", searchOption);
 
-                capturerepository.ImportFiles(files);
+                if (capturerepository.ImportEachFolderAsOneDocument)
+                {
+                    // group by directory
+                    var groups = files.GroupBy(f => Path.GetDirectoryName(f));
+                    capturerepository.ImportFoldersAsSingleDocument(groups);
+                }
+                else
+                {
+                    capturerepository.ImportFiles(files); // existing logic
+                }
             }
         }
         private void RecordWithoutDocument_Click(object sender, RoutedEventArgs e)
@@ -1633,6 +1640,34 @@ namespace IMS
                 StatusLabel.Visibility = Visibility.Collapsed;
             }
         }
+        private void mnuImportEachFolderAs1Document_Click(object sender, RoutedEventArgs e)
+        {
+            capturerepository.ImportEachFolderAsOneDocument =
+                mnuImportEachFolderAs1Document.IsChecked == true;
+        }
+        private void mnuKeepEntries_Click(object sender, RoutedEventArgs e)
+        {
+            var menu = sender as MenuItem;
+            capturerepository.KeepEntriesEnabled = menu.IsChecked;
+
+            capturerepository.KeepEntryValues.Clear();
+
+            if (!menu.IsChecked)
+                return;
+
+            foreach (var field in capturerepository.Fields)
+            {
+                if (string.IsNullOrWhiteSpace(field.Value))
+                    continue;
+
+                if (field.ColName.Equals("OriginalFileName",
+                    StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                capturerepository.KeepEntryValues[field.ColName] = field.Value;
+            }
+        }
+
 
     }
 }
