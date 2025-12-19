@@ -62,7 +62,11 @@ namespace IMS
         }
         private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-
+            if (Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.F5)
+            {
+                mnuRecordOnly_Click(sender, e);
+                e.Handled = true;
+            }
             if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.F5)
             {
                 mnuNewBatch_Click(sender, e);
@@ -96,12 +100,42 @@ namespace IMS
             }
             if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.T)
             {
-                mnuMultiSplit_Click(sender, e);
+                mnuSplit_Click(sender, e);
                 e.Handled = true;
             }
             if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.D)
             {
                 mnuApproveDocument_Click(sender, e);
+                e.Handled = true;
+            }
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.A)
+            {
+                mnuApproveAll_click(sender, e);
+                e.Handled = true;
+            }
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.S)
+            {
+                mnuSaveFields_Click(sender, e);
+                e.Handled = true;
+            }
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.U)
+            {
+                mnuApplyToAll_Click(sender, e);
+                e.Handled = true;
+            }
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.F)
+            {
+                SelectAllFields_Click(sender, e);
+                e.Handled = true;
+            }
+            if (Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.F12)
+            {
+                mnuIntegrate_Click(sender, e);
+                e.Handled = true;
+            }
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.L)
+            {
+                mnuClear_Click(sender, e);
                 e.Handled = true;
             }
             if (Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.F4)
@@ -124,26 +158,14 @@ namespace IMS
                 mnuRotateRight_Click(sender, e);
                 e.Handled = true;
             }
-            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.S)
-            {
-                mnuSaveFields_Click(sender, e);
-                e.Handled = true;
-            }
             if (Keyboard.Modifiers == ModifierKeys.Shift && e.Key == Key.F4)
             {
                 mnuEditAnnotations_Click(sender, e);
                 e.Handled = true;
             }
-            if (Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.F5)
-            {
-                mnuRecordOnly_Click(sender, e);
-                e.Handled = true;
-            }
-            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.F)
-            {
-                SelectAllFields_Click(sender, e);
-                e.Handled = true;
-            }
+           
+           
+
         }
         private void MaximizeRestoreButton_Click(object sender, RoutedEventArgs e)
         {
@@ -345,7 +367,6 @@ namespace IMS
                 HeaderTitleText.Text = "Capture";
             }
         }
-
         private void ImportFolderButton_Click(object sender, RoutedEventArgs e)
         {
             if (capturerepository.SelectedIndexId <= 0)
@@ -506,11 +527,7 @@ namespace IMS
         {
             if (capturerepository != null && capturerepository.Fields != null)
             {
-                foreach (var field in capturerepository.Fields)
-                {
-                    field.Value = string.Empty;   // <- textbox clear
-                    field.IsChecked = false;      // optional
-                }
+                capturerepository.ClearAllFields();
             }
             if (DocumentTextViewer != null)
                 DocumentTextViewer.Text = string.Empty;
@@ -1667,7 +1684,25 @@ namespace IMS
                 capturerepository.KeepEntryValues[field.ColName] = field.Value;
             }
         }
+        private async void mnuApplyToAll_Click(object sender, RoutedEventArgs e)
+        {
+            var doc = GetCurrentSelectedDocument();
+            if (doc == null)
+                return;
 
+            capturerepository.ApplyToAll(doc);
+            StatusLabel.Content = "Saved!";
+            StatusLabel.Foreground = Brushes.Green;
+            StatusLabel.Visibility = Visibility.Visible;
+
+            await Task.Delay(300);
+            StatusLabel.Visibility = Visibility.Collapsed;
+
+        }
+        private void mnuClear_Click(object sender, RoutedEventArgs e)
+        {
+            capturerepository.ClearAllFields();
+        }
 
     }
 }

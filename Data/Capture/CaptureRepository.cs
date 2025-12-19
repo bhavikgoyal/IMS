@@ -18,7 +18,7 @@ namespace IMS.Data.Capture
     {
         public ObservableCollection<TreeNode> PartnerTree { get; set; } = new ObservableCollection<TreeNode>();
         public ObservableCollection<FieldViewModel> Fields { get; set; } = new ObservableCollection<FieldViewModel>();
-        public bool DragDropMergeEnabled { get; private set; }
+      //  public bool DragDropMergeEnabled { get; private set; }
         public ObservableCollection<ScanBatch> ScannedBatches { get; } = new ObservableCollection<ScanBatch>();
         private readonly Dictionary<int, ObservableCollection<ScanBatch>> _batchesPerIndex = new Dictionary<int, ObservableCollection<ScanBatch>>();
         private Cabinet cabinet = new Cabinet();
@@ -139,6 +139,15 @@ namespace IMS.Data.Capture
             LoadFieldsForIndex(SelectedIndexId);
             LoadScannedBatchesFromFile(SelectedIndexId);
         }
+        public void ClearAllFields()
+        {
+            foreach (var field in Fields)
+            {
+                field.Value = null;
+                field.IsChecked = false;
+            }
+        }
+
         private void LoadScannedBatchesFromFile(int indexId)
         {
             // Clear previous batches
@@ -265,7 +274,17 @@ namespace IMS.Data.Capture
                     continue;
 
                 var fileName = Path.GetFileName(path);
+                if (!KeepEntriesEnabled)
+                {
+                    foreach (var field in Fields)
+                    {
+                        if (field.ColName.Equals("OriginalFileName",
+                            StringComparison.OrdinalIgnoreCase))
+                            continue;
 
+                        field.Value = null;
+                    }
+                }
                 if (KeepEntriesEnabled && KeepEntryValues.Any())
                 {
                     foreach (var field in Fields)
@@ -298,10 +317,10 @@ namespace IMS.Data.Capture
                 string destFilePath = Path.Combine(folderPath, fileName);
                 File.Copy(path, destFilePath, true);
 
-                if (deleteAfterImport)
-                {
-                    File.Delete(path);
-                }
+                //if (deleteAfterImport)
+                //{
+                //    File.Delete(path);
+                //}
 
                 var batch = new ScanBatch { FileNo = fileNo };
                 var page = new ScannedDocument
@@ -2034,6 +2053,57 @@ namespace IMS.Data.Capture
                 ScannedBatches.Add(batch);
             }
         }
+        public void ApplyToAll(ScannedDocument sourceDoc)
+        {
+            if (sourceDoc == null)
+                return;
+
+            // Get all documents in current folder / batch
+            var allDocs = ScannedBatches
+                .SelectMany(b => b.Pages)
+                .Where(d => d.FileNo != sourceDoc.FileNo)
+                .ToList();
+
+            if (!allDocs.Any())
+                return;
+
+            // Collect checked fields once
+            var checkedFields = Fields
+                .Where(f => f.IsChecked)
+                .Where(f => !string.IsNullOrWhiteSpace(f.Value))
+                .Where(f => !f.ColName.Equals("OriginalFileName",
+                    StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            if (!checkedFields.Any())
+                return;
+
+            string tableName = cabinet.GetTableNameForIndex(SelectedIndexId);
+
+            using (SqlConnection conn = DatabaseHelper.GetConnection())
+            {
+                conn.Open();
+
+                foreach (var doc in allDocs)
+                {
+                    foreach (var field in checkedFields)
+                    {
+                        string sql = $@"
+                    UPDATE [{tableName}]
+                    SET [{field.ColName}] = @Value
+                    WHERE ES_FileID = @FileNo";
+
+                        using (SqlCommand cmd = new SqlCommand(sql, conn))
+                        {
+                            cmd.Parameters.AddWithValue("@Value", field.Value);
+                            cmd.Parameters.AddWithValue("@FileNo", doc.FileNo);
+                            cmd.ExecuteNonQuery();
+                        }
+                    }
+                }
+            }
+        }
+
 
     }
 }
