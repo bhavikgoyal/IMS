@@ -250,7 +250,7 @@
           <MenuItem Header="Integrate" InputGestureText="F12" Click="mnuIntegrate_Click"/>
           <MenuItem Header="Partial Integration"/>
           <MenuItem Header="Bring First Value"/>
-          <MenuItem Header="Set Focus On Current Selected Field"/>
+          <MenuItem Header="Set Focus On Current Selected Field" Click="mnuSetFocusOnCurrentSelectedField_Click"/>
           <MenuItem Header="Clear" InputGestureText="Ctrl+L" Click="mnuClear_Click"/>
         </MenuItem>
 
@@ -538,7 +538,7 @@
             <ScrollViewer Grid.Column="0"
                                       VerticalScrollBarVisibility="Auto"
                                       Margin="6">
-              <ItemsControl ItemsSource="{Binding Fields}">
+              <ItemsControl x:Name="FieldsItemsControl" ItemsSource="{Binding Fields}">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate>
                     <Grid Margin="0,2">
