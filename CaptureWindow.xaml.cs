@@ -1703,6 +1703,49 @@ namespace IMS
         {
             capturerepository.ClearAllFields();
         }
+        private void mnuSetFocusOnCurrentSelectedField_Click(object sender, RoutedEventArgs e)
+		{
+			var field = capturerepository.Fields.FirstOrDefault(f => f.IsChecked);
+			if (field == null)
+				return;
+
+			Dispatcher.BeginInvoke(new Action(() =>
+			{
+				FieldsItemsControl.UpdateLayout();
+
+				var container = FieldsItemsControl
+					.ItemContainerGenerator
+					.ContainerFromItem(field) as DependencyObject;
+
+				if (container == null)
+					return;
+
+				var textBox = FindTextBox(container);
+				if (textBox == null)
+					return;
+
+				textBox.Focus();
+				Keyboard.Focus(textBox);
+				textBox.SelectAll();
+
+			}), DispatcherPriority.Loaded);
+		}
+
+		private TextBox FindTextBox(DependencyObject parent)
+		{
+			for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+			{
+				var child = VisualTreeHelper.GetChild(parent, i);
+
+				if (child is TextBox tb)
+					return tb;
+
+				var result = FindTextBox(child);
+				if (result != null)
+					return result;
+			}
+			return null;
+		}
 
     }
 }
